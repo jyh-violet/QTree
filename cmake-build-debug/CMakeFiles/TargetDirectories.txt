@@ -1,0 +1,6 @@
+/tmp/tmp.KbtJFIJf65/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/tmp/tmp.KbtJFIJf65/cmake-build-debug/CMakeFiles/edit_cache.dir
+/tmp/tmp.KbtJFIJf65/cmake-build-debug/CMakeFiles/QTree.dir
+/tmp/tmp.KbtJFIJf65/cmake-build-debug/CMakeFiles/main.dir
+/tmp/tmp.KbtJFIJf65/cmake-build-debug/CMakeFiles/index.dir
+/tmp/tmp.KbtJFIJf65/cmake-build-debug/CMakeFiles/query.dir
