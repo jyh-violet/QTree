@@ -19,8 +19,8 @@ SET(TEST_MATH
         )
 
 
-add_library(query src/query/QueryRange.cpp src/query/QueryMeta.cpp include/query/QueryRange.h include/query/QueryMeta.h)
-add_library(index include/index/Node.h include/index/QTree.h include/index/InternalNode.h include/index/LeafNode.h)
+add_library(query src/query/QueryRange.cpp src/query/QueryMeta.cpp src/query/QueryRange.h src/query/QueryMeta.h)
+add_library(index src/index/Node.h src/index/QTree.h src/index/InternalNode.h src/index/LeafNode.h)
 target_link_libraries(index PUBLIC query)
 
 add_library(main src/main.cpp)

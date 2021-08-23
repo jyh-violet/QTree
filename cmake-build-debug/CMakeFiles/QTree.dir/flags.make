@@ -6,5 +6,5 @@ CXX_FLAGS = -g   -std=gnu++14
 
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/tmp/tmp.KbtJFIJf65/include 
+CXX_INCLUDES = -I/mnt/e/data/code/QTree/include 
 

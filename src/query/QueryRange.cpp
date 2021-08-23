@@ -2,7 +2,7 @@
 // Created by jyh_2 on 2021/6/18.
 //
 
-#include "../../include/query/QueryRange.h"
+#include "QueryRange.h"
 
 ostream& operator<< (ostream &out, QueryRange* queryRange){
     out << "{" << queryRange->lower << ", " << queryRange->upper << "}";

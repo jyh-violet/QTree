@@ -1,1 +1,0 @@
-/usr/bin/c++  -O3 -DNDEBUG   CMakeFiles/QTree.dir/src/main.cpp.o  -o QTree  libmain.a libindex.a libquery.a 

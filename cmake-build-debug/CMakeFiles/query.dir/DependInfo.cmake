@@ -4,8 +4,8 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
-  "/tmp/tmp.KbtJFIJf65/src/query/QueryMeta.cpp" "/tmp/tmp.KbtJFIJf65/cmake-build-debug/CMakeFiles/query.dir/src/query/QueryMeta.cpp.o"
-  "/tmp/tmp.KbtJFIJf65/src/query/QueryRange.cpp" "/tmp/tmp.KbtJFIJf65/cmake-build-debug/CMakeFiles/query.dir/src/query/QueryRange.cpp.o"
+  "/mnt/e/data/code/QTree/src/query/QueryMeta.cpp" "/mnt/e/data/code/QTree/cmake-build-debug/CMakeFiles/query.dir/src/query/QueryMeta.cpp.o"
+  "/mnt/e/data/code/QTree/src/query/QueryRange.cpp" "/mnt/e/data/code/QTree/cmake-build-debug/CMakeFiles/query.dir/src/query/QueryRange.cpp.o"
   )
 set(CMAKE_CXX_COMPILER_ID "GNU")
 

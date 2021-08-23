@@ -43,10 +43,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /tmp/tmp.KbtJFIJf65
+CMAKE_SOURCE_DIR = /mnt/e/data/code/QTree
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /tmp/tmp.KbtJFIJf65/cmake-build-debug
+CMAKE_BINARY_DIR = /mnt/e/data/code/QTree/cmake-build-debug
 
 # Include any dependencies generated for this target.
 include CMakeFiles/index.dir/depend.make
@@ -65,7 +65,7 @@ index_EXTERNAL_OBJECTS =
 
 libindex.a: CMakeFiles/index.dir/build.make
 libindex.a: CMakeFiles/index.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/tmp/tmp.KbtJFIJf65/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Linking CXX static library libindex.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/mnt/e/data/code/QTree/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Linking CXX static library libindex.a"
 	$(CMAKE_COMMAND) -P CMakeFiles/index.dir/cmake_clean_target.cmake
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/index.dir/link.txt --verbose=$(VERBOSE)
 
@@ -79,6 +79,6 @@ CMakeFiles/index.dir/clean:
 .PHONY : CMakeFiles/index.dir/clean
 
 CMakeFiles/index.dir/depend:
-	cd /tmp/tmp.KbtJFIJf65/cmake-build-debug && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /tmp/tmp.KbtJFIJf65 /tmp/tmp.KbtJFIJf65 /tmp/tmp.KbtJFIJf65/cmake-build-debug /tmp/tmp.KbtJFIJf65/cmake-build-debug /tmp/tmp.KbtJFIJf65/cmake-build-debug/CMakeFiles/index.dir/DependInfo.cmake --color=$(COLOR)
+	cd /mnt/e/data/code/QTree/cmake-build-debug && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /mnt/e/data/code/QTree /mnt/e/data/code/QTree /mnt/e/data/code/QTree/cmake-build-debug /mnt/e/data/code/QTree/cmake-build-debug /mnt/e/data/code/QTree/cmake-build-debug/CMakeFiles/index.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/index.dir/depend
 
