@@ -1,6 +1,8 @@
 #include <iostream>
+#include "query/QueryRange.h"
+#include "query/QueryMeta.h"
+#include "index/QTree.h"
 
-#include "../include/index/QTree.h"
 
 int TOTAL = (int) 1000000, TRACE_LEN = 100000;
 
