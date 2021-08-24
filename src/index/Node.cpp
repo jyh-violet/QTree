@@ -46,16 +46,17 @@ int Node<K,V>::findSlotByKey( K* searchKey) {
 
 template<typename K, typename V>
 void Node<K,V>::setSearchKey(K* key){
-    key->searchKey = key->lower;
-//    int low = this->minValue->lower;
-//    if(key->MinGT(this->minValue)){
-//        low = key->lower;
-//    }
-//    int high = this->maxValue->upper;
-//    if(!key->MaxGE(this->maxValue)){
-//        low = key->upper;
-//    }
-//    key->searchKey = (low + high) / 2;
+//    key->searchKey = (key->lower + key->upper) / 2;
+//    key->searchKey = key->lower;
+    int low = this->minValue->lower;
+    if(key->MinGT(this->minValue)){
+        low = key->lower;
+    }
+    int high = this->maxValue->upper;
+    if(!key->MaxGE(this->maxValue)){
+        high = key->upper;
+    }
+    key->searchKey = (low + high) / 2;
 }
 
 template<typename K, typename V>

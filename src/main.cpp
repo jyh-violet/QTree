@@ -11,7 +11,7 @@ int main() {
     srand((unsigned)time(NULL));
     clock_t   start,   finish, time1, time2;
     std::cout << "Hello, World!" << std::endl;
-    QTree<QueryRange, QueryMeta> qTree(5);
+    QTree<QueryRange, QueryMeta> qTree(32);
     QueryMeta* queries[TOTAL];
     time1 = start = clock();
 
