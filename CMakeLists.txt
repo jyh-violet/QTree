@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 14)
 
 #3.head file path，头文件目录
 INCLUDE_DIRECTORIES(
-        include
+        src
 )
 
 
@@ -16,11 +16,11 @@ AUX_SOURCE_DIRECTORY(src DIR_SRCS)
 #5.set environment variable，设置环境变量，编译用到的源文件全部都要放到这里，否则编译能够通过，但是执行的时候会出现各种问题，比如"symbol lookup error xxxxx , undefined symbol"
 SET(TEST_MATH
         ${DIR_SRCS}
-        )
+        src/index/QTree.cpp)
 
 
 add_library(query src/query/QueryRange.cpp src/query/QueryMeta.cpp src/query/QueryRange.h src/query/QueryMeta.h)
-add_library(index src/index/Node.h src/index/QTree.h src/index/InternalNode.h src/index/LeafNode.h)
+add_library(index src/index/Node.h src/index/Node.cpp src/index/QTree.h src/index/QTree.cpp  src/index/InternalNode.h src/index/LeafNode.h src/index/Node.cpp)
 target_link_libraries(index PUBLIC query)
 
 add_library(main src/main.cpp)

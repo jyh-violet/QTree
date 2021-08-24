@@ -13,6 +13,7 @@ class QueryRange{
 public:
     int lower; // lower bound of the region
     int upper;  // upper bound of the region
+    int searchKey; // in [lower, upper], used as the search key in the tree
     char boundInclude = 0; //0: neither include; 1 :lower include; 2: upper include; 3: both include
 
     QueryRange(){
@@ -42,6 +43,7 @@ public:
                 break;
         }
         boundInclude = 3;
+        searchKey  = lower;
     }
 
     QueryRange( int startKey, int endKey, bool lowerInclude, bool upperInclude){
@@ -56,7 +58,9 @@ public:
         }else{
             boundInclude = 0;
         }
+        searchKey = lower;
     }
+
 
 //    KeyHolder getLowerHolder(){
 //        return new IntHolder(lower);

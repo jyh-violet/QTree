@@ -1,6 +1,0 @@
-/mnt/e/data/code/QTree/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/mnt/e/data/code/QTree/cmake-build-debug/CMakeFiles/edit_cache.dir
-/mnt/e/data/code/QTree/cmake-build-debug/CMakeFiles/QTree.dir
-/mnt/e/data/code/QTree/cmake-build-debug/CMakeFiles/main.dir
-/mnt/e/data/code/QTree/cmake-build-debug/CMakeFiles/index.dir
-/mnt/e/data/code/QTree/cmake-build-debug/CMakeFiles/query.dir

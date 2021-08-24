@@ -30,6 +30,9 @@ public:
 
     void resetMaxValue();
 
+    void resetMinValue();
+
+
     K* remove(int slot) override;
 
     bool isLeaf() override;
@@ -76,6 +79,9 @@ bool LeafNode<K, V>::add(int slot, K* newKey, V* newValue){
     if(this->maxValue == NULL || (newKey->MaxGE(this->maxValue))){
         this->maxValue = newKey;
     }
+    if(this->minValue == NULL || (this->minValue->MinGT(newKey))){
+        this->minValue = newKey;
+    }
     return true;
 }
 
@@ -109,6 +115,13 @@ Node<K, V>* LeafNode<K, V>::split() {
     }else {
         newHigh->resetMaxValue();
     }
+    if(*(this->minValue) > *(newHigh->keys[0])){
+        newHigh->minValue = this->minValue;
+        this->resetMinValue();
+    }else {
+        newHigh->resetMinValue();
+    }
+
 
     return newHigh;
 }
@@ -122,6 +135,19 @@ void LeafNode<K, V>::resetMaxValue() {
     for (int i = 1; i < this->allocated; i++) {
         if ((this->keys[i])->MaxGE(this->maxValue)) {
             this->maxValue = this->keys[i];
+        }
+    }
+}
+
+template<typename K, typename V>
+void LeafNode<K, V>::resetMinValue() {
+    if (this->allocated == 0) {
+        return;
+    }
+    this->minValue = this->keys[0];
+    for (int i = 1; i < this->allocated; i++) {
+        if ((this->minValue)->MinGT(this->keys[i])) {
+            this->minValue = this->keys[i];
         }
     }
 }

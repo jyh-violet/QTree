@@ -11,9 +11,10 @@ int main() {
     srand((unsigned)time(NULL));
     clock_t   start,   finish, time1, time2;
     std::cout << "Hello, World!" << std::endl;
-    QTree<QueryRange, QueryMeta> qTree(32);
+    QTree<QueryRange, QueryMeta> qTree(5);
     QueryMeta* queries[TOTAL];
     time1 = start = clock();
+
     for(int i = 0; i < TOTAL; i ++){
         queries[i] = new QueryMeta();
         qTree.put(queries[i]->dataRegion, (queries[i]));

@@ -1,2 +1,0 @@
-/usr/bin/ar qc libquery.a  CMakeFiles/query.dir/src/query/QueryRange.cpp.o CMakeFiles/query.dir/src/query/QueryMeta.cpp.o
-/usr/bin/ranlib libquery.a

@@ -10,15 +10,15 @@ ostream& operator<< (ostream &out, QueryRange* queryRange){
 }
 
 bool QueryRange::operator< (QueryRange queryRange){
-    return this->lower < queryRange.lower;
+    return this->searchKey < queryRange.searchKey;
 }
 
 bool QueryRange::operator<= (QueryRange queryRange){
-    return this->lower <= queryRange.lower;
+    return this->searchKey <= queryRange.searchKey;
 }
 
 bool QueryRange::operator> (QueryRange queryRange){
-    return this->lower > queryRange.lower;
+    return this->searchKey > queryRange.searchKey;
 }
 
 bool QueryRange::operator>= (QueryRange queryRange){

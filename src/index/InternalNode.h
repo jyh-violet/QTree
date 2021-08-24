@@ -24,6 +24,9 @@ public:
 
     void resetMaxValue();
 
+    void resetMinValue();
+
+
     bool add(int slot, K* newKey, Node<K,V>* child);
 
     bool checkUnderflowWithRight(int slot);
@@ -85,13 +88,22 @@ Node<K, V>* InternalNode<K, V>::split() {
     }
     newHigh->allocated = newsize;
     this->allocated -= newsize;
-    if((this->maxValue)->MaxGE(newHigh->keys[0])){
+    if(*(this->maxValue) > *(newHigh->keys[0])){
         newHigh->maxValue = this->maxValue;
         this->resetMaxValue();
 
     }else {
         newHigh->allocated --;
         newHigh->resetMaxValue();
+        newHigh->allocated ++;
+    }
+
+    if(*(this->minValue) > *(newHigh->keys[0])){
+        newHigh->minValue = this->minValue;
+        this->resetMinValue();
+    }else {
+        newHigh->allocated --;
+        newHigh->resetMinValue();
         newHigh->allocated ++;
     }
     return newHigh;
@@ -103,6 +115,16 @@ void InternalNode<K, V>::resetMaxValue(){
     for(int i = 1; i <= this->allocated; i ++){
         if( (childs[i]->maxValue)->MaxGE(this->maxValue)){
             this->maxValue = childs[i]->maxValue;
+        }
+    }
+}
+
+template<typename K, typename V>
+void InternalNode<K, V>::resetMinValue(){
+    this->minValue = this->childs[0]->minValue;
+    for(int i = 1; i <= this->allocated; i ++){
+        if((this->minValue)->MinGT (childs[i]->minValue)){
+            this->minValue = childs[i]->minValue;
         }
     }
 }
@@ -164,6 +186,9 @@ void InternalNode<K, V>::merge(InternalNode<K, V>* nodeParent, int slot, Node<K,
     if(!nodeTO->maxValue->MaxGE(nodeFROM->maxValue)){
         nodeTO->maxValue = nodeFROM->maxValue;
     }
+    if(nodeTO->minValue->MinGT(nodeFROM->minValue)){
+        nodeTO->minValue = nodeFROM->minValue;
+    }
 
     // remove key from nodeParent
     nodeParent->remove(slot);
@@ -178,6 +203,7 @@ K* InternalNode<K, V>::remove( int slot) {
         return NULL;
     }
     K* removedUpper = childs[slot + 1]->maxValue;
+
     if(slot == -1){
         memcpy(this->keys, this->keys + 1, (this->allocated - 1) * sizeof (K*));
         memcpy(this->childs, this->childs + 1, (this->allocated) * sizeof (Node<K,V>*));
