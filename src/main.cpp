@@ -48,6 +48,7 @@ int main() {
 
     cout << "get and remove end!" << endl;
     cout << "remain:" << qTree.elements << endl;
+    cout << &qTree << endl;
 
     for(int i = 0; i < TOTAL; i ++){
         delete queries[i];

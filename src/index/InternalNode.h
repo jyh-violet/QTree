@@ -193,6 +193,7 @@ void InternalNode<K, V>::merge(InternalNode<K, V>* nodeParent, int slot, Node<K,
     // remove key from nodeParent
     nodeParent->remove(slot);
     // Free nodeFROM
+    free(nodeFROM);
 
 }
 

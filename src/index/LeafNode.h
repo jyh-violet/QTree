@@ -58,7 +58,27 @@ public:
 
 template<typename K, typename V>
 void LeafNode<K, V>::merge( InternalNode<K, V>* nodeParent, int slot,
-            Node<K, V>* nodeFROM){
+            Node<K, V>* nodeFROMx){
+    LeafNode<K, V>* nodeFROM = (LeafNode<K, V>*) nodeFROMx;
+    LeafNode<K, V>* nodeTO = this;
+    int sizeTO = nodeTO->allocated;
+    int sizeFROM = nodeFROM->allocated;
+    // copy keys from nodeFROM to nodeTO
+    memcpy(nodeTO->keys + sizeTO , nodeFROM->keys, sizeFROM * sizeof(K*));
+    memcpy(nodeTO->values + sizeTO , nodeFROM->values, (sizeFROM) * sizeof(V*));
+
+    nodeTO->allocated += sizeFROM; // keys of FROM and key of nodeParent
+    if(!nodeTO->maxValue->MaxGE(nodeFROM->maxValue)){
+        nodeTO->maxValue = nodeFROM->maxValue;
+    }
+    if(nodeTO->minValue->MinGT(nodeFROM->minValue)){
+        nodeTO->minValue = nodeFROM->minValue;
+    }
+
+    // remove key from nodeParent
+    nodeParent->remove(slot);
+    // Free nodeFROM
+    free(nodeFROM);
 
 }
 

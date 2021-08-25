@@ -7,12 +7,12 @@ template class Node<QueryRange, QueryMeta>;
 
 template<typename K, typename V>
 bool Node<K,V>::isUnderFlow() {
-    return (allocated < (tree->Border >> 1));
+    return (allocated <= (tree->Border >> 1));
 }
 
 template<typename K, typename V>
 bool Node<K,V>::canMerge( Node<K, V>* other) {
-    return ((allocated + other->allocated + 1) < tree->Border);
+    return ((allocated + other->allocated) < tree->Border);
 }
 
 template<typename K, typename V>

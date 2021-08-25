@@ -37,7 +37,7 @@ public:
 
     QTree(int BOrder){
         BOrder += 1 - (BOrder % 2);
-        this->Border = BOrder + 1;
+        this->Border = BOrder;
         this->root = new LeafNode<K,V>(this);
         this->root->allocId();
         this->elements = 0;
