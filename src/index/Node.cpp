@@ -48,6 +48,9 @@ template<typename K, typename V>
 void Node<K,V>::setSearchKey(K* key){
 //    key->searchKey = (key->lower + key->upper) / 2;
 //    key->searchKey = key->lower;
+    if((key->lower >= this->maxValue->upper) || (key-> upper <= this->minValue->lower)){
+        return;
+    }
     int low = this->minValue->lower;
     if(key->MinGT(this->minValue)){
         low = key->lower;
