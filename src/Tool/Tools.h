@@ -26,7 +26,7 @@ static int span = 1000;
 static int redunc = 5;  // 2^redunc
 static int coordianteRedunc = 2;  // 2^redunc
 static int BOrder = 32;
-static SearchKeyType searchKeyType = RAND;
+static SearchKeyType searchKeyType = DYMID;
 
 static int TOTAL = (int) 10000000, TRACE_LEN = 10000000;
 
