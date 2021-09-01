@@ -46,20 +46,50 @@ int Node<K,V>::findSlotByKey( K* searchKey) {
 
 template<typename K, typename V>
 void Node<K,V>::setSearchKey(K* key){
+    switch (searchKeyType) {
+        case LOW:
+            key->searchKey = key->lower;
+            break;
+        case DYMID:
+            if((key->lower < this->maxValue->upper) && (key-> upper > this->minValue->lower)){
+                int low = this->minValue->lower;
+                if(key->MinGT(this->minValue)){
+                    low = key->lower;
+                }
+                int high = this->maxValue->upper;
+                if(!key->MaxGE(this->maxValue)){
+                    high = key->upper;
+                }
+                key->searchKey = (low + high) / 2;
+            }
+            break;
+        case RAND:
+            if(key->searchKey == -1){
+                if(key->upper == key->lower){
+                    key->searchKey = key->lower;
+                }else{
+                    int randNum = rand() % (key->upper - key->lower);
+                    key->searchKey  = key->lower + randNum;
+                }
+
+            }
+            break;
+    }
 //    key->searchKey = (key->lower + key->upper) / 2;
 //    key->searchKey = key->lower;
-    if((key->lower >= this->maxValue->upper) || (key-> upper <= this->minValue->lower)){
-        return;
-    }
-    int low = this->minValue->lower;
-    if(key->MinGT(this->minValue)){
-        low = key->lower;
-    }
-    int high = this->maxValue->upper;
-    if(!key->MaxGE(this->maxValue)){
-        high = key->upper;
-    }
-    key->searchKey = (low + high) / 2;
+//    if((key->lower >= this->maxValue->upper) || (key-> upper <= this->minValue->lower)){
+//        return;
+//    }
+//    int low = this->minValue->lower;
+//    if(key->MinGT(this->minValue)){
+//        low = key->lower;
+//    }
+//    int high = this->maxValue->upper;
+//    if(!key->MaxGE(this->maxValue)){
+//        high = key->upper;
+//    }
+//    key->searchKey = (low + high) / 2;
+
 }
 
 template<typename K, typename V>

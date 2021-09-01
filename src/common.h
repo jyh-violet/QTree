@@ -10,7 +10,7 @@
 #include <ctime>
 #include <sstream>
 #include <iostream>
-#include "query/Tools.h"
+#include "Tool/Tools.h"
 
 using namespace std;
 

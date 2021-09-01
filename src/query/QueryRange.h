@@ -18,7 +18,7 @@ public:
 
     QueryRange(){
 
-        int r, diff;
+        int r, diff, randNum;
 
         switch (dataRegionType){
             case Same:
@@ -31,19 +31,19 @@ public:
                 lower = r ;
                 upper = r + diff ;
                 break;
-//            case Zipf:
-//                rand = Math.toIntExact(Tools.zipfianGenerator.nextValue());
-//                diff =  Math.toIntExact(Tools.spanGenerator.nextValue());
-//                lower = rand ;
-//                upper = rand + diff ;
-//                break;
+            case Zipf:
+                randNum = zipf(0.99, maxValue);
+                diff =  zipf(0.99, maxValue);
+                lower = randNum ;
+                upper = randNum + diff ;
+                break;
             case Increase:
                 lower = rangeCount ++ ;
                 upper = rangeCount ++ ;
                 break;
         }
         boundInclude = 3;
-        searchKey  = lower;
+        searchKey  = -1;
     }
 
     QueryRange( int startKey, int endKey, bool lowerInclude, bool upperInclude){
@@ -58,7 +58,7 @@ public:
         }else{
             boundInclude = 0;
         }
-        searchKey = lower;
+        searchKey = -1;
     }
 
 

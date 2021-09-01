@@ -8,6 +8,8 @@
 
 #include "Node.h"
 
+extern int maxValue;
+
 template <typename K, typename V>
 class Node;
 template <typename K, typename V>
@@ -78,7 +80,7 @@ void LeafNode<K, V>::merge( InternalNode<K, V>* nodeParent, int slot,
     // remove key from nodeParent
     nodeParent->remove(slot);
     // Free nodeFROM
-    free(nodeFROM);
+    delete nodeFROM;
 
 }
 
