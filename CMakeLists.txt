@@ -9,6 +9,7 @@ INCLUDE_DIRECTORIES(
         src
 )
 
+file(COPY config.cfg DESTINATION ./)
 
 #4.source directory，源文件目录
 AUX_SOURCE_DIRECTORY(src DIR_SRCS)
@@ -32,7 +33,7 @@ ADD_EXECUTABLE(${PROJECT_NAME}  ${TEST_MATH})
 
 #7.add link library，添加可执行文件所需要的库，比如我们用到了libm.so（命名规则：lib+name+.so），就添加该库的名称
 #TARGET_LINK_LIBRARIES(${PROJECT_NAME} m)
-target_link_libraries(${PROJECT_NAME}  PUBLIC main)
+target_link_libraries(${PROJECT_NAME}  PUBLIC main  -lconfig)
 
 
 

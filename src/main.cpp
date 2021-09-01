@@ -2,6 +2,7 @@
 #include "query/QueryRange.h"
 #include "query/QueryMeta.h"
 #include "index/QTree.h"
+#include <libconfig.h>
 
 
 
@@ -84,37 +85,99 @@ int test() {
 }
 
 int main(){
-    TOTAL = 200000000;
-    TRACE_LEN = 200000000;
-    dataRegionType = Random;
-    valueSpan = 20;
-    searchKeyType = RAND;
-    for (int i = 0; i < 10; ++i) {
-        test();
+    const char ConfigFile[]= "config.cfg";
+
+    config_t cfg;
+    config_setting_t *setting;
+    const char *str;
+
+    config_init(&cfg);
+
+    /* Read the file. If there is an error, report it and exit. */
+    if(! config_read_file(&cfg, ConfigFile))
+    {
+        fprintf(stderr, "%s:%d - %s\n", config_error_file(&cfg),
+                config_error_line(&cfg), config_error_text(&cfg));
+        config_destroy(&cfg);
+        return(EXIT_FAILURE);
     }
-    searchKeyType = DYMID;
-    for (int i = 0; i < 10; ++i) {
-        test();
+    int regionType, keyType;
+    config_lookup_int(&cfg, "TOTAL", &TOTAL);
+    config_lookup_int(&cfg, "TRACE_LEN", &TRACE_LEN);
+    config_lookup_int(&cfg, "dataRegionType", &regionType);
+    config_lookup_int(&cfg, "valueSpan", &valueSpan);
+    config_lookup_int(&cfg, "searchKeyType", &keyType);
+    switch (regionType) {
+        case 0:
+            dataRegionType = Same;
+            break;
+        case 1:
+            dataRegionType = Random;
+            break;
+        case 2:
+            dataRegionType = Increase;
+            break;
+        case 3:
+            dataRegionType = Zipf;
+            break;
     }
-    searchKeyType = RAND;
-    for (int i = 0; i < 10; ++i) {
-        test();
+    switch (keyType) {
+        case 0:
+            searchKeyType = LOW;
+            break;
+        case 1:
+            searchKeyType = DYMID;
+            break;
+        case 2:
+            searchKeyType = RAND;
+            break;
+
+
     }
 
-    dataRegionType = Zipf;
-    valueSpan = 16;
-    searchKeyType = RAND;
+//    TOTAL = 10000000;
+//    TRACE_LEN = 10000000;
+//    dataRegionType = Random;
+//    valueSpan = 20;
+//    searchKeyType = LOW;
+    printf("TOTAL: %d, dataRegionType:%d, valueSpan:%d, searchKeyType:%d \n",
+           TOTAL, dataRegionType, valueSpan, searchKeyType);
     for (int i = 0; i < 10; ++i) {
         test();
     }
-    searchKeyType = DYMID;
-    for (int i = 0; i < 10; ++i) {
-        test();
-    }
-    searchKeyType = RAND;
-    for (int i = 0; i < 10; ++i) {
-        test();
-    }
+//    searchKeyType = DYMID;
+//    printf("TOTAL: %d, dataRegionType:%d, valueSpan:%d, searchKeyType:%d \n",
+//           TOTAL, dataRegionType, valueSpan, searchKeyType);
+//    for (int i = 0; i < 10; ++i) {
+//        test();
+//    }
+//    searchKeyType = RAND;
+//    printf("TOTAL: %d, dataRegionType:%d, valueSpan:%d, searchKeyType:%d \n",
+//           TOTAL, dataRegionType, valueSpan, searchKeyType);
+//    for (int i = 0; i < 10; ++i) {
+//        test();
+//    }
+//
+//    dataRegionType = Zipf;
+//    valueSpan = 16;
+//    searchKeyType = LOW;
+//    printf("TOTAL: %d, dataRegionType:%d, valueSpan:%d, searchKeyType:%d \n",
+//           TOTAL, dataRegionType, valueSpan, searchKeyType);
+//    for (int i = 0; i < 10; ++i) {
+//        test();
+//    }
+//    searchKeyType = DYMID;
+//    printf("TOTAL: %d, dataRegionType:%d, valueSpan:%d, searchKeyType:%d \n",
+//           TOTAL, dataRegionType, valueSpan, searchKeyType);
+//    for (int i = 0; i < 10; ++i) {
+//        test();
+//    }
+//    searchKeyType = RAND;
+//    printf("TOTAL: %d, dataRegionType:%d, valueSpan:%d, searchKeyType:%d \n",
+//           TOTAL, dataRegionType, valueSpan, searchKeyType);
+//    for (int i = 0; i < 10; ++i) {
+//        test();
+//    }
 
     return 0;
 }
