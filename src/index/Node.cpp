@@ -5,6 +5,8 @@
 #include "Node.h"
 template class Node<QueryRange, QueryMeta>;
 
+extern SearchKeyType searchKeyType;
+
 template<typename K, typename V>
 bool Node<K,V>::isUnderFlow() {
     return (allocated <= (tree->Border >> 1));

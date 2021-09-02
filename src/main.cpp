@@ -4,6 +4,14 @@
 #include "index/QTree.h"
 #include <libconfig.h>
 
+ DataRegionType dataRegionType = Zipf;
+int valueSpan = 16; // 2 ^valueSpan
+int maxValue = 1 << (valueSpan - 1);
+int span = 1000;
+int redunc = 5;  // 2^redunc
+int coordianteRedunc = 2;  // 2^redunc
+int BOrder = 32;
+SearchKeyType searchKeyType = DYMID;
 
 
 int test() {

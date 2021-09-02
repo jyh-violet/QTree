@@ -8,6 +8,9 @@
 #include "../common.h"
 
 static int rangeCount;
+extern  DataRegionType dataRegionType;
+extern int maxValue;
+extern int span;
 
 class QueryRange{
 public:

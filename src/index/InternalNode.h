@@ -5,7 +5,7 @@
 #ifndef QTREE_INTERNALNODE_H
 #define QTREE_INTERNALNODE_H
 #include "Node.h"
-
+extern int maxValue;
 template <typename K, typename V>
 class Node;
 template <typename K, typename V>
