@@ -5,7 +5,7 @@
 #include <time.h>
 #include <Tool/ArrayList.h>
 
-DataRegionType dataRegionType = Zipf;
+DataRegionType dataRegionType = Random;
 int valueSpan = 30; // 2 ^valueSpan
 int maxValue ;
 int span = 1000;
@@ -19,7 +19,7 @@ int removeNum = 10;
 int TOTAL = (int) 1000000, TRACE_LEN = 100000;
 
 int test() {
-
+    double generateT, putT, removeT;
     srand((unsigned)time(NULL));
     clock_t   start,   finish, time1, time2;
     QTree qTree;
@@ -36,7 +36,8 @@ int test() {
         }
     }
     finish = clock();
-    printf("generate end! use %lfs\n", (double)(finish - start)/CLOCKS_PER_SEC );
+    generateT = (double)(finish - start)/CLOCKS_PER_SEC;
+//    printf("generate end! use %lfs\n", (double)(finish - start)/CLOCKS_PER_SEC );
 
     int i = 0;
     time1 = start = clock();
@@ -49,7 +50,8 @@ int test() {
         }
     }
     finish = clock();
-    printf("put end! use %lfs\n", (double)(finish - start)/CLOCKS_PER_SEC );
+    putT = (double)(finish - start)/CLOCKS_PER_SEC;
+//    printf("put end! use %lfs\n", (double)(finish - start)/CLOCKS_PER_SEC );
     //    cout << &qTree << endl;
 
 
@@ -78,7 +80,6 @@ int test() {
                 oldId = id;
             }
             fragmentNum[i] = fragment;
-            i ++;
         }
         printArray(fragmentNum, removeNum);
         ArraylistDeallocate(removedQuery);
@@ -93,17 +94,18 @@ int test() {
                 printf("remove %d use %lfs \n", TRACE_LEN, (double)(time2 - time1)/CLOCKS_PER_SEC );
                 time1 = time2;
             }
-            i ++;
         }
-        printf("remove:%d\n", removedQuery->size);
+        finish = clock();
+//        printf("remove:%d\n", removedQuery->size);
         ArraylistDeallocate(removedQuery);
 
     }
 
-    finish = clock();
-    printf("remove end! use %lfs\n", (double)(finish - start)/CLOCKS_PER_SEC);
-    printf( "get and remove end!\n remain:%d\n",  qTree.elements);
 
+    removeT = (double)(finish - start)/CLOCKS_PER_SEC;
+//    printf("remove end! use %lfs\n", (double)(finish - start)/CLOCKS_PER_SEC);
+//    printf( "get and remove end!\n remain:%d\n",  qTree.elements);
+    printf("%lf,%lf,%lf\n", generateT, putT, removeT);
     free(queries) ;
     return 0;
 }
@@ -167,11 +169,11 @@ int main(){
 //    dataRegionType = Random;
 //    valueSpan = 20;
 //    searchKeyType = LOW;
-    printf("TOTAL: %d, dataRegionType:%d, valueSpan:%d, searchKeyType:%d \n",
-           TOTAL, dataRegionType, valueSpan, searchKeyType);
-    for (int i = 0; i < 10; ++i) {
-        test();
-    }
-
+//printf("TOTAL: %d, TRACE_LEN:%d, dataRegionType:%d, valueSpan:%d, searchKeyType:%d \n",
+//           TOTAL, TRACE_LEN, dataRegionType, valueSpan, searchKeyType);
+//    for (int i = 0; i < 10; ++i) {
+//        test();
+//    }
+    test();
     return 0;
 }
