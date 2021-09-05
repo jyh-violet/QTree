@@ -16,14 +16,14 @@ SearchKeyType searchKeyType = DYMID;
 int Qid = 0;
 bool countFragment = false;
 int removeNum = 10;
-int TOTAL = (int) 1000000, TRACE_LEN = 100000;
+int TOTAL = (int) 20, TRACE_LEN = 100000;
 
 int test() {
     double generateT, putT, removeT;
     srand((unsigned)time(NULL));
     clock_t   start,   finish, time1, time2;
     QTree qTree;
-    QTreeConstructor(&qTree, 32);
+    QTreeConstructor(&qTree, 2);
     QueryMeta* queries = malloc(sizeof(QueryMeta) * TOTAL);
     time1 = start = clock();
 
@@ -96,7 +96,7 @@ int test() {
             }
         }
         finish = clock();
-//        printf("remove:%d\n", removedQuery->size);
+        printf("remove:%d\n", removedQuery->size);
         ArraylistDeallocate(removedQuery);
 
     }

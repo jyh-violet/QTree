@@ -98,6 +98,7 @@ LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key) {
             exit(-1);
         }
     }
+    setSearchKey(node, key);
     return (node->isLeaf ? (LeafNode*) node : NULL);
 }
 
@@ -109,7 +110,6 @@ Node* QTreePut(QTree* qTree, QueryRange * key, QueryMeta * value){
 
 
     LeafNode* nodeLeaf = QTreeFindLeafNode(qTree, key);
-
     if (nodeLeaf == NULL) {
         printf("QTreeFindLeafNode error!\n");
         exit(-1);

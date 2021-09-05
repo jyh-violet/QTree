@@ -64,7 +64,9 @@ void setSearchKey(Node* node, KeyType * key){
             key->searchKey = key->lower;
             break;
         case DYMID:
-            if((key->lower < ((QueryRange*)node->maxValue)->upper) && (key-> upper > ((QueryRange*)node->minValue)->lower)){
+            if((QueryRange*)node->maxValue == NULL){
+                key->searchKey = key->lower;
+            } else if((key->lower < ((QueryRange*)node->maxValue)->upper) && (key-> upper > ((QueryRange*)node->minValue)->lower)){
                 int low = ((QueryRange*)node->minValue)->lower;
                 if(QueryRangeMinGT(key, (QueryRange*)node->minValue)){
                     low = key->lower;
