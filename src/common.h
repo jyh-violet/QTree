@@ -4,14 +4,8 @@
 
 #ifndef QTREE_COMMON_H
 #define QTREE_COMMON_H
-
-#include <cstring>
+#include <stdio.h>
 #include <stdlib.h>
-#include <ctime>
-#include <sstream>
-#include <iostream>
 #include "Tool/Tools.h"
-
-using namespace std;
 
 #endif //QTREE_COMMON_H

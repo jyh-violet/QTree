@@ -2,7 +2,8 @@
 // Created by workshop on 9/1/2021.
 //
 
-#include <cmath>
+#include <math.h>
+#include <stdio.h>
 #include "Tools.h"
 #include "common.h"
 #define N 999
@@ -57,8 +58,30 @@ int zipf(double alpha, int n)
 }
 
 void printArray(int* array, int num){
+
     for(int i = 0; i < num; i ++){
-        cout << *(array + i) << ",";
+        printf("%d,",  *(array + i));
     }
-    cout << endl;
+    printf("\n");
+}
+
+void bubbleSort(void* arr[], int len, bool (*cmp)(void*, void *)) {
+    int i, j;
+    void *temp;
+    for (i = 0; i < len - 1; i++)
+        for (j = 0; j < len - 1 - i; j++)
+            if (cmp(arr[j], arr[j + 1])) {
+                temp = arr[j];
+                arr[j] = arr[j + 1];
+                arr[j + 1] = temp;
+            }
+}
+
+char *myItoa(int num, char *str){
+    if(str == NULL)
+    {
+        return NULL;
+    }
+    sprintf(str, "%d", num);
+    return str;
 }

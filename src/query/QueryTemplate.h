@@ -5,11 +5,4 @@
 #ifndef QTREE_QUERYTEMPLATE_H
 #define QTREE_QUERYTEMPLATE_H
 
-
-class QueryTemplate {
-public:
-
-};
-
-
 #endif //QTREE_QUERYTEMPLATE_H

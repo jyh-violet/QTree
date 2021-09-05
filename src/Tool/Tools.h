@@ -6,12 +6,12 @@
 #define QTREE_TOOLS_H
 
 
-enum DataRegionType {
+typedef enum DataRegionType {
     Same,
     Random,
     Increase,
     Zipf
-};
+}DataRegionType;
 
 typedef enum SearchKeyType{
     LOW,
@@ -19,11 +19,17 @@ typedef enum SearchKeyType{
     RAND
 }SearchKeyType;
 
+typedef enum bool{
+    false,
+    true
+}bool;
 
 
-static int TOTAL = (int) 10000000, TRACE_LEN = 100000000;
+
+
 
 int zipf(double alpha, int n);
 void printArray(int* array, int num);
-
+void bubbleSort(void* arr[], int len, bool (*cmp)(void*, void *));
+char *myItoa(int num, char *str);
 #endif //QTREE_TOOLS_H

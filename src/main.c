@@ -1,12 +1,13 @@
-#include <iostream>
 #include "query/QueryRange.h"
 #include "query/QueryMeta.h"
 #include "index/QTree.h"
 #include <libconfig.h>
+#include <time.h>
+#include <Tool/ArrayList.h>
 
- DataRegionType dataRegionType = Zipf;
+DataRegionType dataRegionType = Zipf;
 int valueSpan = 30; // 2 ^valueSpan
-int maxValue = 1 << (valueSpan - 1);
+int maxValue ;
 int span = 1000;
 int redunc = 5;  // 2^redunc
 int coordianteRedunc = 2;  // 2^redunc
@@ -15,74 +16,62 @@ SearchKeyType searchKeyType = DYMID;
 int Qid = 0;
 bool countFragment = false;
 int removeNum = 10;
-
+int TOTAL = (int) 1000000, TRACE_LEN = 100000;
 
 int test() {
 
     srand((unsigned)time(NULL));
     clock_t   start,   finish, time1, time2;
-    QTree<QueryRange, QueryMeta> qTree(32);
-    list<QueryMeta*>* queries = new list<QueryMeta*>();
-//    QueryMeta* queries[TOTAL];
+    QTree qTree;
+    QTreeConstructor(&qTree, 32);
+    QueryMeta* queries = malloc(sizeof(QueryMeta) * TOTAL);
     time1 = start = clock();
 
-//    for (int i = 0; i < 20; ++i) {
-//        cout << zipf(0.99, 30) << endl;
-//    }
-//
-//    return 0;
     for(int i = 0; i < TOTAL;i ++){
-        QueryMeta* queryMeta = new QueryMeta();
-        queries->push_back(queryMeta);
+        QueryMetaConstructor(queries + i);
         if((i + 1) % TRACE_LEN == 0){
             time2 = clock();
-            cout << "generate " << TRACE_LEN << " use " << (double)(time2 - time1)/CLOCKS_PER_SEC << "s" << endl;
+            printf("generate %d use %lfs\n", TRACE_LEN, (double)(time2 - time1)/CLOCKS_PER_SEC );
             time1 = time2;
         }
     }
     finish = clock();
-    cout << "generate end! use " << (double)(finish - start)/CLOCKS_PER_SEC << "s" << endl;
+    printf("generate end! use %lfs\n", (double)(finish - start)/CLOCKS_PER_SEC );
 
-
-    list<QueryMeta*>::iterator  itreator = queries->begin();
     int i = 0;
     time1 = start = clock();
-    for(itreator = queries->begin(); itreator!= queries->end(); itreator ++){
-        qTree.put((*itreator)->dataRegion, (*itreator));
+    for(; i < TOTAL; i ++){
+        QTreePut(&qTree, &(queries[i].dataRegion), queries + i);
         if((i + 1) % TRACE_LEN == 0){
             time2 = clock();
-            cout << "put " << TRACE_LEN << " use " << (double)(time2 - time1)/CLOCKS_PER_SEC << "s" << endl;
+            printf("put %d use %lfs\n", TRACE_LEN, (double)(time2 - time1)/CLOCKS_PER_SEC );
             time1 = time2;
         }
-        i ++;
     }
     finish = clock();
-    cout << "put end! use " << (double)(finish - start)/CLOCKS_PER_SEC << "s" << endl;
+    printf("put end! use %lfs\n", (double)(finish - start)/CLOCKS_PER_SEC );
     //    cout << &qTree << endl;
 
 
     if(countFragment){
         int fragmentNum[removeNum];
-        qTree.root->resetId();
-        list<QueryMeta*>* removedQuery = new list<QueryMeta*>();
+        NodeResetId(qTree.root);
+        Arraylist* removedQuery = ArraylistCreate(TOTAL);
         time1 = start = clock();
 
-        i = 0;
-        for(itreator = queries->begin(); itreator!= queries->end() && i < removeNum; itreator ++){
-            qTree.findAndRemoveRelatedQueries((*itreator)->dataRegion->lower, removedQuery);
+
+        for(i = 0;  i < removeNum; i ++){
+            QTreeFindAndRemoveRelatedQueries(&qTree, queries[i].dataRegion.lower, removedQuery);
             if((i + 1) % TRACE_LEN == 0){
                 time2 = clock();
-                cout << "remove " << TRACE_LEN << " use " << (double)(time2 - time1)/CLOCKS_PER_SEC << "s" << endl;
+                printf("remove %d use %lfs\n", TRACE_LEN, (double)(time2 - time1)/CLOCKS_PER_SEC );
                 time1 = time2;
             }
-            removedQuery->sort([](const QueryMeta* queryMeta1, const QueryMeta* queryMeta2){
-                return queryMeta1->queryId > queryMeta2->queryId;
-            });
+            bubbleSort(removedQuery->data, removedQuery->size, QueryIdCmp);
             int oldId = -1;
-            list<QueryMeta*>::iterator it = removedQuery->begin();
             int fragment = 0;
-            for (; it != removedQuery->end() ; it ++) {
-                int id =  atoi((*it)->queryId.c_str());
+            for (i = 0; i < removedQuery->size; i ++) {
+                int id =  atoi(((QueryMeta*)ArraylistGet(removedQuery, i))->queryId);
                 if(id != oldId + 1){
                     fragment ++;
                 }
@@ -92,34 +81,30 @@ int test() {
             i ++;
         }
         printArray(fragmentNum, removeNum);
+        ArraylistDeallocate(removedQuery);
     } else{
-        list<QueryMeta*>* removedQuery = new list<QueryMeta*>();
+        Arraylist* removedQuery = ArraylistCreate(TOTAL);
         time1 = start = clock();
-        i = 0;
-        for(itreator = queries->begin(); itreator!= queries->end(); itreator ++){
-            qTree.findAndRemoveRelatedQueries((*itreator)->dataRegion->lower, removedQuery);
+
+        for(i = 0;  i < TOTAL; i ++){
+            QTreeFindAndRemoveRelatedQueries(&qTree, queries[i].dataRegion.lower, removedQuery);
             if((i + 1) % TRACE_LEN == 0){
                 time2 = clock();
-                cout << "remove " << TRACE_LEN << " use " << (double)(time2 - time1)/CLOCKS_PER_SEC << "s" << endl;
+                printf("remove %d use %lfs \n", TRACE_LEN, (double)(time2 - time1)/CLOCKS_PER_SEC );
                 time1 = time2;
             }
             i ++;
         }
+        printf("remove:%d\n", removedQuery->size);
+        ArraylistDeallocate(removedQuery);
+
     }
 
     finish = clock();
-    cout << "remove end! use " << (double)(finish - start)/CLOCKS_PER_SEC << "s" << endl;
+    printf("remove end! use %lfs\n", (double)(finish - start)/CLOCKS_PER_SEC);
+    printf( "get and remove end!\n remain:%d\n",  qTree.elements);
 
-    cout << "get and remove end!" << endl;
-    cout << "remain:" << qTree.elements << endl;
-//    cout << &qTree << endl;
-
-    for(itreator = queries->begin(); itreator!= queries->end(); itreator ++){
-        delete (*itreator);
-    }
-//    cout << &qTree << endl;
-
-    delete queries;
+    free(queries) ;
     return 0;
 }
 
@@ -174,6 +159,8 @@ int main(){
 
 
     }
+
+    maxValue = 1 << (valueSpan - 1);
 
 //    TOTAL = 10000000;
 //    TRACE_LEN = 10000000;

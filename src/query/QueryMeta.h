@@ -1,7 +1,8 @@
 //
 // Created by jyh_2 on 2021/5/14.
 //
-
+#include <stdlib.h>
+#include <string.h>
 #include "../common.h"
 #include "QueryRange.h"
 
@@ -9,34 +10,17 @@
 #ifndef QTREE_QUERYMETA_H
 #define QTREE_QUERYMETA_H
 
-static int queryCount;
+ int queryCount;
+#define queryIdLen 20
+typedef struct QueryMeta {
+    char    queryId[queryIdLen];
+    QueryRange  dataRegion;  //data region of the query
 
-class QueryMeta {
-public:
-    string    queryId;
-    QueryRange  *dataRegion;  //data region of the query
-//    RangeHolder *splitHilbertRanges;
-//
+}QueryMeta;
 
-    QueryMeta(){
-        queryCount++;
-        queryId = to_string ( queryCount);
-        dataRegion = new QueryRange();
-
-    }
-
-    ~QueryMeta(){
-        delete this->dataRegion;
-    }
-
-    string getQueryId();
-
-    bool cover(int value){
-        return  this->dataRegion->cover(value);
-    }
-
-
-};
-
-
+char* getQueryId(QueryMeta* queryMeta);
+bool QueryMetaCover(QueryMeta* queryMeta, int value);
+void QueryMetaConstructor(QueryMeta* queryMeta);
+bool QueryIdCmp(QueryMeta* queryMeta1, QueryMeta* queryMeta2);
+void QueryMetaDestroy(QueryMeta* queryMeta);
 #endif //QTREE_QUERYMETA_H
