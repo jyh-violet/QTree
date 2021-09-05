@@ -62,6 +62,7 @@ public:
     virtual int getId() = 0;
 
     virtual int getHeight() = 0;
+    virtual void resetId() = 0;
 
     virtual void merge( InternalNode<K, V>* nodeParent, int slot,
                 Node<K, V>* nodeFROM) = 0;

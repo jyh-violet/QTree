@@ -5,13 +5,16 @@
 #include <libconfig.h>
 
  DataRegionType dataRegionType = Zipf;
-int valueSpan = 16; // 2 ^valueSpan
+int valueSpan = 30; // 2 ^valueSpan
 int maxValue = 1 << (valueSpan - 1);
 int span = 1000;
 int redunc = 5;  // 2^redunc
 int coordianteRedunc = 2;  // 2^redunc
 int BOrder = 32;
 SearchKeyType searchKeyType = DYMID;
+int Qid = 0;
+bool countFragment = false;
+int removeNum = 10;
 
 
 int test() {
@@ -58,24 +61,52 @@ int test() {
     //    cout << &qTree << endl;
 
 
-    list<QueryMeta*>* removedQuery = new list<QueryMeta*>();
-    time1 = start = clock();
+    if(countFragment){
+        int fragmentNum[removeNum];
+        qTree.root->resetId();
+        list<QueryMeta*>* removedQuery = new list<QueryMeta*>();
+        time1 = start = clock();
 
-    i = 0;
-    for(itreator = queries->begin(); itreator!= queries->end(); itreator ++){
-        qTree.findAndRemoveRelatedQueries((*itreator)->dataRegion->lower, removedQuery);
-//        list <QueryMeta*> :: iterator it;
-//        for(it = removedQuery->begin(); it!=removedQuery->end(); it ++){
-//            cout << (*it)->getQueryId() << " ";
-//        }
-//        cout << endl;
-        if((i + 1) % TRACE_LEN == 0){
-            time2 = clock();
-            cout << "remove " << TRACE_LEN << " use " << (double)(time2 - time1)/CLOCKS_PER_SEC << "s" << endl;
-            time1 = time2;
+        i = 0;
+        for(itreator = queries->begin(); itreator!= queries->end() && i < removeNum; itreator ++){
+            qTree.findAndRemoveRelatedQueries((*itreator)->dataRegion->lower, removedQuery);
+            if((i + 1) % TRACE_LEN == 0){
+                time2 = clock();
+                cout << "remove " << TRACE_LEN << " use " << (double)(time2 - time1)/CLOCKS_PER_SEC << "s" << endl;
+                time1 = time2;
+            }
+            removedQuery->sort([](const QueryMeta* queryMeta1, const QueryMeta* queryMeta2){
+                return queryMeta1->queryId > queryMeta2->queryId;
+            });
+            int oldId = -1;
+            list<QueryMeta*>::iterator it = removedQuery->begin();
+            int fragment = 0;
+            for (; it != removedQuery->end() ; it ++) {
+                int id =  atoi((*it)->queryId.c_str());
+                if(id != oldId + 1){
+                    fragment ++;
+                }
+                oldId = id;
+            }
+            fragmentNum[i] = fragment;
+            i ++;
         }
-        i ++;
+        printArray(fragmentNum, removeNum);
+    } else{
+        list<QueryMeta*>* removedQuery = new list<QueryMeta*>();
+        time1 = start = clock();
+        i = 0;
+        for(itreator = queries->begin(); itreator!= queries->end(); itreator ++){
+            qTree.findAndRemoveRelatedQueries((*itreator)->dataRegion->lower, removedQuery);
+            if((i + 1) % TRACE_LEN == 0){
+                time2 = clock();
+                cout << "remove " << TRACE_LEN << " use " << (double)(time2 - time1)/CLOCKS_PER_SEC << "s" << endl;
+                time1 = time2;
+            }
+            i ++;
+        }
     }
+
     finish = clock();
     cout << "remove end! use " << (double)(finish - start)/CLOCKS_PER_SEC << "s" << endl;
 
@@ -93,6 +124,7 @@ int test() {
 }
 
 int main(){
+
     const char ConfigFile[]= "config.cfg";
 
     config_t cfg;
@@ -153,39 +185,6 @@ int main(){
     for (int i = 0; i < 10; ++i) {
         test();
     }
-//    searchKeyType = DYMID;
-//    printf("TOTAL: %d, dataRegionType:%d, valueSpan:%d, searchKeyType:%d \n",
-//           TOTAL, dataRegionType, valueSpan, searchKeyType);
-//    for (int i = 0; i < 10; ++i) {
-//        test();
-//    }
-//    searchKeyType = RAND;
-//    printf("TOTAL: %d, dataRegionType:%d, valueSpan:%d, searchKeyType:%d \n",
-//           TOTAL, dataRegionType, valueSpan, searchKeyType);
-//    for (int i = 0; i < 10; ++i) {
-//        test();
-//    }
-//
-//    dataRegionType = Zipf;
-//    valueSpan = 16;
-//    searchKeyType = LOW;
-//    printf("TOTAL: %d, dataRegionType:%d, valueSpan:%d, searchKeyType:%d \n",
-//           TOTAL, dataRegionType, valueSpan, searchKeyType);
-//    for (int i = 0; i < 10; ++i) {
-//        test();
-//    }
-//    searchKeyType = DYMID;
-//    printf("TOTAL: %d, dataRegionType:%d, valueSpan:%d, searchKeyType:%d \n",
-//           TOTAL, dataRegionType, valueSpan, searchKeyType);
-//    for (int i = 0; i < 10; ++i) {
-//        test();
-//    }
-//    searchKeyType = RAND;
-//    printf("TOTAL: %d, dataRegionType:%d, valueSpan:%d, searchKeyType:%d \n",
-//           TOTAL, dataRegionType, valueSpan, searchKeyType);
-//    for (int i = 0; i < 10; ++i) {
-//        test();
-//    }
 
     return 0;
 }

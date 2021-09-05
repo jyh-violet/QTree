@@ -6,6 +6,7 @@
 #define QTREE_INTERNALNODE_H
 #include "Node.h"
 extern int maxValue;
+extern int Qid;
 template <typename K, typename V>
 class Node;
 template <typename K, typename V>
@@ -44,6 +45,7 @@ public:
     int getId() override;
 
     int getHeight() override;
+    void resetId() override;
     void merge( InternalNode<K, V>* nodeParent, int slot,
                Node<K, V>* nodeFROM) override;
 
@@ -151,7 +153,18 @@ int InternalNode<K, V>::getId() {
 
 template<typename K, typename V>
 int InternalNode<K, V>::getHeight() {
+    int h = 0;
+    for (int i = 0; i <= this->allocated ; ++i) {
+        h = childs[i]->getHeight();
+    }
     return 0;
+}
+
+template<typename K, typename V>
+void InternalNode<K, V>::resetId(){
+    for (int i = 0; i <= this->allocated ; ++i) {
+        childs[i]->resetId();
+    }
 }
 
 template<typename K, typename V>

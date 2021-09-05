@@ -12,12 +12,9 @@
 static int queryCount;
 
 class QueryMeta {
-protected:
-    string    queryId;
-
-    //data region of the query
 public:
-    QueryRange  *dataRegion;
+    string    queryId;
+    QueryRange  *dataRegion;  //data region of the query
 //    RangeHolder *splitHilbertRanges;
 //
 

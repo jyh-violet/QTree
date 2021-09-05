@@ -55,3 +55,10 @@ int zipf(double alpha, int n)
 
     return(zipf_value);
 }
+
+void printArray(int* array, int num){
+    for(int i = 0; i < num; i ++){
+        cout << *(array + i) << ",";
+    }
+    cout << endl;
+}

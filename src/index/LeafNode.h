@@ -8,6 +8,7 @@
 
 #include "Node.h"
 extern int maxValue;
+extern int Qid;
 template <typename K, typename V>
 class Node;
 template <typename K, typename V>
@@ -46,6 +47,7 @@ public:
     int getId() override;
 
     int getHeight() override;
+    void resetId() override;
 
     void merge( InternalNode<K, V>* nodeParent, int slot,
                 Node<K, V>* nodeFROM) override;
@@ -193,6 +195,13 @@ int LeafNode<K, V>::getHeight() {
     return 1;
 }
 
+template<typename K, typename V>
+void LeafNode<K, V>::resetId(){
+    for (int i = 0; i < this->allocated ; ++i) {
+        values[i]->queryId = to_string(Qid);
+        Qid ++;
+    }
+}
 
 
 template<typename K, typename V>
