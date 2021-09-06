@@ -45,7 +45,7 @@ int NodeFindSlotByKey( Node* node, KeyType* searchKey) {
 
     while (low <= high) {
         int mid = (low + high) >> 1;
-        void *midVal = (node->keys[mid]);
+        KeyType *midVal = (node->keys[mid]);
 
         if (QueryRangeLT(midVal, searchKey)) {
             low = mid + 1;

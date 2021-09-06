@@ -92,7 +92,7 @@ Node* InternalNodeSplit(InternalNode* internalNode) {
 
 KeyType * InternalNodeSplitShiftKeysLeft(InternalNode* internalNode) {
     KeyType * removed = internalNode->node.keys[0];
-    memcpy(internalNode->node.keys, internalNode->node.keys + 1, (internalNode->node.allocated - 1) * sizeof(void *));
+    memcpy(internalNode->node.keys, internalNode->node.keys + 1, (internalNode->node.allocated - 1) * sizeof(KeyType *));
     internalNode->node.allocated--;
     internalNode->node.keys[internalNode->node.allocated] = NULL;
     internalNode->childs[internalNode->node.allocated + 1] = NULL;

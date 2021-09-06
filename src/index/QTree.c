@@ -123,7 +123,7 @@ Node* QTreePut(QTree* qTree, QueryRange * key, QueryMeta * value){
     LeafNodeAdd(nodeLeaf, slot, key, value);
     Node*   splitedNode = (NodeIsFull(nodeLeaf) ? LeafNodeSplit(nodeLeaf) : NULL);
     // Iterate back over nodes checking overflow / splitting
-    while (!empty(this->stackNodes, qTree->stackNodesIndex)) {
+    while (!empty(qTree->stackNodes, qTree->stackNodesIndex)) {
         //        cout << slot << endl;
         InternalNode* node = pop(qTree->stackNodes, qTree->stackNodesIndex);
         if(node->node.maxValue == NULL || QueryRangeMaxGE(key, node->node.maxValue) ){
@@ -165,8 +165,8 @@ Node* QTreePut(QTree* qTree, QueryRange * key, QueryMeta * value){
 void QTreeFindAndRemoveRelatedQueries(QTree* this, int attribute, Arraylist* removedQuery){
     Node* node = this->root;
     int slot = 0;
-    QueryRange  queryRange;
-    QueryRange* key = &queryRange;
+    KeyType  queryRange;
+    KeyType* key = &queryRange;
     QueryRangeConstructorWithPara(key, attribute, attribute, true, true);
     QueryRange *removedMax, *removedMin;
     bool resetMax = false;

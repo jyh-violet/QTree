@@ -5,18 +5,18 @@
 #include <time.h>
 #include <Tool/ArrayList.h>
 
-DataRegionType dataRegionType = Random;
+DataRegionType dataRegionType = Zipf;
 int valueSpan = 30; // 2 ^valueSpan
 int maxValue ;
 int span = 1000;
 int redunc = 5;  // 2^redunc
 int coordianteRedunc = 2;  // 2^redunc
 int BOrder = 32;
-SearchKeyType searchKeyType = DYMID;
+SearchKeyType searchKeyType = LOW;
 int Qid = 0;
 bool countFragment = false;
 int removeNum = 10;
-int TOTAL = (int) 20, TRACE_LEN = 100000;
+int TOTAL = (int) 100, TRACE_LEN = 100000;
 
 int test() {
     double generateT, putT, removeT;
