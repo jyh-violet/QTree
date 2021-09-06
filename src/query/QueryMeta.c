@@ -10,7 +10,7 @@ char* getQueryId(QueryMeta* queryMeta){
 }
 
 bool QueryMetaCover(QueryMeta* queryMeta, int value){
-    return  QueryRangeCover(&queryMeta->dataRegion, (value));
+    return  QueryRangeCover(&(queryMeta->dataRegion), (value));
 }
 void QueryMetaConstructor(QueryMeta* queryMeta){
     queryCount++;

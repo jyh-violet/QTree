@@ -2,11 +2,10 @@
 // Created by workshop on 8/24/2021.
 //
 #include <Tool/ArrayList.h>
+#include <time.h>
 #include "QTree.h"
 
 void QTreeConstructor(QTree* qTree,  int BOrder){
-    BOrder += 1 - (BOrder % 2);
-    qTree->Border = BOrder;
     qTree->maxNodeID = 0;
     qTree->root = malloc(sizeof (LeafNode));
     LeafNodeConstructor((LeafNode*)qTree->root, qTree);
@@ -16,8 +15,8 @@ void QTreeConstructor(QTree* qTree,  int BOrder){
     qTree->stackSlotsIndex = 0;
     memset(qTree->stackSlots,0, maxDepth * sizeof (int));
     memset(qTree->stackNodes,0, maxDepth * sizeof (InternalNode *));
-
 }
+
 void QTreeDestroy(QTree* qTree){
     NodeDestroy(qTree->root);
     free(qTree->root);
@@ -64,7 +63,7 @@ int QTreeAllocNode(QTree* qTree, bool isLeaf){
     return isLeaf ? id : -id;
 }
 
-void QTreeMakeNewRoot(QTree* qTree, Node* splitedNode){
+inline void QTreeMakeNewRoot(QTree* qTree, Node* splitedNode){
     InternalNode* nodeRootNew = malloc(sizeof (InternalNode));
     InternalNodeConstructor(nodeRootNew, qTree);
     InternalNodeAllocId(nodeRootNew);
@@ -78,15 +77,53 @@ void QTreeMakeNewRoot(QTree* qTree, Node* splitedNode){
     InternalNodeResetMinValue(nodeRootNew);
     qTree->root = (Node* )nodeRootNew;
 }
+extern SearchKeyType searchKeyType;
 
-LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key) {
+struct timespec startTmp, endTmp;
+
+inline void setSearchKey(Node* node, KeyType * key){
+    funcCount ++;
+    switch (searchKeyType) {
+        case LOW:
+            key->searchKey = key->lower;
+            break;
+            case DYMID:
+                if((QueryRange*)node->maxValue == NULL){
+                    key->searchKey = key->lower;
+                } else if((key->lower < ((QueryRange*)node->maxValue)->upper) && (key-> upper > ((QueryRange*)node->minValue)->lower)){
+                    int low = ((QueryRange*)node->minValue)->lower;
+                    if(QueryRangeMinGT(key, (QueryRange*)node->minValue)){
+                        low = key->lower;
+                    }
+                    int high =((QueryRange*)node->maxValue)->upper;
+                    if(!QueryRangeMaxGE(key, (QueryRange*)node->maxValue)){
+                        high = key->upper;
+                    }
+                    key->searchKey = (low + high) << 1;
+                }
+                break;
+                case RAND:
+                    if(key->searchKey == -1){
+                        if(key->upper == key->lower){
+                            key->searchKey = key->lower;
+                        }else{
+                            int randNum = rand() % (key->upper - key->lower);
+                            key->searchKey  = key->lower + randNum;
+                        }
+
+                    }
+                    break;
+    }
+}
+
+inline LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key) {
     Node* node = qTree->root;
     int slot = 0;
     while (!node->isLeaf) {
         InternalNode *nodeInternal = (InternalNode*) node;
+
         setSearchKey(node, key);
         slot = NodeFindSlotByKey(node, key);
-
         slot = ((slot < 0) ? (-slot) - 1 : slot + 1);
 
         push(qTree->stackNodes, qTree->stackNodesIndex, nodeInternal);

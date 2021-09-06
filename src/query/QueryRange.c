@@ -9,10 +9,7 @@ extern  DataRegionType dataRegionType;
 extern int maxValue;
 extern int span;
 
-bool QueryRangeCover(QueryRange *queryRange, int value){
-    //        System.out.println("target:" + value + ", this:" + this);
-    return  queryRange->lower<= value && queryRange->upper >= value;
-}
+
 
 
 
@@ -63,21 +60,4 @@ void QueryRangeConstructorWithPara(QueryRange *queryRange, int startKey, int end
 
 void printQueryRange(QueryRange* queryRange){
     printf("{%d,%d}", queryRange->lower, queryRange->upper);
-}
-
-bool QueryRangeLT(QueryRange* queryRange1, QueryRange* queryRange2){
-    return queryRange1->searchKey < queryRange2->searchKey;
-}
-
-bool QueryRangeGT(QueryRange* queryRange1, QueryRange* queryRange2){
-    return queryRange1->searchKey > queryRange2->searchKey;
-}
-
-
-bool QueryRangeMaxGE(QueryRange* queryRange1, QueryRange* queryRange2){
-    return queryRange1->upper >= queryRange2->upper;
-}
-
-bool QueryRangeMinGT(QueryRange* queryRange1, QueryRange* queryRange2){
-    return queryRange1->lower > queryRange2->lower;
 }

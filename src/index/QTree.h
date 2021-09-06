@@ -10,6 +10,7 @@
 #include "../holder/RangeHolder.h"
 #include "../Tool/ArrayList.h"
 #define maxDepth 100
+#define Border  33
 
 #define pop(stack, index)  stack[ --index]
 #define push(stack, index, elem)  stack[index ++] = elem
@@ -17,6 +18,11 @@
 
 extern int maxValue;
 extern int Qid;
+
+int leafSplitCount;
+int internalSplitCount;
+int funcCount;
+long funcTime;
 
 typedef struct InternalNode InternalNode;
 typedef struct LeafNode LeafNode;
@@ -26,7 +32,6 @@ typedef struct Node Node;
 #define ValueType   QueryMeta
 
 typedef struct QTree {
-    int Border;
     Node *root;
     int elements;
     int maxNodeID;
@@ -45,7 +50,7 @@ typedef struct Node{
     int allocated ;
     KeyType* maxValue ;  //  Key*
     KeyType * minValue; // Key *
-    KeyType **  keys;  // array of key*
+    KeyType *  keys[Border];  // array of key*
     QTree* tree;
 
 }Node;
@@ -53,11 +58,11 @@ typedef struct Node{
 
  struct LeafNode {
     Node  node;
-    ValueType ** values;
+    ValueType * values[Border];
 };
  struct InternalNode {
     Node node;
-    Node** childs;
+    Node* childs[Border + 1];
 };
 
 

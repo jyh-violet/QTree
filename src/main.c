@@ -169,11 +169,17 @@ int main(){
 //    dataRegionType = Random;
 //    valueSpan = 20;
 //    searchKeyType = LOW;
-//printf("TOTAL: %d, TRACE_LEN:%d, dataRegionType:%d, valueSpan:%d, searchKeyType:%d \n",
+//    printf("TOTAL: %d, TRACE_LEN:%d, dataRegionType:%d, valueSpan:%d, searchKeyType:%d \n",
 //           TOTAL, TRACE_LEN, dataRegionType, valueSpan, searchKeyType);
 //    for (int i = 0; i < 10; ++i) {
 //        test();
 //    }
+    leafSplitCount = 0;
+    internalSplitCount = 0;
+    funcCount = 0;
+    funcTime = 0;
     test();
+    printf("leafSplitCount: %d, internalSplitCount:%d, funcTime:%ld, funcCount:%d\n",
+           leafSplitCount, internalSplitCount, funcTime, funcCount);
     return 0;
 }

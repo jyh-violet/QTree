@@ -8,11 +8,11 @@
 void InternalNodeConstructor(InternalNode* internalNode, QTree* qTree){
     NodeConstructor((Node*)internalNode, qTree);
     internalNode->node.isLeaf = false;
-    internalNode->childs = malloc(sizeof (Node*) * qTree->Border + 1);
-    memset(internalNode->childs,0, sizeof (Node*) * qTree->Border + 1);
+//    internalNode->childs = malloc(sizeof (Node*) * qTree->Border + 1);
+    memset(internalNode->childs,0, sizeof (Node*) * (Border + 1));
 }
 void InternalNodeDestroy(InternalNode* internalNode){
-    free(internalNode->childs);
+//    free(internalNode->childs);
 }
 
 
@@ -50,6 +50,7 @@ void InternalNodeAllocId(InternalNode* internalNode) {
     internalNode->node.id = QTreeAllocNode(internalNode->node.tree, (false));
 }
 Node* InternalNodeSplit(InternalNode* internalNode) {
+    internalSplitCount ++;
     InternalNode* newHigh = malloc(sizeof (InternalNode));
     InternalNodeConstructor(newHigh, internalNode->node.tree);
     InternalNodeAllocId(newHigh);
@@ -62,10 +63,12 @@ Node* InternalNodeSplit(InternalNode* internalNode) {
 
     memcpy(newHigh->childs, internalNode->childs + (j+1),  newsize * sizeof (Node*));
 
-    for (int i = j; i < j + newsize; i++) {
-        internalNode->node.keys[i] = NULL;
-        internalNode->childs[i + 1] = NULL;
-    }
+    memset(internalNode->node.keys + j, 0, newsize * sizeof (KeyType *));
+    memset(internalNode->childs + j + 1, 0, newsize * sizeof (Node *));
+//    for (int i = j; i < j + newsize; i++) {
+//        internalNode->node.keys[i] = NULL;
+//        internalNode->childs[i + 1] = NULL;
+//    }
     newHigh->node.allocated = newsize;
     internalNode->node.allocated -= newsize;
     if(QueryRangeGT((internalNode->node.maxValue), newHigh->node.keys[0])){

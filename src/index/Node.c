@@ -9,11 +9,11 @@ void NodeConstructor(Node* node, QTree *tree){
     node-> id = 0;
     node-> allocated = 0;
     node->tree = tree;
-    node->keys = malloc(sizeof(KeyType *) * tree->Border);
-    memset(node->keys,0, sizeof(KeyType *) * tree->Border);
+//    node->keys = malloc(sizeof(KeyType *) * tree->Border);
+    memset(node->keys,0, sizeof(KeyType *) * Border);
 }
 void NodeDestroy(Node* node){
-    free(node->keys);
+//    free(node->keys);
     if(node->isLeaf){
         LeafNodeDestroy((LeafNode*)node);
     } else{
@@ -21,18 +21,16 @@ void NodeDestroy(Node* node){
     }
 }
 
-extern SearchKeyType searchKeyType;
-
 bool NodeIsUnderFlow(Node* node) {
-    return (node->allocated <= (node->tree->Border >> 1));
+    return (node->allocated <= (Border >> 1));
 }
 
 bool NodeCanMerge( Node* this, Node* other) {
-    return ((this->allocated + other->allocated) < this->tree->Border);
+    return ((this->allocated + other->allocated) < Border);
 }
 
 bool NodeIsFull(Node* node){ // node is full
-    return (node->allocated >= node->tree->Border);
+    return (node->allocated >= Border);
 }
 
 int NodeFindSlotByKey( Node* node, KeyType* searchKey) {
@@ -56,40 +54,6 @@ int NodeFindSlotByKey( Node* node, KeyType* searchKey) {
         }
     }
     return -(low + 1);  // key not found.
-}
-
-void setSearchKey(Node* node, KeyType * key){
-    switch (searchKeyType) {
-        case LOW:
-            key->searchKey = key->lower;
-            break;
-        case DYMID:
-            if((QueryRange*)node->maxValue == NULL){
-                key->searchKey = key->lower;
-            } else if((key->lower < ((QueryRange*)node->maxValue)->upper) && (key-> upper > ((QueryRange*)node->minValue)->lower)){
-                int low = ((QueryRange*)node->minValue)->lower;
-                if(QueryRangeMinGT(key, (QueryRange*)node->minValue)){
-                    low = key->lower;
-                }
-                int high =((QueryRange*)node->maxValue)->upper;
-                if(!QueryRangeMaxGE(key, (QueryRange*)node->maxValue)){
-                    high = key->upper;
-                }
-                key->searchKey = (low + high) / 2;
-            }
-            break;
-        case RAND:
-            if(key->searchKey == -1){
-                if(key->upper == key->lower){
-                    key->searchKey = key->lower;
-                }else{
-                    int randNum = rand() % (key->upper - key->lower);
-                    key->searchKey  = key->lower + randNum;
-                }
-
-            }
-            break;
-    }
 }
 
 void printNode(Node* node){

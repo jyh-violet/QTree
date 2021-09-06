@@ -3,14 +3,14 @@
 //
 #include "QTree.h"
 
-void LeafNodeConstructor(LeafNode* leafNode, QTree *tree){
+inline void LeafNodeConstructor(LeafNode* leafNode, QTree *tree){
     NodeConstructor((Node*)leafNode, tree);
     leafNode->node.isLeaf = true;
-    leafNode->values = malloc(sizeof (ValueType *) * tree->Border);
-    memset(leafNode->values,0, sizeof (ValueType *) * tree->Border);
+//    leafNode->values = malloc(sizeof (ValueType *) * tree->Border);
+    memset(leafNode->values,0, sizeof (ValueType *) * Border);
 }
 void LeafNodeDestroy(LeafNode* leafNode){
-    free(leafNode->values);
+//    free(leafNode->values);
 }
 
 void LeafNodeMerge(LeafNode* leafNode, InternalNode* nodeParent, int slot,
@@ -61,11 +61,11 @@ bool LeafNodeAdd(LeafNode* leafNode, int slot, KeyType * newKey, ValueType * new
 }
 
 
-void LeafNodeAllocId(LeafNode* leafNode) {
+inline void LeafNodeAllocId(LeafNode* leafNode) {
     leafNode->node.id = QTreeAllocNode(leafNode->node.tree, (true));
 }
 
-void LeafNodeResetMaxValue(LeafNode* leafNode) {
+inline void LeafNodeResetMaxValue(LeafNode* leafNode) {
     if (leafNode->node.allocated == 0) {
         return;
     }
@@ -78,7 +78,7 @@ void LeafNodeResetMaxValue(LeafNode* leafNode) {
 }
 
 
-void LeafNodeResetMinValue(LeafNode* leafNode) {
+inline void LeafNodeResetMinValue(LeafNode* leafNode) {
     if (leafNode->node.allocated == 0) {
         return;
     }
@@ -91,6 +91,7 @@ void LeafNodeResetMinValue(LeafNode* leafNode) {
 }
 
 Node* LeafNodeSplit(LeafNode* leafNode) {
+    leafSplitCount ++;
     LeafNode* newHigh = malloc(sizeof (LeafNode));
     LeafNodeConstructor(newHigh, leafNode->node.tree);
     LeafNodeAllocId(newHigh);
@@ -102,11 +103,13 @@ Node* LeafNodeSplit(LeafNode* leafNode) {
 
     memcpy(newHigh->values, leafNode->values + j,  newsize * sizeof (ValueType *));
 
-    for (int i = j; i < j + newsize; i++) {
-        leafNode->node.keys[i] = NULL;
-        // clear bound id of the influenced query
-        leafNode->values[i] = NULL;
-    }
+    memset(leafNode->node.keys + j, 0, sizeof (KeyType*) * newsize);
+    memset(leafNode->values + j, 0, sizeof (ValueType*) * newsize);
+//    for (int i = j; i < j + newsize; i++) {
+//        leafNode->node.keys[i] = NULL;
+//        // clear bound id of the influenced query
+//        leafNode->values[i] = NULL;
+//    }
     newHigh->node.allocated = newsize;
     leafNode->node.allocated -= newsize;
     if(QueryRangeGT(leafNode->node.maxValue, newHigh->node.keys[0])){
