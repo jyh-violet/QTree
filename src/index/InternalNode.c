@@ -6,17 +6,22 @@
 #include "QTree.h"
 
 void InternalNodeConstructor(InternalNode* internalNode, QTree* qTree){
+    memset(internalNode,0, sizeof(InternalNode));
     NodeConstructor((Node*)internalNode, qTree);
-    internalNode->node.isLeaf = false;
+    internalNode->node.isLeaf = FALSE;
 //    internalNode->childs = malloc(sizeof (Node*) * qTree->Border + 1);
-    memset(internalNode->childs,0, sizeof (Node*) * (Border + 1));
+
 }
 void InternalNodeDestroy(InternalNode* internalNode){
+    for(int i = 0; i <= internalNode->node.allocated; i++){
+        NodeDestroy(internalNode->childs[i]);
+    }
+    free(internalNode);
 //    free(internalNode->childs);
 }
 
 
-bool InternalNodeAdd(InternalNode* internalNode, int slot, KeyType * newKey, Node* child){
+BOOL InternalNodeAdd(InternalNode* internalNode, int slot, KeyType * newKey, Node* child){
     if (slot < internalNode->node.allocated) {
         memcpy(internalNode->node.keys + slot + 1, internalNode->node.keys + slot, (internalNode->node.allocated - slot) * sizeof(KeyType *));
         memcpy(internalNode->childs + slot + 2, internalNode->childs + slot + 1, (internalNode->node.allocated - slot) * sizeof(Node*));
@@ -24,7 +29,7 @@ bool InternalNodeAdd(InternalNode* internalNode, int slot, KeyType * newKey, Nod
     internalNode->node.allocated++;
     internalNode->node.keys[slot] = newKey;
     internalNode->childs[slot + 1] = child;
-    return true;
+    return TRUE;
 }
 
 
@@ -47,11 +52,14 @@ void InternalNodeResetMinValue(InternalNode* internalNode){
 }
 
 void InternalNodeAllocId(InternalNode* internalNode) {
-    internalNode->node.id = QTreeAllocNode(internalNode->node.tree, (false));
+    internalNode->node.id = QTreeAllocNode(internalNode->node.tree, (FALSE));
 }
 Node* InternalNodeSplit(InternalNode* internalNode) {
-    internalSplitCount ++;
-    InternalNode* newHigh = malloc(sizeof (InternalNode));
+    if(internalNode->node.tree == NULL){
+        printInternalNode(internalNode);
+    }
+    internalNode->node.tree->internalSplitCount ++;
+    InternalNode* newHigh = (InternalNode* )malloc(sizeof (InternalNode));
     InternalNodeConstructor(newHigh, internalNode->node.tree);
     InternalNodeAllocId(newHigh);
     // int j = ((allocated >> 1) | (allocated & 1)); // dividir por dos y sumar el resto (0 o 1)
@@ -71,24 +79,13 @@ Node* InternalNodeSplit(InternalNode* internalNode) {
 //    }
     newHigh->node.allocated = newsize;
     internalNode->node.allocated -= newsize;
-    if(QueryRangeGT((internalNode->node.maxValue), newHigh->node.keys[0])){
-        newHigh->node.maxValue = internalNode->node.maxValue;
-        InternalNodeResetMaxValue(internalNode);
 
-    }else {
-        newHigh->node.allocated --;
-        InternalNodeResetMaxValue(newHigh);
-        newHigh->node.allocated ++;
-    }
-
-    if(QueryRangeGT((internalNode->node.minValue), newHigh->node.keys[0])){
-        newHigh->node.minValue = internalNode->node.minValue;
-        InternalNodeResetMinValue(internalNode);
-    }else {
-        newHigh->node.allocated --;
-        InternalNodeResetMinValue(newHigh);
-        newHigh->node.allocated ++;
-    }
+    InternalNodeResetMaxValue(internalNode);
+    InternalNodeResetMinValue(internalNode);
+    newHigh->node.allocated --;
+    InternalNodeResetMaxValue(newHigh);
+    InternalNodeResetMinValue(newHigh);
+    newHigh->node.allocated ++;
     return (Node*)newHigh;
 }
 
@@ -120,7 +117,7 @@ void InternalNodeResetId(InternalNode* internalNode){
     }
 }
 
-bool InternalNodeCheckUnderflowWithRight(InternalNode* internalNode, int slot){
+BOOL InternalNodeCheckUnderflowWithRight(InternalNode* internalNode, int slot){
     Node* nodeLeft = internalNode->childs[slot];
     while ((slot < internalNode->node.allocated) &&NodeIsUnderFlow(nodeLeft)) {
         Node* nodeRight = internalNode->childs[slot + 1];
@@ -131,9 +128,9 @@ bool InternalNodeCheckUnderflowWithRight(InternalNode* internalNode, int slot){
             //                nodeLeft.shiftRL(internalNode, slot, nodeRight);
         }
 
-        return true;
+        return TRUE;
     }
-    return false;
+    return FALSE;
 }
 
 KeyType * InternalNodeRemove(InternalNode* internalNode, int slot) {
@@ -179,24 +176,25 @@ void InternalNodeMerge(Node* internalNode, InternalNode* nodeParent, int slot, N
     // remove key from nodeParent
     InternalNodeRemove(nodeParent, slot);
     // Free nodeFROM
-    NodeDestroy(nodeFROM);
+    NodeDestroy((Node*)nodeFROM);
     free(nodeFROM);
 }
 
 
 
 void printInternalNode(InternalNode* internalNode){
-    printf("[I%d](%d)(%d){", internalNode->node.id, internalNode->node.allocated, ((QueryRange*)(internalNode->node.maxValue))->upper);
+    printf("[I%d](%d)(%d,%d){", internalNode->node.id, internalNode->node.allocated,
+           ((QueryRange*)(internalNode->node.minValue))->lower,  ((QueryRange*)(internalNode->node.maxValue))->upper);
     for (int i = 0; i < internalNode->node.allocated; i++) {
         QueryRange * k = (QueryRange *)internalNode->node.keys[i];
         if (i == 0) { // left
-            printf("C%d:Node%d(%d)<", i, internalNode->childs[i]->id, ((QueryRange*)(internalNode->childs[i]->maxValue))->upper);
+            printf("C%d:Node%d<", i, internalNode->childs[i]->id);
         } else {
             printf("<");
         }
-        printQueryRange(k);
-        printf(">C%d:Node%d(%d)<",  i + 1, internalNode->childs[i + 1]->id, ((QueryRange*)(internalNode->childs[i + 1]->maxValue))->upper);
+        printf("%d", k->searchKey);
+        printf(">C%d:Node%d<",  i + 1, internalNode->childs[i + 1]->id);
 
     }
-    printf("}");
+    printf("}\n");
 }

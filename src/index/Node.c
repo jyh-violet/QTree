@@ -10,7 +10,7 @@ void NodeConstructor(Node* node, QTree *tree){
     node-> allocated = 0;
     node->tree = tree;
 //    node->keys = malloc(sizeof(KeyType *) * tree->Border);
-    memset(node->keys,0, sizeof(KeyType *) * Border);
+//    memset(node->keys,0, sizeof(KeyType *) * Border);
 }
 void NodeDestroy(Node* node){
 //    free(node->keys);
@@ -21,16 +21,27 @@ void NodeDestroy(Node* node){
     }
 }
 
-bool NodeIsUnderFlow(Node* node) {
-    return (node->allocated <= (Border >> 1));
+void NodeCheckTree(Node* node){
+    if(node->tree == NULL){
+        printNode(node);
+    }
+    if(node->isLeaf == FALSE){
+        for(int i = 0; i <= node->allocated; i ++){
+            NodeCheckTree(((InternalNode*)node)->childs[i]);
+        }
+    }
 }
 
-bool NodeCanMerge( Node* this, Node* other) {
-    return ((this->allocated + other->allocated) < Border);
+BOOL NodeIsUnderFlow(Node* node) {
+    return (BOOL)(node->allocated <= (Border >> 1));
 }
 
-bool NodeIsFull(Node* node){ // node is full
-    return (node->allocated >= Border);
+BOOL NodeCanMerge( Node* node, Node* other) {
+    return (BOOL)((node->allocated + other->allocated + 1) < Border);
+}
+
+BOOL NodeIsFull(Node* node){ // node is full
+    return (BOOL)(node->allocated >= Border);
 }
 
 int NodeFindSlotByKey( Node* node, KeyType* searchKey) {
@@ -66,42 +77,42 @@ void printNode(Node* node){
 
 Node* NodeSplit(Node* node){
     if(node->isLeaf){
-       return LeafNodeSplit(node);
+       return LeafNodeSplit((LeafNode*)node);
     } else{
-        return InternalNodeSplit(node);
+        return InternalNodeSplit((InternalNode *)node);
     }
 }
 
 int NodeGetHeight(Node* node) {
     if(node->isLeaf){
-        return LeafNodeGetHeight(node);
+        return LeafNodeGetHeight((LeafNode*)node);
     } else{
-        return InternalNodeGetHeight(node);
+        return InternalNodeGetHeight((InternalNode *)node);
     }
 }
 
 void NodeResetId(Node* node) {
     if(node->isLeaf){
-        LeafNodeResetId(node);
+        LeafNodeResetId((LeafNode*)node);
     } else{
-        InternalNodeResetId(node);
+        InternalNodeResetId((InternalNode *)node);
     }
 }
 
-void NodeMerge(Node* this, InternalNode* nodeParent, int slot,
+void NodeMerge(Node* node, InternalNode* nodeParent, int slot,
                     Node* nodeFROM){
-    if(this->isLeaf){
-        LeafNodeMerge(this, nodeParent, slot, nodeFROM);
+    if(node->isLeaf){
+        LeafNodeMerge((LeafNode*)node, nodeParent, slot, nodeFROM);
     } else{
-        InternalNodeMerge(this, nodeParent, slot, nodeFROM);
+        InternalNodeMerge(node, nodeParent, slot, nodeFROM);
     }
 }
 
-void * NodeSplitShiftKeysLeft(Node* this){
-    if(this->isLeaf){
-        LeafNodeSplitShiftKeysLeft(this);
+KeyType * NodeSplitShiftKeysLeft(Node* node){
+    if(node->isLeaf){
+        LeafNodeSplitShiftKeysLeft((LeafNode*)node);
     } else{
-        InternalNodeSplitShiftKeysLeft(this);
+        InternalNodeSplitShiftKeysLeft((InternalNode *)node);
     }
 }
 

@@ -6,11 +6,11 @@
 
 Arraylist *ArraylistCreate(size_t initCapacity) {
     /* Allocate Memory */
-    struct _arraylist *list = malloc(sizeof(struct _arraylist));
+    struct _arraylist *list = (struct _arraylist *)malloc(sizeof(struct _arraylist));
     assert(list != NULL);
     list->size = 0;
     list->capacity = initCapacity;
-    list->data = malloc(sizeof(void *) * list->capacity);
+    list->data = (void**)malloc(sizeof(void *) * list->capacity);
     assert(list->data != NULL);
     list->data[0] = NULL;
     return list;
@@ -23,7 +23,7 @@ void ArraylistAdd(struct _arraylist *list, void *elem) {
         list->data[list->size ++] = elem;
     } else{
         list->capacity << 1;
-        list->data = realloc(list->data, sizeof (void *) * list->capacity);
+        list->data = (void**)realloc(list->data, sizeof (void *) * list->capacity);
         list->data[list->size ++] = elem;
     }
 }
@@ -60,6 +60,12 @@ void ArraylistRemove(struct _arraylist *list, int index) {
 }
 
 void ArraylistClear(struct _arraylist *list) {
+    /* Clears the internal array */
+    list->size = 0;
+    memset(list->data, 0, sizeof (list->data));
+}
+
+void ArraylistDestroy(struct _arraylist *list) {
     /* Clears the internal array */
     list->size = 0;
     free(list->data);

@@ -10,8 +10,8 @@
 #ifndef QTREE_QUERYMETA_H
 #define QTREE_QUERYMETA_H
 
- int queryCount;
-#define queryIdLen 20
+static int queryCount;
+#define queryIdLen 30
 typedef struct QueryMeta {
     char    queryId[queryIdLen];
     QueryRange  dataRegion;  //data region of the query
@@ -19,8 +19,10 @@ typedef struct QueryMeta {
 }QueryMeta;
 
 char* getQueryId(QueryMeta* queryMeta);
-bool QueryMetaCover(QueryMeta* queryMeta, int value);
+BOOL QueryMetaCover(QueryMeta* queryMeta, int value);
 void QueryMetaConstructor(QueryMeta* queryMeta);
-bool QueryIdCmp(QueryMeta* queryMeta1, QueryMeta* queryMeta2);
+void QueryMetaConstructorWithPara(QueryMeta* queryMeta, char* id, int lower, int upper);
+BOOL QueryIdCmp(void *queryMeta1, void * queryMeta2);
 void QueryMetaDestroy(QueryMeta* queryMeta);
+void printQueryMeta(QueryMeta* queryMeta);
 #endif //QTREE_QUERYMETA_H

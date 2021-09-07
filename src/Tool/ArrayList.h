@@ -21,6 +21,7 @@ size_t ArraylistGetSizeof(struct _arraylist *list);
 size_t ArraylistGetsize(struct _arraylist *list);
 void ArraylistRemove(struct _arraylist *list, int index);
 void ArraylistClear(struct _arraylist *list);
+void ArraylistDestroy(struct _arraylist *list);
 void ArraylistDeallocate(struct _arraylist *list);
 int ArraylistGetindex(struct _arraylist *list, void *elem);
 

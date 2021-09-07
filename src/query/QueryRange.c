@@ -11,8 +11,6 @@ extern int span;
 
 
 
-
-
 void QueryRangeConstructor(QueryRange *queryRange){
 
     int r, diff, randNum;
@@ -30,9 +28,9 @@ void QueryRangeConstructor(QueryRange *queryRange){
                 break;
                 case Zipf:
                     randNum = zipf(0.99, maxValue);
-                    diff =  zipf(0.99, maxValue);
-                    queryRange->lower = randNum ;
-                    queryRange->upper = randNum + diff ;
+                    diff = (int) (rand() % span);
+                    queryRange->lower = span + randNum -diff;
+                    queryRange->upper =  span + randNum ;
                     break;
                     case Increase:
                         queryRange->lower = rangeCount ++ ;
@@ -43,7 +41,7 @@ void QueryRangeConstructor(QueryRange *queryRange){
     queryRange->searchKey  = -1;
 }
 
-void QueryRangeConstructorWithPara(QueryRange *queryRange, int startKey, int endKey, bool lowerInclude, bool upperInclude){
+void QueryRangeConstructorWithPara(QueryRange *queryRange, int startKey, int endKey, BOOL lowerInclude, BOOL upperInclude){
     queryRange->lower = startKey;
     queryRange->upper = endKey;
     if(lowerInclude && upperInclude){

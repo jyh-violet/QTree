@@ -12,17 +12,12 @@
 #define maxDepth 100
 #define Border  33
 
-#define pop(stack, index)  stack[ --index]
-#define push(stack, index, elem)  stack[index ++] = elem
-#define empty(stack, index)  (index==0)
+#define stackPop(stack, index)  stack[ --index]
+#define stackPush(stack, index, elem)  stack[index ++] = elem
+#define stackEmpty(stack, index)  (index==0)
 
 extern int maxValue;
 extern int Qid;
-
-int leafSplitCount;
-int internalSplitCount;
-int funcCount;
-long funcTime;
 
 typedef struct InternalNode InternalNode;
 typedef struct LeafNode LeafNode;
@@ -39,13 +34,15 @@ typedef struct QTree {
     int stackSlotsIndex;
     InternalNode* stackNodes[maxDepth];
     int          stackSlots[maxDepth];
-
-
-
+    int leafSplitCount;
+    int internalSplitCount;
+    int funcCount;
+    int whileCount;
+    long funcTime;
 }QTree;
 
 typedef struct Node{
-    bool isLeaf;
+    BOOL isLeaf;
     int id ;
     int allocated ;
     KeyType* maxValue ;  //  Key*
@@ -69,7 +66,7 @@ typedef struct Node{
 void QTreeConstructor(QTree* qTree,  int BOrder);
 void QTreeDestroy(QTree* qTree);
 void printQTree( QTree* qTree);
-int QTreeAllocNode(QTree* qTree, bool isLeaf);
+int  QTreeAllocNode(QTree* qTree, BOOL isLeaf);
 void QTreeMakeNewRoot(QTree* qTree, Node* splitedNode);
 LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key);
 Node* QTreePut(QTree* qTree, KeyType * key, ValueType * value);
@@ -77,21 +74,21 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
 
 
 
-
+void NodeCheckTree(Node* node);
 void NodeConstructor(Node* node, QTree *tree);
 void NodeDestroy(Node* node);
-bool NodeIsUnderFlow(Node* node);
-bool NodeCanMerge( Node* node, Node* other) ;
-bool NodeIsFull(Node* node);
+BOOL NodeIsUnderFlow(Node* node);
+BOOL NodeCanMerge( Node* node, Node* other) ;
+BOOL NodeIsFull(Node* node);
 int NodeFindSlotByKey( Node* node, KeyType* searchKey);
 void setSearchKey(Node* node, KeyType * key);
 void printNode(Node* node);
 Node* NodeSplit(Node* node);
 int NodeGetHeight(Node* node);
 void NodeResetId(Node* node);
-void NodeMerge(Node* this, InternalNode* nodeParent, int slot,
+void NodeMerge(Node* node, InternalNode* nodeParent, int slot,
                Node* nodeFROM);
-void * NodeSplitShiftKeysLeft(Node* node);
+KeyType * NodeSplitShiftKeysLeft(Node* node);
 
 
 
@@ -100,12 +97,12 @@ void LeafNodeDestroy(LeafNode* leafNode);
 void LeafNodeMerge(LeafNode* leafNode, InternalNode* nodeParent, int slot,
                    Node* nodeFROMx);
 void * LeafNodeRemove(LeafNode* leafNode, int slot);
-bool LeafNodeAdd(LeafNode* leafNode, int slot, KeyType * newKey, ValueType * newValue);
+BOOL LeafNodeAdd(LeafNode* leafNode, int slot, KeyType * newKey, ValueType * newValue);
 void LeafNodeAllocId(LeafNode* leafNode);
 void LeafNodeResetMaxValue(LeafNode* node);
 void LeafNodeResetMinValue(LeafNode* node);
 Node* LeafNodeSplit(LeafNode* leafNode);
-KeyType * LeafNodeSplitShiftKeysLeft(LeafNode* this);
+KeyType * LeafNodeSplitShiftKeysLeft(LeafNode* node);
 int LeafNodeGetId(LeafNode* node) ;
 int LeafNodeGetHeight(LeafNode* node);
 void LeafNodeResetId(LeafNode* node);
@@ -117,18 +114,18 @@ void printLeafNode(LeafNode* leafNode);
 
 void InternalNodeConstructor(InternalNode* internalNode, QTree* qTree);
 void InternalNodeDestroy(InternalNode* internalNode);
-bool InternalNodeAdd(InternalNode* this, int slot, KeyType * newKey, Node* child);
-void InternalNodeResetMaxValue(InternalNode* this);
-void InternalNodeResetMinValue(InternalNode* this);
-void InternalNodeAllocId(InternalNode* this);
-Node* InternalNodeSplit(InternalNode* this);
-KeyType * InternalNodeSplitShiftKeysLeft(InternalNode* this);
-int InternalNodeGetId(InternalNode* this);
-int InternalNodeGetHeight(InternalNode* this);
-void InternalNodeResetId(InternalNode* this);
-bool InternalNodeCheckUnderflowWithRight(InternalNode* this, int slot);
-KeyType * InternalNodeRemove(InternalNode* this, int slot);
-void InternalNodeMerge(Node* this, InternalNode* nodeParent, int slot, Node* nodeFROMx);
+BOOL InternalNodeAdd(InternalNode* node, int slot, KeyType * newKey, Node* child);
+void InternalNodeResetMaxValue(InternalNode* node);
+void InternalNodeResetMinValue(InternalNode* node);
+void InternalNodeAllocId(InternalNode* node);
+Node* InternalNodeSplit(InternalNode* node);
+KeyType * InternalNodeSplitShiftKeysLeft(InternalNode* node);
+int InternalNodeGetId(InternalNode* node);
+int InternalNodeGetHeight(InternalNode* node);
+void InternalNodeResetId(InternalNode* node);
+BOOL InternalNodeCheckUnderflowWithRight(InternalNode* node, int slot);
+KeyType * InternalNodeRemove(InternalNode* node, int slot);
+void InternalNodeMerge(Node* node, InternalNode* nodeParent, int slot, Node* nodeFROMx);
 void printInternalNode(InternalNode* internalNode);
 
 

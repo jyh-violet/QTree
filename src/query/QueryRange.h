@@ -8,19 +8,19 @@
 #include "../common.h"
 
 #define QueryRangeLT(queryRange1, queryRange2) \
-        (((QueryRange*)queryRange1)->searchKey < ((QueryRange*)queryRange2)->searchKey)
+(BOOL)(((QueryRange*)queryRange1)->searchKey < ((QueryRange*)queryRange2)->searchKey)
 
 #define QueryRangeGT(queryRange1, queryRange2)  \
-        (((QueryRange*)queryRange1)->searchKey > ((QueryRange*)queryRange2)->searchKey)
+(BOOL)(((QueryRange*)queryRange1)->searchKey > ((QueryRange*)queryRange2)->searchKey)
 
 #define QueryRangeMaxGE(queryRange1, queryRange2)  \
-        (((QueryRange* )queryRange1)->upper >= ((QueryRange* )queryRange2)->upper)
+(BOOL)(((QueryRange* )queryRange1)->upper >= ((QueryRange* )queryRange2)->upper)
 
 #define QueryRangeMinGT(queryRange1, queryRange2) \
-        (((QueryRange* )queryRange1)->lower > ((QueryRange*)queryRange2)->lower)
+(BOOL)(((QueryRange* )queryRange1)->lower > ((QueryRange*)queryRange2)->lower)
 
 #define QueryRangeCover(queryRange, value)  \
-        (((QueryRange *)(queryRange))->lower <= (int)value && ((QueryRange *)(queryRange))->upper >= (int)value)
+(BOOL)(((QueryRange *)(queryRange))->lower <= (int)value && ((QueryRange *)(queryRange))->upper >= (int)value)
 
 typedef struct QueryRange{
     int lower; // lower bound of the region
@@ -31,6 +31,6 @@ typedef struct QueryRange{
 
 
 void QueryRangeConstructor(QueryRange *queryRange);
-void QueryRangeConstructorWithPara(QueryRange *queryRange, int startKey, int endKey, bool lowerInclude, bool upperInclude);
+void QueryRangeConstructorWithPara(QueryRange *queryRange, int startKey, int endKey, BOOL lowerInclude, BOOL upperInclude);
 void printQueryRange(QueryRange* queryRange);
 #endif //QTREE_QUERYRANGE_H

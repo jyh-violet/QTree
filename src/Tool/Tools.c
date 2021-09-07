@@ -65,7 +65,7 @@ void printArray(int* array, int num){
     printf("\n");
 }
 
-void bubbleSort(void* arr[], int len, bool (*cmp)(void*, void *)) {
+void bubbleSort(void* arr[], int len, BOOL (*cmp)(void*, void *)) {
     int i, j;
     void *temp;
     for (i = 0; i < len - 1; i++)

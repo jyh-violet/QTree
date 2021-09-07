@@ -4,12 +4,14 @@
 #include "QTree.h"
 
 inline void LeafNodeConstructor(LeafNode* leafNode, QTree *tree){
+    memset(leafNode, 0, sizeof (LeafNode));
     NodeConstructor((Node*)leafNode, tree);
-    leafNode->node.isLeaf = true;
+    leafNode->node.isLeaf = TRUE;
 //    leafNode->values = malloc(sizeof (ValueType *) * tree->Border);
-    memset(leafNode->values,0, sizeof (ValueType *) * Border);
+//    memset(leafNode->values,0, sizeof (ValueType *) * Border);
 }
 void LeafNodeDestroy(LeafNode* leafNode){
+    free(leafNode);
 //    free(leafNode->values);
 }
 
@@ -43,7 +45,7 @@ void * LeafNodRemove(LeafNode* leafNode, int slot) {
     return NULL;
 }
 
-bool LeafNodeAdd(LeafNode* leafNode, int slot, KeyType * newKey, ValueType * newValue){
+BOOL LeafNodeAdd(LeafNode* leafNode, int slot, KeyType * newKey, ValueType * newValue){
     if (slot < leafNode->node.allocated) {
         memcpy(leafNode->node.keys + slot + 1, leafNode->node.keys + slot, (leafNode->node.allocated - slot) * sizeof(KeyType *));
         memcpy(leafNode->values + slot + 1, leafNode->values + slot, (leafNode->node.allocated - slot) * sizeof(ValueType *));
@@ -57,12 +59,12 @@ bool LeafNodeAdd(LeafNode* leafNode, int slot, KeyType * newKey, ValueType * new
     if(leafNode->node.minValue == NULL || (QueryRangeMinGT(leafNode->node.minValue, newKey))){
         leafNode->node.minValue = newKey;
     }
-    return true;
+    return TRUE;
 }
 
 
 inline void LeafNodeAllocId(LeafNode* leafNode) {
-    leafNode->node.id = QTreeAllocNode(leafNode->node.tree, (true));
+    leafNode->node.id = QTreeAllocNode(leafNode->node.tree, (TRUE));
 }
 
 inline void LeafNodeResetMaxValue(LeafNode* leafNode) {
@@ -91,8 +93,11 @@ inline void LeafNodeResetMinValue(LeafNode* leafNode) {
 }
 
 Node* LeafNodeSplit(LeafNode* leafNode) {
-    leafSplitCount ++;
-    LeafNode* newHigh = malloc(sizeof (LeafNode));
+    if(leafNode->node.tree == NULL){
+        printLeafNode(leafNode);
+    }
+    leafNode->node.tree->leafSplitCount ++;
+    LeafNode* newHigh = (LeafNode*)malloc(sizeof (LeafNode));
     LeafNodeConstructor(newHigh, leafNode->node.tree);
     LeafNodeAllocId(newHigh);
 
@@ -112,18 +117,10 @@ Node* LeafNodeSplit(LeafNode* leafNode) {
 //    }
     newHigh->node.allocated = newsize;
     leafNode->node.allocated -= newsize;
-    if(QueryRangeGT(leafNode->node.maxValue, newHigh->node.keys[0])){
-        newHigh->node.maxValue = leafNode->node.maxValue;
-        LeafNodeResetMaxValue(leafNode);
-    }else {
-        LeafNodeResetMaxValue(newHigh);
-    }
-    if(QueryRangeGT(leafNode->node.minValue, newHigh->node.keys[0])){
-        newHigh->node.minValue = leafNode->node.minValue;
-        LeafNodeResetMinValue(leafNode);
-    }else {
-        LeafNodeResetMinValue(newHigh);
-    }
+    LeafNodeResetMaxValue(leafNode);
+    LeafNodeResetMaxValue(newHigh);
+    LeafNodeResetMinValue(leafNode);
+    LeafNodeResetMinValue(newHigh);
     return (Node*)newHigh;
 }
 
@@ -148,12 +145,15 @@ void LeafNodeResetId(LeafNode* leafNode){
 
 
 void printLeafNode(LeafNode* leafNode){
-    printf("[L%d](%d)(%d){", leafNode->node.id, leafNode->node.allocated, ((QueryRange*)(leafNode->node.maxValue))->upper);
+    printf("[L%d](%d)(%d,%d){", leafNode->node.id, leafNode->node.allocated,
+           ((QueryRange*)(leafNode->node.minValue))->lower, ((QueryRange*)(leafNode->node.maxValue))->upper);
     for (int i = 0; i < leafNode->node.allocated; i++) {
         QueryRange * k = (QueryRange *)leafNode->node.keys[i];
         QueryMeta* v = (QueryMeta *)leafNode->values[i];
+//        printQueryRange(k);
+        printf("%d:", k->searchKey);
         printQueryRange(k);
         printf("Q[%s] | ",v->queryId );
     }
-    printf("}");
+    printf("}\n");
 }

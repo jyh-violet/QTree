@@ -9,19 +9,32 @@ char* getQueryId(QueryMeta* queryMeta){
     return queryMeta->queryId;
 }
 
-bool QueryMetaCover(QueryMeta* queryMeta, int value){
+BOOL QueryMetaCover(QueryMeta* queryMeta, int value){
     return  QueryRangeCover(&(queryMeta->dataRegion), (value));
 }
 void QueryMetaConstructor(QueryMeta* queryMeta){
     queryCount++;
-
+    memset((void *)queryMeta, 0, sizeof (queryMeta));
     myItoa( queryCount, queryMeta->queryId);
     QueryRangeConstructor(&queryMeta->dataRegion);
 
 }
-bool QueryIdCmp(QueryMeta* queryMeta1, QueryMeta* queryMeta2){
-    return strcmp(queryMeta1->queryId, queryMeta2->queryId);
+
+void QueryMetaConstructorWithPara(QueryMeta* queryMeta, char* id, int lower, int upper){
+    memset((void *)queryMeta, 0, sizeof (queryMeta));
+    strncpy(queryMeta->queryId, id, queryIdLen - 1);
+    QueryRangeConstructorWithPara(&queryMeta->dataRegion, lower, upper, TRUE, TRUE);
+}
+
+
+BOOL QueryIdCmp(void *queryMeta1, void * queryMeta2){
+    return (BOOL)strcmp(((QueryMeta*)queryMeta1)->queryId, ((QueryMeta*)queryMeta2)->queryId);
 }
 
 void QueryMetaDestroy(QueryMeta* queryMeta){
+}
+
+void printQueryMeta(QueryMeta* queryMeta){
+    printf("Q[%s]", queryMeta->queryId);
+    printQueryRange(&queryMeta->dataRegion);
 }

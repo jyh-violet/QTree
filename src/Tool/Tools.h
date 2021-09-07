@@ -16,13 +16,14 @@ typedef enum DataRegionType {
 typedef enum SearchKeyType{
     LOW,
     DYMID,
+    Mid,
     RAND
 }SearchKeyType;
 
-typedef enum bool{
-    false,
-    true
-}bool;
+typedef enum BOOL{
+    FALSE,
+    TRUE
+}BOOL;
 
 
 
@@ -30,6 +31,6 @@ typedef enum bool{
 
 int zipf(double alpha, int n);
 void printArray(int* array, int num);
-void bubbleSort(void* arr[], int len, bool (*cmp)(void*, void *));
+void bubbleSort(void* arr[], int len, BOOL (*cmp)(void*, void *));
 char *myItoa(int num, char *str);
 #endif //QTREE_TOOLS_H
