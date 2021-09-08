@@ -54,7 +54,7 @@ int NodeFindSlotByKey( Node* node, KeyType* searchKey) {
 
     while (low <= high) {
         int mid = (low + high) >> 1;
-        KeyType *midVal = (node->keys[mid]);
+        KeyType *midVal = &(node->keys[mid]);
 
         if (QueryRangeLT(midVal, searchKey)) {
             low = mid + 1;
@@ -108,7 +108,7 @@ void NodeMerge(Node* node, InternalNode* nodeParent, int slot,
     }
 }
 
-KeyType * NodeSplitShiftKeysLeft(Node* node){
+KeyType  NodeSplitShiftKeysLeft(Node* node){
     if(node->isLeaf){
         LeafNodeSplitShiftKeysLeft((LeafNode*)node);
     } else{

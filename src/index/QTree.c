@@ -48,16 +48,15 @@ void QTreeConstructor(QTree* qTree,  int BOrder){
             break;
     }
 
-    printf("QTree searchKeyType = %d\n", searchKeyType);
+//    printf("QTree searchKeyType = %d\n", searchKeyType);
 //    memset(qTree->stackSlots,0, maxDepth * sizeof (int));
 //    memset(qTree->stackNodes,0, maxDepth * sizeof (InternalNode *));
 }
 
 void QTreeDestroy(QTree* qTree){
-    printf("leafSplitCount: %d, internalSplitCount:%d, funcTime:%ld, funcCount:%d, whileCount:%d\n",
-           qTree->leafSplitCount,  qTree->internalSplitCount,  qTree->funcTime,  qTree->funcCount,  qTree->whileCount);
+//    printf("Border:%d, leafSplitCount: %d, internalSplitCount:%d, funcTime:%ld, funcCount:%d, whileCount:%d\n",
+//           Border, qTree->leafSplitCount,  qTree->internalSplitCount,  qTree->funcTime,  qTree->funcCount,  qTree->whileCount);
     NodeDestroy(qTree->root);
-    free(qTree->root);
 }
 
 void printQTree( QTree* qTree){
@@ -116,7 +115,7 @@ inline void QTreeMakeNewRoot(QTree* qTree, Node* splitedNode){
     InternalNodeConstructor(nodeRootNew, qTree);
     InternalNodeAllocId(nodeRootNew);
 
-    KeyType * newkey = NodeSplitShiftKeysLeft(splitedNode);
+    KeyType newkey = NodeSplitShiftKeysLeft(splitedNode);
     nodeRootNew->childs[0] = qTree->root;
     nodeRootNew->node.keys[0] = newkey;
     nodeRootNew->childs[1] = splitedNode;
@@ -233,8 +232,8 @@ Node* QTreePut(QTree* qTree, QueryRange * key, QueryMeta * value){
         //            System.out.println(key + ", "  + otherBound + "," + node.id + ", "  + node.keys[0] + "," + slot);
         if (splitedNode != NULL) {
             // split occurred in previous phase, splitedNode is new child
-            KeyType * childKey = NodeSplitShiftKeysLeft(splitedNode);
-            InternalNodeAdd(node, slot, childKey, splitedNode);
+            KeyType  childKey = NodeSplitShiftKeysLeft(splitedNode);
+            InternalNodeAdd(node, slot, &childKey, splitedNode);
 
         }
 
@@ -326,11 +325,11 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
             for(int i = 0; i < leafNode->node.allocated ; i ++){
                 //                    System.out.println("query:" + leafNode.values[i]);
                 if(QueryMetaCover(leafNode->values[i], attribute)){
-                    if(leafNode->node.maxValue == leafNode->node.keys[i]){
+                    if(leafNode->node.maxValue == &leafNode->node.keys[i]){
                         resetMax = TRUE;
                         removedMax = (leafNode->node.maxValue);
                     }
-                    if(leafNode->node.minValue == leafNode->node.keys[i]){
+                    if(leafNode->node.minValue == &leafNode->node.keys[i]){
                         resetMin = TRUE;
                         removedMin = leafNode->node.minValue;
                     }

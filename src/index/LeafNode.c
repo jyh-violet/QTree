@@ -22,7 +22,7 @@ void LeafNodeMerge(LeafNode* leafNode, InternalNode* nodeParent, int slot,
     int sizeTO = nodeTO->node.allocated;
     int sizeFROM = nodeFROM->node.allocated;
     // copy keys from nodeFROM to nodeTO
-    memcpy(nodeTO->node.keys + sizeTO , nodeFROM->node.keys, sizeFROM * sizeof(KeyType *));
+    memcpy(nodeTO->node.keys + sizeTO , nodeFROM->node.keys, sizeFROM * sizeof(KeyType ));
     memcpy(nodeTO->values + sizeTO , nodeFROM->values, (sizeFROM) * sizeof(ValueType *));
 
     nodeTO->node.allocated += sizeFROM; // keys of FROM and key of nodeParent
@@ -36,9 +36,7 @@ void LeafNodeMerge(LeafNode* leafNode, InternalNode* nodeParent, int slot,
     // remove key from nodeParent
     InternalNodeRemove(nodeParent, slot);
     // Free nodeFROM
-    NodeDestroy((Node*)nodeFROM);
-    free(nodeFROM);
-
+    free((Node*)nodeFROM);
 }
 
 void * LeafNodRemove(LeafNode* leafNode, int slot) {
@@ -47,11 +45,11 @@ void * LeafNodRemove(LeafNode* leafNode, int slot) {
 
 BOOL LeafNodeAdd(LeafNode* leafNode, int slot, KeyType * newKey, ValueType * newValue){
     if (slot < leafNode->node.allocated) {
-        memcpy(leafNode->node.keys + slot + 1, leafNode->node.keys + slot, (leafNode->node.allocated - slot) * sizeof(KeyType *));
+        memcpy(leafNode->node.keys + slot + 1, leafNode->node.keys + slot, (leafNode->node.allocated - slot) * sizeof(KeyType ));
         memcpy(leafNode->values + slot + 1, leafNode->values + slot, (leafNode->node.allocated - slot) * sizeof(ValueType *));
     }
     leafNode->node.allocated++;
-    leafNode->node.keys[slot] = newKey;
+    leafNode->node.keys[slot] = *newKey;
     leafNode->values[slot] = newValue;
     if(leafNode->node.maxValue == NULL || (QueryRangeMaxGE(newKey, leafNode->node.maxValue))){
         leafNode->node.maxValue = newKey;
@@ -71,10 +69,10 @@ inline void LeafNodeResetMaxValue(LeafNode* leafNode) {
     if (leafNode->node.allocated == 0) {
         return;
     }
-    leafNode->node.maxValue = leafNode->node.keys[0];
+    leafNode->node.maxValue = &leafNode->node.keys[0];
     for (int i = 1; i < leafNode->node.allocated; i++) {
-        if (QueryRangeMaxGE((leafNode->node.keys[i]), leafNode->node.maxValue)) {
-            leafNode->node.maxValue = leafNode->node.keys[i];
+        if (QueryRangeMaxGE(&(leafNode->node.keys[i]), leafNode->node.maxValue)) {
+            leafNode->node.maxValue = &leafNode->node.keys[i];
         }
     }
 }
@@ -84,10 +82,10 @@ inline void LeafNodeResetMinValue(LeafNode* leafNode) {
     if (leafNode->node.allocated == 0) {
         return;
     }
-    leafNode->node.minValue = leafNode->node.keys[0];
+    leafNode->node.minValue = &leafNode->node.keys[0];
     for (int i = 1; i < leafNode->node.allocated; i++) {
-        if (QueryRangeMinGT((leafNode->node.minValue), leafNode->node.keys[i])) {
-            leafNode->node.minValue = leafNode->node.keys[i];
+        if (QueryRangeMinGT((leafNode->node.minValue), &leafNode->node.keys[i])) {
+            leafNode->node.minValue = &leafNode->node.keys[i];
         }
     }
 }
@@ -104,11 +102,11 @@ Node* LeafNodeSplit(LeafNode* leafNode) {
     int j = leafNode->node.allocated >> 1; // dividir por dos (libro)
     int newsize = leafNode->node.allocated - j;
     // if (log.isDebugEnabled()) log.debug("split j=" + j);
-    memcpy(newHigh->node.keys, leafNode->node.keys + j,  newsize * sizeof (KeyType *));
+    memcpy(newHigh->node.keys, leafNode->node.keys + j,  newsize * sizeof (KeyType ));
 
     memcpy(newHigh->values, leafNode->values + j,  newsize * sizeof (ValueType *));
 
-    memset(leafNode->node.keys + j, 0, sizeof (KeyType*) * newsize);
+    memset(leafNode->node.keys + j, 0, sizeof (KeyType) * newsize);
     memset(leafNode->values + j, 0, sizeof (ValueType*) * newsize);
 //    for (int i = j; i < j + newsize; i++) {
 //        leafNode->node.keys[i] = NULL;
@@ -124,7 +122,7 @@ Node* LeafNodeSplit(LeafNode* leafNode) {
     return (Node*)newHigh;
 }
 
-KeyType * LeafNodeSplitShiftKeysLeft(LeafNode* leafNode) {
+KeyType  LeafNodeSplitShiftKeysLeft(LeafNode* leafNode) {
     return leafNode->node.keys[0];
 }
 
@@ -148,8 +146,8 @@ void printLeafNode(LeafNode* leafNode){
     printf("[L%d](%d)(%d,%d){", leafNode->node.id, leafNode->node.allocated,
            ((QueryRange*)(leafNode->node.minValue))->lower, ((QueryRange*)(leafNode->node.maxValue))->upper);
     for (int i = 0; i < leafNode->node.allocated; i++) {
-        QueryRange * k = (QueryRange *)leafNode->node.keys[i];
-        QueryMeta* v = (QueryMeta *)leafNode->values[i];
+        QueryRange * k = &leafNode->node.keys[i];
+        QueryMeta* v = leafNode->values[i];
 //        printQueryRange(k);
         printf("%d:", k->searchKey);
         printQueryRange(k);

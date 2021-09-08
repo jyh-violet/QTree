@@ -179,13 +179,6 @@ int test() {
 ////    for (int i = 0; i < 10; ++i) {
 ////        test();
 ////    }
-//    leafSplitCount = 0;
-//    internalSplitCount = 0;
-//    funcCount = 0;
-//    funcTime = 0;
-//    whileCount = 0;
 //    test();
-//    printf("leafSplitCount: %d, internalSplitCount:%d, funcTime:%ld, funcCount:%d, whileCount:%d\n",
-//           leafSplitCount, internalSplitCount, funcTime, funcCount, whileCount);
 //    return 0;
 //}

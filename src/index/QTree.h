@@ -10,7 +10,7 @@
 #include "../holder/RangeHolder.h"
 #include "../Tool/ArrayList.h"
 #define maxDepth 100
-#define Border  33
+#define Border  65
 
 #define stackPop(stack, index)  stack[ --index]
 #define stackPush(stack, index, elem)  stack[index ++] = elem
@@ -47,8 +47,9 @@ typedef struct Node{
     int allocated ;
     KeyType* maxValue ;  //  Key*
     KeyType * minValue; // Key *
-    KeyType *  keys[Border];  // array of key*
     QTree* tree;
+    KeyType  keys[Border];  // array of key
+
 
 }Node;
 
@@ -88,7 +89,7 @@ int NodeGetHeight(Node* node);
 void NodeResetId(Node* node);
 void NodeMerge(Node* node, InternalNode* nodeParent, int slot,
                Node* nodeFROM);
-KeyType * NodeSplitShiftKeysLeft(Node* node);
+KeyType NodeSplitShiftKeysLeft(Node* node);
 
 
 
@@ -102,7 +103,7 @@ void LeafNodeAllocId(LeafNode* leafNode);
 void LeafNodeResetMaxValue(LeafNode* node);
 void LeafNodeResetMinValue(LeafNode* node);
 Node* LeafNodeSplit(LeafNode* leafNode);
-KeyType * LeafNodeSplitShiftKeysLeft(LeafNode* node);
+KeyType  LeafNodeSplitShiftKeysLeft(LeafNode* node);
 int LeafNodeGetId(LeafNode* node) ;
 int LeafNodeGetHeight(LeafNode* node);
 void LeafNodeResetId(LeafNode* node);
@@ -119,12 +120,12 @@ void InternalNodeResetMaxValue(InternalNode* node);
 void InternalNodeResetMinValue(InternalNode* node);
 void InternalNodeAllocId(InternalNode* node);
 Node* InternalNodeSplit(InternalNode* node);
-KeyType * InternalNodeSplitShiftKeysLeft(InternalNode* node);
+KeyType  InternalNodeSplitShiftKeysLeft(InternalNode* node);
 int InternalNodeGetId(InternalNode* node);
 int InternalNodeGetHeight(InternalNode* node);
 void InternalNodeResetId(InternalNode* node);
 BOOL InternalNodeCheckUnderflowWithRight(InternalNode* node, int slot);
-KeyType * InternalNodeRemove(InternalNode* node, int slot);
+KeyType  InternalNodeRemove(InternalNode* node, int slot);
 void InternalNodeMerge(Node* node, InternalNode* nodeParent, int slot, Node* nodeFROMx);
 void printInternalNode(InternalNode* internalNode);
 

@@ -37,22 +37,22 @@ void QueryRangeConstructor(QueryRange *queryRange){
                         queryRange->upper = rangeCount ++ ;
                         break;
     }
-    queryRange->boundInclude = 3;
+//    queryRange->boundInclude = 3;
     queryRange->searchKey  = -1;
 }
 
 void QueryRangeConstructorWithPara(QueryRange *queryRange, int startKey, int endKey, BOOL lowerInclude, BOOL upperInclude){
     queryRange->lower = startKey;
     queryRange->upper = endKey;
-    if(lowerInclude && upperInclude){
-        queryRange->boundInclude = 3;
-    }else if (lowerInclude) {
-        queryRange->boundInclude = 1;
-    }else if (upperInclude){
-        queryRange->boundInclude = 2;
-    }else{
-        queryRange-> boundInclude = 0;
-    }
+//    if(lowerInclude && upperInclude){
+//        queryRange->boundInclude = 3;
+//    }else if (lowerInclude) {
+//        queryRange->boundInclude = 1;
+//    }else if (upperInclude){
+//        queryRange->boundInclude = 2;
+//    }else{
+//        queryRange-> boundInclude = 0;
+//    }
     queryRange->searchKey = -1;
 }
 
