@@ -14,7 +14,7 @@ void NodeConstructor(Node* node, QTree *tree){
 }
 void NodeDestroy(Node* node){
 //    free(node->keys);
-    if(node->isLeaf){
+    if(NodeIsLeaf(node)){
         LeafNodeDestroy((LeafNode*)node);
     } else{
         InternalNodeDestroy((InternalNode*)node);
@@ -25,7 +25,7 @@ void NodeCheckTree(Node* node){
     if(node->tree == NULL){
         printNode(node);
     }
-    if(node->isLeaf == FALSE){
+    if(NodeIsLeaf(node)){
         for(int i = 0; i <= node->allocated; i ++){
             NodeCheckTree(((InternalNode*)node)->childs[i]);
         }
@@ -68,7 +68,7 @@ int NodeFindSlotByKey( Node* node, KeyType* searchKey) {
 }
 
 void printNode(Node* node){
-    if(node->isLeaf){
+    if(NodeIsLeaf(node)){
         printLeafNode((LeafNode*)node);
     }else{
         printInternalNode((InternalNode*)node);
@@ -76,7 +76,7 @@ void printNode(Node* node){
 }
 
 Node* NodeSplit(Node* node){
-    if(node->isLeaf){
+    if(NodeIsLeaf(node)){
        return LeafNodeSplit((LeafNode*)node);
     } else{
         return InternalNodeSplit((InternalNode *)node);
@@ -84,7 +84,7 @@ Node* NodeSplit(Node* node){
 }
 
 int NodeGetHeight(Node* node) {
-    if(node->isLeaf){
+    if(NodeIsLeaf(node)){
         return LeafNodeGetHeight((LeafNode*)node);
     } else{
         return InternalNodeGetHeight((InternalNode *)node);
@@ -92,7 +92,7 @@ int NodeGetHeight(Node* node) {
 }
 
 void NodeResetId(Node* node) {
-    if(node->isLeaf){
+    if(NodeIsLeaf(node)){
         LeafNodeResetId((LeafNode*)node);
     } else{
         InternalNodeResetId((InternalNode *)node);
@@ -101,7 +101,7 @@ void NodeResetId(Node* node) {
 
 void NodeMerge(Node* node, InternalNode* nodeParent, int slot,
                     Node* nodeFROM){
-    if(node->isLeaf){
+    if(NodeIsLeaf(node)){
         LeafNodeMerge((LeafNode*)node, nodeParent, slot, nodeFROM);
     } else{
         InternalNodeMerge(node, nodeParent, slot, nodeFROM);
@@ -109,7 +109,7 @@ void NodeMerge(Node* node, InternalNode* nodeParent, int slot,
 }
 
 KeyType  NodeSplitShiftKeysLeft(Node* node){
-    if(node->isLeaf){
+    if(NodeIsLeaf(node)){
         LeafNodeSplitShiftKeysLeft((LeafNode*)node);
     } else{
         InternalNodeSplitShiftKeysLeft((InternalNode *)node);

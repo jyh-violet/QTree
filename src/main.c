@@ -101,7 +101,7 @@ int test() {
         ArraylistDeallocate(removedQuery);
 
     }
-
+    QTreeDestroy(&qTree);
 
     removeT = (double)(finish - start)/CLOCKS_PER_SEC;
 //    printf("remove end! use %lfs\n", (double)(finish - start)/CLOCKS_PER_SEC);
@@ -110,7 +110,7 @@ int test() {
     free(queries) ;
     return 0;
 }
-//
+
 //int main(){
 //
 //    const char ConfigFile[]= "config.cfg";

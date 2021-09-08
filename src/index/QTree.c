@@ -54,8 +54,8 @@ void QTreeConstructor(QTree* qTree,  int BOrder){
 }
 
 void QTreeDestroy(QTree* qTree){
-//    printf("Border:%d, leafSplitCount: %d, internalSplitCount:%d, funcTime:%ld, funcCount:%d, whileCount:%d\n",
-//           Border, qTree->leafSplitCount,  qTree->internalSplitCount,  qTree->funcTime,  qTree->funcCount,  qTree->whileCount);
+//    printf("searchKeyType:%d, Border:%d, leafSplitCount: %d, internalSplitCount:%d, funcTime:%ld, funcCount:%d, whileCount:%d\n",
+//           searchKeyType, Border, qTree->leafSplitCount,  qTree->internalSplitCount,  qTree->funcTime,  qTree->funcCount,  qTree->whileCount);
     NodeDestroy(qTree->root);
 }
 
@@ -69,12 +69,12 @@ void printQTree( QTree* qTree){
     int stackChildCount[maxDepth];
     int stackChildCountIndex = 0;
     stackPush(stackNodes,stackNodesIndex, qTree->root); // init seed, root node
-    BOOL lastIsInternal = (BOOL)!qTree->root->isLeaf;
+    BOOL lastIsInternal = (BOOL)!NodeIsLeaf(qTree->root);
     while (!(stackEmpty(stackNodes, stackNodesIndex))) {
         node = stackPop(stackNodes, stackNodesIndex);
         int count = stackPop(stackChildCount, stackChildCountIndex);
         stackPush(stackChildCount, stackChildCountIndex, count - 1);
-        if (!node->isLeaf) {
+        if (!NodeIsLeaf(node)) {
             InternalNode* internalNode = (InternalNode*) node;
             stackPush(stackChildCount, stackChildCountIndex, node->allocated + 1);
             for(int i = node->allocated; i >= 0; i --){
@@ -88,7 +88,7 @@ void printQTree( QTree* qTree){
         if (lastIsInternal ) {
             depth += 2;
         }
-        lastIsInternal = (BOOL)!node->isLeaf;
+        lastIsInternal = (BOOL)!NodeIsLeaf(node);
         int pad =(depth - 1);
         for (int i =0 ; i < pad; i ++){
             printf(" ");
@@ -170,7 +170,7 @@ inline LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key) {
 
     Node* node = qTree->root;
     int slot = 0;
-    while (!node->isLeaf) {
+    while (!NodeIsLeaf(node)) {
         qTree->whileCount++;
         InternalNode *nodeInternal = (InternalNode*) node;
 
@@ -192,7 +192,7 @@ inline LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key) {
     }
     setSearchKey(node, key);
 
-    return (node->isLeaf ? (LeafNode*) node : NULL);
+    return (NodeIsLeaf(node) ? (LeafNode*) node : NULL);
 }
 
 
@@ -269,7 +269,7 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
     BOOL resetMax = FALSE;
     BOOL resetMin = FALSE;
     while (TRUE) {
-        while (!node->isLeaf){
+        while (!NodeIsLeaf(node)){
             BOOL getNode = FALSE;
             InternalNode* nodeInternal = (InternalNode*) node;
             for(slot = 0; slot <= nodeInternal->node.allocated; slot ++){
@@ -316,7 +316,7 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
                 }
             }
         }
-        if(node->isLeaf){
+        if(NodeIsLeaf(node)){
             int j = 0;
             LeafNode* leafNode = (LeafNode*) node;
             //                System.out.println("getLeafNode:" + leafNode);

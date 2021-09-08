@@ -6,7 +6,6 @@
 inline void LeafNodeConstructor(LeafNode* leafNode, QTree *tree){
     memset(leafNode, 0, sizeof (LeafNode));
     NodeConstructor((Node*)leafNode, tree);
-    leafNode->node.isLeaf = TRUE;
 //    leafNode->values = malloc(sizeof (ValueType *) * tree->Border);
 //    memset(leafNode->values,0, sizeof (ValueType *) * Border);
 }

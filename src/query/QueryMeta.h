@@ -11,11 +11,10 @@
 #define QTREE_QUERYMETA_H
 
 static int queryCount;
-#define queryIdLen 30
+#define queryIdLen 20
 typedef struct QueryMeta {
     char    queryId[queryIdLen];
     QueryRange  dataRegion;  //data region of the query
-
 }QueryMeta;
 
 char* getQueryId(QueryMeta* queryMeta);

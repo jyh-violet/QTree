@@ -9,12 +9,14 @@
 #include "../query/QueryRange.h"
 #include "../holder/RangeHolder.h"
 #include "../Tool/ArrayList.h"
-#define maxDepth 100
-#define Border  65
+#define maxDepth 16
+#define Border  9
 
 #define stackPop(stack, index)  stack[ --index]
 #define stackPush(stack, index, elem)  stack[index ++] = elem
 #define stackEmpty(stack, index)  (index==0)
+
+#define NodeIsLeaf(node)  (((Node*)node)->id >= 0)
 
 extern int maxValue;
 extern int Qid;
@@ -32,25 +34,22 @@ typedef struct QTree {
     int maxNodeID;
     int stackNodesIndex;
     int stackSlotsIndex;
-    InternalNode* stackNodes[maxDepth];
-    int          stackSlots[maxDepth];
     int leafSplitCount;
     int internalSplitCount;
     int funcCount;
     int whileCount;
     long funcTime;
+    InternalNode* stackNodes[maxDepth];
+    int          stackSlots[maxDepth];
 }QTree;
 
 typedef struct Node{
-    BOOL isLeaf;
     int id ;
     int allocated ;
     KeyType* maxValue ;  //  Key*
     KeyType * minValue; // Key *
     QTree* tree;
     KeyType  keys[Border];  // array of key
-
-
 }Node;
 
 
@@ -72,7 +71,6 @@ void QTreeMakeNewRoot(QTree* qTree, Node* splitedNode);
 LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key);
 Node* QTreePut(QTree* qTree, KeyType * key, ValueType * value);
 void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* removedQuery);
-
 
 
 void NodeCheckTree(Node* node);

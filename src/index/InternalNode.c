@@ -8,7 +8,6 @@
 void InternalNodeConstructor(InternalNode* internalNode, QTree* qTree){
     memset(internalNode,0, sizeof(InternalNode));
     NodeConstructor((Node*)internalNode, qTree);
-    internalNode->node.isLeaf = FALSE;
 //    internalNode->childs = malloc(sizeof (Node*) * qTree->Border + 1);
 
 }
