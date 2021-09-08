@@ -19,11 +19,14 @@ Arraylist *ArraylistCreate(size_t initCapacity) {
 
 void ArraylistAdd(struct _arraylist *list, void *elem) {
     /* Adds one element of generic pointer type to the internal array */
-    if(list->size < list->capacity){
+    if(list->size < (list->capacity - 1)){
         list->data[list->size ++] = elem;
     } else{
-        list->capacity << 1;
-        list->data = (void**)realloc(list->data, sizeof (void *) * list->capacity);
+        list->capacity *= 2;
+        void *olddata = list->data;
+        list->data = (void**)malloc(sizeof (void *) * list->capacity);
+        memcpy(list->data, olddata, list->size * sizeof (void *));
+        free(olddata);
         list->data[list->size ++] = elem;
     }
 }
@@ -62,7 +65,7 @@ void ArraylistRemove(struct _arraylist *list, int index) {
 void ArraylistClear(struct _arraylist *list) {
     /* Clears the internal array */
     list->size = 0;
-    memset(list->data, 0, sizeof (list->data));
+    memset(list->data, 0, list->capacity * sizeof (void *));
 }
 
 void ArraylistDestroy(struct _arraylist *list) {
