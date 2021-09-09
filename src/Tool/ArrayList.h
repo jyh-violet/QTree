@@ -6,6 +6,7 @@
 #define QTREE_ARRAYLIST_H
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 
 typedef struct _arraylist {
     size_t capacity;

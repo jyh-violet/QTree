@@ -19,8 +19,6 @@ void QTreeConstructor(QTree* qTree,  int BOrder){
     const char ConfigFile[]= "config.cfg";
 
     config_t cfg;
-    config_setting_t *setting;
-    const char *str;
 
     config_init(&cfg);
 
@@ -31,7 +29,7 @@ void QTreeConstructor(QTree* qTree,  int BOrder){
                 config_error_line(&cfg), config_error_text(&cfg));
         config_destroy(&cfg);
     }
-    int regionType, keyType;
+    int  keyType;
     config_lookup_int(&cfg, "searchKeyType", &keyType);
     switch (keyType) {
         case 0:

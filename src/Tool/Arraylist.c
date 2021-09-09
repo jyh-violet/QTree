@@ -85,8 +85,9 @@ void ArraylistDeallocate(struct _arraylist *list) {
 
 int ArraylistGetindex(struct _arraylist *list, void *elem) {
     /* Looks for elem in list and returns the index or -1 if not found */
-    for(int i = 0; i < list->size; ++i)
+    for(int i = 0; i < list->size; ++i){
         if (elem == ArraylistGet(list, i))
             return i;
-        return -1;
+    }
+    return -1;
 }

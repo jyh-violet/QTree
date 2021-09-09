@@ -18,8 +18,9 @@ int removeNum = 10;
 int TOTAL = (int) 100, TRACE_LEN = 100000;
 
 
-
 int test() {
+#undef BOrder_65
+#define BOrder_129
     double generateT, putT, removeT;
     srand((unsigned)time(NULL));
     clock_t   start,   finish, time1, time2;
@@ -97,7 +98,7 @@ int test() {
             }
         }
         finish = clock();
-        printf("remove:%d\n", removedQuery->size);
+        printf("remove:%ld\n", removedQuery->size);
         ArraylistDeallocate(removedQuery);
 
     }
@@ -110,14 +111,12 @@ int test() {
     free(queries) ;
     return 0;
 }
-
+//
 //int main(){
 //
 //    const char ConfigFile[]= "config.cfg";
 //
 //    config_t cfg;
-//    config_setting_t *setting;
-//    const char *str;
 //
 //    config_init(&cfg);
 //

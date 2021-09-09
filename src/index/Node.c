@@ -110,9 +110,9 @@ void NodeMerge(Node* node, InternalNode* nodeParent, int slot,
 
 KeyType  NodeSplitShiftKeysLeft(Node* node){
     if(NodeIsLeaf(node)){
-        LeafNodeSplitShiftKeysLeft((LeafNode*)node);
+        return LeafNodeSplitShiftKeysLeft((LeafNode*)node);
     } else{
-        InternalNodeSplitShiftKeysLeft((InternalNode *)node);
+        return InternalNodeSplitShiftKeysLeft((InternalNode *)node);
     }
 }
 

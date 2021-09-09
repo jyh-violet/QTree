@@ -105,9 +105,10 @@ int InternalNodeGetId(InternalNode* internalNode) {
 int InternalNodeGetHeight(InternalNode* internalNode) {
     int h = 0;
     for (int i = 0; i <= internalNode->node.allocated ; ++i) {
-        NodeGetHeight(internalNode->childs[i]);
+        int c = NodeGetHeight(internalNode->childs[i]);
+        h = h > c? h : c;
     }
-    return 0;
+    return h + 1;
 }
 
 void InternalNodeResetId(InternalNode* internalNode){
