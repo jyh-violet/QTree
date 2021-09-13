@@ -25,10 +25,10 @@ void LeafNodeMerge(LeafNode* leafNode, InternalNode* nodeParent, int slot,
     memcpy(nodeTO->values + sizeTO , nodeFROM->values, (sizeFROM) * sizeof(ValueType *));
 
     nodeTO->node.allocated += sizeFROM; // keys of FROM and key of nodeParent
-    if(!QueryRangeMaxGE(nodeTO->node.maxValue,nodeFROM->node.maxValue)){
+    if(!QueryRangeMaxGE(&(nodeTO->node.maxValue),&(nodeFROM->node.maxValue))){
         nodeTO->node.maxValue = nodeFROM->node.maxValue;
     }
-    if(QueryRangeMinGT(nodeTO->node.minValue, nodeFROM->node.minValue)){
+    if(QueryRangeMinGT(&(nodeTO->node.minValue), &(nodeFROM->node.minValue))){
         nodeTO->node.minValue = nodeFROM->node.minValue;
     }
 
@@ -50,11 +50,11 @@ BOOL LeafNodeAdd(LeafNode* leafNode, int slot, KeyType * newKey, ValueType * new
     leafNode->node.allocated++;
     leafNode->node.keys[slot] = *newKey;
     leafNode->values[slot] = newValue;
-    if(leafNode->node.maxValue == NULL || (QueryRangeMaxGE(newKey, leafNode->node.maxValue))){
-        leafNode->node.maxValue = newKey;
+    if(leafNode->node.allocated == 1 || (QueryRangeMaxGE(newKey, &(leafNode->node.maxValue)))){
+        leafNode->node.maxValue = *newKey;
     }
-    if(leafNode->node.minValue == NULL || (QueryRangeMinGT(leafNode->node.minValue, newKey))){
-        leafNode->node.minValue = newKey;
+    if(leafNode->node.allocated == 1 || (QueryRangeMinGT(&(leafNode->node.minValue), newKey))){
+        leafNode->node.minValue = *newKey;
     }
     return TRUE;
 }
@@ -68,10 +68,10 @@ inline void LeafNodeResetMaxValue(LeafNode* leafNode) {
     if (leafNode->node.allocated == 0) {
         return;
     }
-    leafNode->node.maxValue = &leafNode->node.keys[0];
+    leafNode->node.maxValue = leafNode->node.keys[0];
     for (int i = 1; i < leafNode->node.allocated; i++) {
-        if (QueryRangeMaxGE(&(leafNode->node.keys[i]), leafNode->node.maxValue)) {
-            leafNode->node.maxValue = &leafNode->node.keys[i];
+        if (QueryRangeMaxGE(&(leafNode->node.keys[i]), &(leafNode->node.maxValue))) {
+            leafNode->node.maxValue = leafNode->node.keys[i];
         }
     }
 }
@@ -81,10 +81,10 @@ inline void LeafNodeResetMinValue(LeafNode* leafNode) {
     if (leafNode->node.allocated == 0) {
         return;
     }
-    leafNode->node.minValue = &leafNode->node.keys[0];
+    leafNode->node.minValue = leafNode->node.keys[0];
     for (int i = 1; i < leafNode->node.allocated; i++) {
-        if (QueryRangeMinGT((leafNode->node.minValue), &leafNode->node.keys[i])) {
-            leafNode->node.minValue = &leafNode->node.keys[i];
+        if (QueryRangeMinGT(&(leafNode->node.minValue), &leafNode->node.keys[i])) {
+            leafNode->node.minValue = leafNode->node.keys[i];
         }
     }
 }
@@ -143,7 +143,7 @@ void LeafNodeResetId(LeafNode* leafNode){
 
 void printLeafNode(LeafNode* leafNode){
     printf("[L%d](%d)(%d,%d){", leafNode->node.id, leafNode->node.allocated,
-           ((QueryRange*)(leafNode->node.minValue))->lower, ((QueryRange*)(leafNode->node.maxValue))->upper);
+           ((leafNode->node.minValue)).lower, ((leafNode->node.maxValue)).upper);
     for (int i = 0; i < leafNode->node.allocated; i++) {
         QueryRange * k = &leafNode->node.keys[i];
         QueryMeta* v = leafNode->values[i];

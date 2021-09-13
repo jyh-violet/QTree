@@ -22,6 +22,8 @@
 #define QueryRangeCover(queryRange, value)  \
 (BOOL)(((QueryRange *)(queryRange))->lower <= (int)value && ((QueryRange *)(queryRange))->upper >= (int)value)
 
+#define RAND_RANGE(N) ((double)rand() / ((double)RAND_MAX + 1) * (N))
+
 typedef struct QueryRange{
     int lower; // lower bound of the region
     int upper;  // upper bound of the region

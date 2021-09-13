@@ -133,15 +133,15 @@ inline void setSearchKey(Node* node, KeyType * key){
             key->searchKey = key->lower;
             break;
         case DYMID:
-            if((QueryRange*)node->maxValue == NULL){
+            if(node->maxValue.upper == 0){
                 key->searchKey = (key->lower + key->upper) >> 1;
-            } else if((key->lower < ((QueryRange*)node->maxValue)->upper) && (key-> upper > ((QueryRange*)node->minValue)->lower)){
-                int low = ((QueryRange*)node->minValue)->lower;
-                if(QueryRangeMinGT(key, (QueryRange*)node->minValue)){
+            } else if((key->lower < (node->maxValue).upper) && (key-> upper > (node->minValue).lower)){
+                int low = (node->minValue).lower;
+                if(QueryRangeMinGT(key, &(node->minValue))){
                     low = key->lower;
                 }
-                int high =((QueryRange*)node->maxValue)->upper;
-                if(!QueryRangeMaxGE(key, (QueryRange*)node->maxValue)){
+                int high =(node->maxValue).upper;
+                if(!QueryRangeMaxGE(key, &(node->maxValue))){
                     high = key->upper;
                 }
                 key->searchKey = (low + high) >> 1;
@@ -220,11 +220,11 @@ Node* QTreePut(QTree* qTree, QueryRange * key, QueryMeta * value){
     while (!stackEmpty(qTree->stackNodes, qTree->stackNodesIndex)) {
         //        cout << slot << endl;
         InternalNode* node = stackPop(qTree->stackNodes, qTree->stackNodesIndex);
-        if(node->node.maxValue == NULL || QueryRangeMaxGE(key, node->node.maxValue) ){
-            node->node.maxValue = key;
+        if(QueryRangeMaxGE(key, &(node->node.maxValue)) ){
+            node->node.maxValue = *key;
         }
-        if(node->node.minValue == NULL || QueryRangeMinGT(node->node.minValue, key) ){
-            node->node.minValue = key;
+        if( QueryRangeMinGT(&(node->node.minValue), key) ){
+            node->node.minValue = *key;
         }
         slot = stackPop(qTree->stackSlots, qTree->stackSlotsIndex);
         //            System.out.println(key + ", "  + otherBound + "," + node.id + ", "  + node.keys[0] + "," + slot);
@@ -271,14 +271,14 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
             BOOL getNode = FALSE;
             InternalNode* nodeInternal = (InternalNode*) node;
             for(slot = 0; slot <= nodeInternal->node.allocated; slot ++){
-                if(QueryRangeMaxGE(nodeInternal->childs[slot]->maxValue, key)){
+                if(QueryRangeMaxGE(&(nodeInternal->childs[slot]->maxValue), key)){
                     node = nodeInternal->childs[slot];
                     stackPush(qTree->stackNodes, qTree->stackNodesIndex, nodeInternal);
                     stackPush(qTree->stackSlots, qTree->stackSlotsIndex, slot);
                     getNode = TRUE;
                     break;
                 }
-                if(slot < nodeInternal->node.allocated && QueryRangeMinGT( nodeInternal->childs[slot + 1]->minValue, key)){
+                if(slot < nodeInternal->node.allocated && QueryRangeMinGT( &(nodeInternal->childs[slot + 1]->minValue), key)){
                     break;
                 }
             }
@@ -288,16 +288,12 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
                 while (!stackEmpty(qTree->stackNodes, qTree->stackNodesIndex)){
                     node = (Node*)stackPop(qTree->stackNodes, qTree->stackNodesIndex);
                     slot = stackPop(qTree->stackSlots, qTree->stackSlotsIndex);
-                    if(slot >= node->allocated  || QueryRangeMinGT(((InternalNode*) node)->childs[slot + 1]->minValue, key)){
+                    if(slot >= node->allocated  || QueryRangeMinGT(&(((InternalNode*) node)->childs[slot + 1]->minValue), key)){
                         for(int i = 0; i < slot; i ++ ){
                             InternalNodeCheckUnderflowWithRight(((InternalNode*) node), i);
                         }
-                        if(node->maxValue == removedMax){
-                            InternalNodeResetMaxValue(((InternalNode*) node));
-                        }
-                        if(node->minValue == removedMin){
-                            InternalNodeResetMinValue(((InternalNode*) node));
-                        }
+                        InternalNodeResetMaxValue(((InternalNode*) node));
+                        InternalNodeResetMinValue(((InternalNode*) node));
                     }else {
                         InternalNode* internalNode = (InternalNode*) node;
                         node = internalNode->childs[slot + 1];
@@ -323,14 +319,6 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
             for(int i = 0; i < leafNode->node.allocated ; i ++){
                 //                    System.out.println("query:" + leafNode.values[i]);
                 if(QueryMetaCover(leafNode->values[i], attribute)){
-                    if(leafNode->node.maxValue == &leafNode->node.keys[i]){
-                        resetMax = TRUE;
-                        removedMax = (leafNode->node.maxValue);
-                    }
-                    if(leafNode->node.minValue == &leafNode->node.keys[i]){
-                        resetMin = TRUE;
-                        removedMin = leafNode->node.minValue;
-                    }
                     ArraylistAdd(removedQuery, leafNode->values[i]);
                     qTree->elements --;
                 }else {
@@ -339,16 +327,8 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
                 }
             }
             leafNode->node.allocated = j;
-            if(resetMax){
-                LeafNodeResetMaxValue(leafNode);
-            }else{
-                removedMax = NULL;
-            }
-            if(resetMin){
-                LeafNodeResetMinValue(leafNode);
-            }else{
-                removedMin = NULL;
-            }
+            LeafNodeResetMaxValue(leafNode);
+            LeafNodeResetMinValue(leafNode);
             if(stackEmpty(qTree->stackNodes, qTree->stackNodesIndex)){
                 break;
             }
@@ -357,16 +337,12 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
                 node = (Node*)stackPop(qTree->stackNodes, qTree->stackNodesIndex);
                 slot =stackPop(qTree->stackSlots, qTree->stackSlotsIndex);
 
-                if(slot >= node->allocated  || QueryRangeMinGT(((InternalNode*) node)->childs[slot + 1]->minValue, key)){
+                if(slot >= node->allocated  || QueryRangeMinGT(&(((InternalNode*) node)->childs[slot + 1]->minValue), key)){
                     for(int i = 0; i < slot; i ++ ){
                         InternalNodeCheckUnderflowWithRight(((InternalNode*) node),i);
                     }
-                    if(node->maxValue == removedMax){
-                        InternalNodeResetMaxValue(((InternalNode*) node));
-                    }
-                    if(node->minValue == removedMin){
-                        InternalNodeResetMinValue(((InternalNode*) node));
-                    }
+                    InternalNodeResetMaxValue(((InternalNode*) node));
+                    InternalNodeResetMinValue(((InternalNode*) node));
 
                 }else {
                     InternalNode* internalNode = (InternalNode*) node;

@@ -5,84 +5,48 @@ n=20000000
 tracelen=2000000000
 dataRegionType=1
 valueSpan=24
+keytype=(0 1 2)
+ratios=(0.5 0.75 0.95)
+repeteNum=5
 
-<< 'COMMENT'
-rm config.cfg
-echo "TOTAL = $n
+for type in ${keytype[*]}
+do
+  for r in ${ratios[*]}
+  do
+  rm config.cfg
+  echo "TOTAL = $n
 TRACE_LEN = $tracelen
 dataRegionType = $dataRegionType
 valueSpan = $valueSpan
-searchKeyType = 0" >> config.cfg
-echo "TOTAL = $n ,TRACE_LEN = $tracelen, dataRegionType = $dataRegionType, valueSpan = $valueSpan, searchKeyType = 0" >> $result
-for i in `seq 1 10`
-do
-  ./QTree >> $result
+searchKeyType = $type
+insertRatio = $r" >> config.cfg
+  echo "TOTAL = $n ,TRACE_LEN = $tracelen, dataRegionType = $dataRegionType, searchKeyType = $type, insertRatio=$r" >> $result
+  for i in `seq 1 $repeteNum`
+  do
+    ./QTree >> $result
+  done
+  done
+
 done
-
-
-rm config.cfg
-echo "TOTAL = $n
-TRACE_LEN = $tracelen
-dataRegionType = $dataRegionType
-valueSpan = $valueSpan
-searchKeyType = 1" >> config.cfg
-echo "TOTAL = $n ,TRACE_LEN = $tracelen, dataRegionType = $dataRegionType, valueSpan = $valueSpan, searchKeyType = 1" >> $result
-for i in `seq 1 10`
-do
-  ./QTree >> $result
-done
-
-
-rm config.cfg
-echo "TOTAL = $n
-TRACE_LEN = $tracelen
-dataRegionType = $dataRegionType
-valueSpan = $valueSpan
-searchKeyType = 2" >> config.cfg
-echo "TOTAL = $n ,TRACE_LEN = $tracelen, dataRegionType = $dataRegionType, valueSpan = $valueSpan, searchKeyType = 2" >> $result
-for i in `seq 1 10`
-do
-  ./QTree >> $result
-done
-COMMENT
 
 dataRegionType=3
 
-rm config.cfg
-echo "TOTAL = $n
+for r in ${ratios[*]}
+do
+  for type in ${keytype[*]}
+  do
+  rm config.cfg
+  echo "TOTAL = $n
 TRACE_LEN = $tracelen
 dataRegionType = $dataRegionType
 valueSpan = $valueSpan
-searchKeyType = 0" >> config.cfg
-echo "TOTAL = $n ,TRACE_LEN = $tracelen, dataRegionType = $dataRegionType, valueSpan = $valueSpan, searchKeyType = 0" >> $result
-for i in `seq 1 10`
-do
-  ./QTree >> $result
-done
+searchKeyType = $type
+insertRatio = $r" >> config.cfg
+  echo "TOTAL = $n ,TRACE_LEN = $tracelen, dataRegionType = $dataRegionType, searchKeyType = $type, insertRatio=$r" >> $result
+  for i in `seq 1 $repeteNum`
+  do
+    ./QTree >> $result
+  done
+  done
 
-
-
-rm config.cfg
-echo "TOTAL = $n
-TRACE_LEN = $tracelen
-dataRegionType = $dataRegionType
-valueSpan = $valueSpan
-searchKeyType = 1" >> config.cfg
-echo "TOTAL = $n ,TRACE_LEN = $tracelen, dataRegionType = $dataRegionType, valueSpan = $valueSpan, searchKeyType = 1" >> $result
-for i in `seq 1 10`
-do
-  ./QTree >> $result
-done
-
-
-rm config.cfg
-echo "TOTAL = $n
-TRACE_LEN = $tracelen
-dataRegionType = $dataRegionType
-valueSpan = $valueSpan
-searchKeyType = 2" >> config.cfg
-echo "TOTAL = $n ,TRACE_LEN = $tracelen, dataRegionType = $dataRegionType, valueSpan = $valueSpan, searchKeyType = 2" >> $result
-for i in `seq 1 10`
-do
-  ./QTree >> $result
 done

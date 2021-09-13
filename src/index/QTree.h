@@ -10,7 +10,7 @@
 #include "../holder/RangeHolder.h"
 #include "../Tool/ArrayList.h"
 #define maxDepth 16
-#define Border  129
+#define Border  65
 
 #define stackPop(stack, index)  stack[ --index]
 #define stackPush(stack, index, elem)  stack[index ++] = elem
@@ -46,8 +46,8 @@ typedef struct QTree {
 typedef struct Node{
     int id ;
     int allocated ;
-    KeyType* maxValue ;  //  Key*
-    KeyType * minValue; // Key *
+    KeyType maxValue ;  //  Key*
+    KeyType minValue; // Key *
     QTree* tree;
     KeyType  keys[Border];  // array of key
 }Node;
