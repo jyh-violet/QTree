@@ -7,6 +7,8 @@
 #include "QTree.h"
 
 extern SearchKeyType searchKeyType;
+extern u_int64_t checkLeaf;
+
 void QTreeConstructor(QTree* qTree,  int BOrder){
     memset(qTree, 0, sizeof (QTree));
     qTree->maxNodeID = 0;
@@ -263,7 +265,7 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
     KeyType  queryRange;
     KeyType* key = &queryRange;
     QueryRangeConstructorWithPara(key, attribute, attribute, TRUE, TRUE);
-    QueryRange *removedMax, *removedMin;
+    BoundKey removedMax = 0, removedMin = maxValue;
     BOOL resetMax = FALSE;
     BOOL resetMin = FALSE;
     while (TRUE) {
@@ -292,8 +294,12 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
                         for(int i = 0; i < slot; i ++ ){
                             InternalNodeCheckUnderflowWithRight(((InternalNode*) node), i);
                         }
-                        InternalNodeResetMaxValue(((InternalNode*) node));
-                        InternalNodeResetMinValue(((InternalNode*) node));
+                        if(node->maxValue <= removedMax){
+                            InternalNodeResetMaxValue(((InternalNode*) node));
+                        }
+                        if(node->minValue >= removedMin){
+                            InternalNodeResetMinValue(((InternalNode*) node));
+                        }
                     }else {
                         InternalNode* internalNode = (InternalNode*) node;
                         node = internalNode->childs[slot + 1];
@@ -312,6 +318,7 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
         }
         if(NodeIsLeaf(node)){
             int j = 0;
+            checkLeaf ++;
             LeafNode* leafNode = (LeafNode*) node;
             //                System.out.println("getLeafNode:" + leafNode);
             resetMax = FALSE;
@@ -319,6 +326,12 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
             for(int i = 0; i < leafNode->node.allocated ; i ++){
                 //                    System.out.println("query:" + leafNode.values[i]);
                 if(QueryMetaCover(leafNode->values[i], attribute)){
+                    if(leafNode->node.keys[i].upper == leafNode->node.maxValue){
+                        resetMax = TRUE;
+                    }
+                    if(leafNode->node.keys[i].lower == leafNode->node.minValue){
+                        resetMin = TRUE;
+                    }
                     ArraylistAdd(removedQuery, leafNode->values[i]);
                     qTree->elements --;
                 }else {
@@ -327,8 +340,15 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
                 }
             }
             leafNode->node.allocated = j;
-            LeafNodeResetMaxValue(leafNode);
-            LeafNodeResetMinValue(leafNode);
+            if(resetMax){
+                removedMax = leafNode->node.maxValue;
+                LeafNodeResetMaxValue(leafNode);
+
+            }
+            if(resetMin){
+                removedMin = leafNode->node.minValue;
+                LeafNodeResetMinValue(leafNode);
+            }
             if(stackEmpty(qTree->stackNodes, qTree->stackNodesIndex)){
                 break;
             }
@@ -341,8 +361,12 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
                     for(int i = 0; i < slot; i ++ ){
                         InternalNodeCheckUnderflowWithRight(((InternalNode*) node),i);
                     }
-                    InternalNodeResetMaxValue(((InternalNode*) node));
-                    InternalNodeResetMinValue(((InternalNode*) node));
+                    if(node->maxValue <= removedMax){
+                        InternalNodeResetMaxValue(((InternalNode*) node));
+                    }
+                    if(node->minValue >= removedMin){
+                        InternalNodeResetMinValue(((InternalNode*) node));
+                    }
 
                 }else {
                     InternalNode* internalNode = (InternalNode*) node;

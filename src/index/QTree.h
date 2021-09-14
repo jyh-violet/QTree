@@ -34,10 +34,10 @@ typedef struct QTree {
     int maxNodeID;
     int stackNodesIndex;
     int stackSlotsIndex;
-    int leafSplitCount;
-    int internalSplitCount;
-    int funcCount;
-    int whileCount;
+    size_t leafSplitCount;
+    size_t internalSplitCount;
+    size_t funcCount;
+    size_t whileCount;
     long funcTime;
     InternalNode* stackNodes[maxDepth];
     int          stackSlots[maxDepth];
