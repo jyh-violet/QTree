@@ -7,11 +7,11 @@ dataRegionType=1
 valueSpan=24
 keytype=(0 1 2)
 ratios=(0.5 0.75 0.95)
-repeteNum=5
+repeteNum=1
 
-for type in ${keytype[*]}
+for r in ${ratios[*]}
 do
-  for r in ${ratios[*]}
+  for type in ${keytype[*]}
   do
   rm config.cfg
   echo "TOTAL = $n
@@ -20,10 +20,10 @@ dataRegionType = $dataRegionType
 valueSpan = $valueSpan
 searchKeyType = $type
 insertRatio = $r" >> config.cfg
-  echo "TOTAL = $n ,TRACE_LEN = $tracelen, dataRegionType = $dataRegionType, searchKeyType = $type, insertRatio=$r" >> $result
+  echo "TOTAL = $n ,TRACE_LEN = $tracelen, dataRegionType = $dataRegionType, searchKeyType = $type, insertRatio=$r"  >> $result
   for i in `seq 1 $repeteNum`
   do
-    ./QTree >> $result
+     ./QTree >> $result
   done
   done
 
@@ -42,7 +42,7 @@ dataRegionType = $dataRegionType
 valueSpan = $valueSpan
 searchKeyType = $type
 insertRatio = $r" >> config.cfg
-  echo "TOTAL = $n ,TRACE_LEN = $tracelen, dataRegionType = $dataRegionType, searchKeyType = $type, insertRatio=$r" >> $result
+  echo "TOTAL = $n ,TRACE_LEN = $tracelen, dataRegionType = $dataRegionType, searchKeyType = $type, insertRatio=$r"  >> $result
   for i in `seq 1 $repeteNum`
   do
     ./QTree >> $result

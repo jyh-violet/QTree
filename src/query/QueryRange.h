@@ -8,30 +8,32 @@
 #include "../common.h"
 
 #define QueryRangeLT(queryRange1, queryRange2) \
-(BOOL)(((QueryRange*)queryRange1)->searchKey < ((QueryRange*)queryRange2)->searchKey)
+(BOOL)(((QueryRange)queryRange1).searchKey < ((QueryRange)queryRange2).searchKey)
 
 #define QueryRangeGT(queryRange1, queryRange2)  \
-(BOOL)(((QueryRange*)queryRange1)->searchKey > ((QueryRange*)queryRange2)->searchKey)
+(BOOL)(((QueryRange)queryRange1).searchKey > ((QueryRange)queryRange2).searchKey)
 
 #define QueryRangeMaxGE(queryRange1, queryRange2)  \
-(BOOL)(((QueryRange* )queryRange1)->upper >= ((QueryRange* )queryRange2)->upper)
+(BOOL)(((QueryRange)queryRange1).upper >= ((QueryRange)queryRange2).upper)
 
 #define QueryRangeMinGT(queryRange1, queryRange2) \
-(BOOL)(((QueryRange* )queryRange1)->lower > ((QueryRange*)queryRange2)->lower)
+(BOOL)(((QueryRange)queryRange1).lower > ((QueryRange)queryRange2).lower)
 
 #define QueryRangeCover(queryRange, value)  \
-(BOOL)(((QueryRange *)(queryRange))->lower <= (int)value && ((QueryRange *)(queryRange))->upper >= (int)value)
+(BOOL)(((QueryRange)(queryRange)).lower <= (int)value && ((QueryRange)(queryRange)).upper >= (int)value)
 
 #define RAND_RANGE(N) ((double)rand() / ((double)RAND_MAX + 1) * (N))
 
+#define BoundKey int
+
 typedef struct QueryRange{
-    int lower; // lower bound of the region
-    int upper;  // upper bound of the region
-    int searchKey; // in [lower, upper], used as the search key in the tree
+    BoundKey lower; // lower bound of the region
+    BoundKey upper;  // upper bound of the region
+    BoundKey searchKey; // in [lower, upper], used as the search key in the tree
 }QueryRange;
 
 
 void QueryRangeConstructor(QueryRange *queryRange);
-void QueryRangeConstructorWithPara(QueryRange *queryRange, int startKey, int endKey, BOOL lowerInclude, BOOL upperInclude);
+void QueryRangeConstructorWithPara(QueryRange *queryRange, BoundKey startKey, BoundKey endKey, BOOL lowerInclude, BOOL upperInclude);
 void printQueryRange(QueryRange* queryRange);
 #endif //QTREE_QUERYRANGE_H

@@ -17,6 +17,7 @@ BOOL countFragment = FALSE;
 int removeNum = 10;
 int TOTAL = (int) 100, TRACE_LEN = 100000;
 double insertRatio = 0;
+u_int32_t checkLeaf = 0;
 
 int test() {
 #undef BOrder_65
@@ -77,7 +78,7 @@ int test() {
     mixT = (double)(finish - start)/CLOCKS_PER_SEC;
 //    printf("remove end! use %lfs\n", (double)(finish - start)/CLOCKS_PER_SEC);
 //    printf( "get and remove end!\n remain:%d\n",  qTree.elements);
-    printf("%lf,%lf,%lf, %d, %d, %ld\n", generateT, putT, mixT, insertNum, removeNum, removed);
+    printf("%lf,%lf,%lf, %d, %d, %ld, %d\n", generateT, putT, mixT, insertNum, removeNum, removed, checkLeaf);
     free(queries) ;
     return 0;
 }
@@ -138,8 +139,8 @@ int main(){
 
 //    maxValue = 1 << (valueSpan - 1);
     maxValue = TOTAL;
-    span = maxValue >> 1;
-
+//    span = maxValue >> 1;
+    span = 1024;
 //    TOTAL = 10000000;
 //    TRACE_LEN = 10000000;
 //    dataRegionType = Random;

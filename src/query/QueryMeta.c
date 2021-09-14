@@ -3,24 +3,24 @@
 //
 
 #include "QueryMeta.h"
-
+extern u_int32_t checkLeaf;
 
 char* getQueryId(QueryMeta* queryMeta){
     return queryMeta->queryId;
 }
 
 BOOL QueryMetaCover(QueryMeta* queryMeta, int value){
-    return  QueryRangeCover(&(queryMeta->dataRegion), (value));
+    checkLeaf ++;
+    return  QueryRangeCover((queryMeta->dataRegion), (value));
 }
 void QueryMetaConstructor(QueryMeta* queryMeta){
     queryCount++;
     memset((void *)queryMeta, 0, sizeof (queryMeta));
     myItoa( queryCount, queryMeta->queryId);
     QueryRangeConstructor(&queryMeta->dataRegion);
-
 }
 
-void QueryMetaConstructorWithPara(QueryMeta* queryMeta, char* id, int lower, int upper){
+void QueryMetaConstructorWithPara(QueryMeta* queryMeta, char* id, BoundKey lower, BoundKey upper){
     memset((void *)queryMeta, 0, sizeof (queryMeta));
     strncpy(queryMeta->queryId, id, queryIdLen - 1);
     QueryRangeConstructorWithPara(&queryMeta->dataRegion, lower, upper, TRUE, TRUE);

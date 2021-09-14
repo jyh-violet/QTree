@@ -52,7 +52,7 @@ void QueryRangeConstructor(QueryRange *queryRange){
     queryRange->searchKey  = -1;
 }
 
-void QueryRangeConstructorWithPara(QueryRange *queryRange, int startKey, int endKey, BOOL lowerInclude, BOOL upperInclude){
+void QueryRangeConstructorWithPara(QueryRange *queryRange, BoundKey startKey, BoundKey endKey, BOOL lowerInclude, BOOL upperInclude){
     queryRange->lower = startKey;
     queryRange->upper = endKey;
 //    if(lowerInclude && upperInclude){

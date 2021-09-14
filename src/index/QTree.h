@@ -46,8 +46,8 @@ typedef struct QTree {
 typedef struct Node{
     int id ;
     int allocated ;
-    KeyType maxValue ;  //  Key*
-    KeyType minValue; // Key *
+    BoundKey maxValue ;
+    BoundKey minValue;
     QTree* tree;
     KeyType  keys[Border];  // array of key
 }Node;
@@ -55,7 +55,7 @@ typedef struct Node{
 
  struct LeafNode {
     Node  node;
-    ValueType * values[Border];
+    ValueType* values[Border];
 };
  struct InternalNode {
     Node node;
@@ -123,7 +123,7 @@ int InternalNodeGetId(InternalNode* node);
 int InternalNodeGetHeight(InternalNode* node);
 void InternalNodeResetId(InternalNode* node);
 BOOL InternalNodeCheckUnderflowWithRight(InternalNode* node, int slot);
-KeyType  InternalNodeRemove(InternalNode* node, int slot);
+BoundKey  InternalNodeRemove(InternalNode* node, int slot);
 void InternalNodeMerge(Node* node, InternalNode* nodeParent, int slot, Node* nodeFROMx);
 void printInternalNode(InternalNode* internalNode);
 

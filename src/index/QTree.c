@@ -133,15 +133,15 @@ inline void setSearchKey(Node* node, KeyType * key){
             key->searchKey = key->lower;
             break;
         case DYMID:
-            if(node->maxValue.upper == 0){
+            if(node->maxValue == 0){
                 key->searchKey = (key->lower + key->upper) >> 1;
-            } else if((key->lower < (node->maxValue).upper) && (key-> upper > (node->minValue).lower)){
-                int low = (node->minValue).lower;
-                if(QueryRangeMinGT(key, &(node->minValue))){
+            } else if((key->lower < (node->maxValue)) && (key-> upper > (node->minValue))){
+                BoundKey low = (node->minValue);
+                if((key->lower > (node->minValue))){
                     low = key->lower;
                 }
-                int high =(node->maxValue).upper;
-                if(!QueryRangeMaxGE(key, &(node->maxValue))){
+                BoundKey high =(node->maxValue);
+                if((key->upper < (node->maxValue))){
                     high = key->upper;
                 }
                 key->searchKey = (low + high) >> 1;
@@ -220,11 +220,11 @@ Node* QTreePut(QTree* qTree, QueryRange * key, QueryMeta * value){
     while (!stackEmpty(qTree->stackNodes, qTree->stackNodesIndex)) {
         //        cout << slot << endl;
         InternalNode* node = stackPop(qTree->stackNodes, qTree->stackNodesIndex);
-        if(QueryRangeMaxGE(key, &(node->node.maxValue)) ){
-            node->node.maxValue = *key;
+        if((key->upper >(node->node.maxValue)) ){
+            node->node.maxValue = key->upper;
         }
-        if( QueryRangeMinGT(&(node->node.minValue), key) ){
-            node->node.minValue = *key;
+        if( ((node->node.minValue) > key->lower) ){
+            node->node.minValue = key->lower;
         }
         slot = stackPop(qTree->stackSlots, qTree->stackSlotsIndex);
         //            System.out.println(key + ", "  + otherBound + "," + node.id + ", "  + node.keys[0] + "," + slot);
@@ -271,14 +271,14 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
             BOOL getNode = FALSE;
             InternalNode* nodeInternal = (InternalNode*) node;
             for(slot = 0; slot <= nodeInternal->node.allocated; slot ++){
-                if(QueryRangeMaxGE(&(nodeInternal->childs[slot]->maxValue), key)){
+                if(((nodeInternal->childs[slot]->maxValue) >= key->upper)){
                     node = nodeInternal->childs[slot];
                     stackPush(qTree->stackNodes, qTree->stackNodesIndex, nodeInternal);
                     stackPush(qTree->stackSlots, qTree->stackSlotsIndex, slot);
                     getNode = TRUE;
                     break;
                 }
-                if(slot < nodeInternal->node.allocated && QueryRangeMinGT( &(nodeInternal->childs[slot + 1]->minValue), key)){
+                if(slot < nodeInternal->node.allocated && ( (nodeInternal->childs[slot + 1]->minValue) > key->lower)){
                     break;
                 }
             }
@@ -288,7 +288,7 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
                 while (!stackEmpty(qTree->stackNodes, qTree->stackNodesIndex)){
                     node = (Node*)stackPop(qTree->stackNodes, qTree->stackNodesIndex);
                     slot = stackPop(qTree->stackSlots, qTree->stackSlotsIndex);
-                    if(slot >= node->allocated  || QueryRangeMinGT(&(((InternalNode*) node)->childs[slot + 1]->minValue), key)){
+                    if(slot >= node->allocated  || ((((InternalNode*) node)->childs[slot + 1]->minValue) > key->lower)){
                         for(int i = 0; i < slot; i ++ ){
                             InternalNodeCheckUnderflowWithRight(((InternalNode*) node), i);
                         }
@@ -337,7 +337,7 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
                 node = (Node*)stackPop(qTree->stackNodes, qTree->stackNodesIndex);
                 slot =stackPop(qTree->stackSlots, qTree->stackSlotsIndex);
 
-                if(slot >= node->allocated  || QueryRangeMinGT(&(((InternalNode*) node)->childs[slot + 1]->minValue), key)){
+                if(slot >= node->allocated  || ((((InternalNode*) node)->childs[slot + 1]->minValue) > key->lower)){
                     for(int i = 0; i < slot; i ++ ){
                         InternalNodeCheckUnderflowWithRight(((InternalNode*) node),i);
                     }
