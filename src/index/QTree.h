@@ -9,8 +9,8 @@
 #include "../query/QueryRange.h"
 #include "../holder/RangeHolder.h"
 #include "../Tool/ArrayList.h"
-#define maxDepth 16
-#define Border  65
+#define maxDepth 8
+#define Border  17
 
 #define stackPop(stack, index)  stack[ --index]
 #define stackPush(stack, index, elem)  stack[index ++] = elem
@@ -19,11 +19,19 @@
 #define NodeIsLeaf(node)  (((Node*)node)->id >= 0)
 
 extern int maxValue;
+extern int removePoint;
 extern int Qid;
 
 typedef struct InternalNode InternalNode;
 typedef struct LeafNode LeafNode;
 typedef struct Node Node;
+
+#define RemovedQueueSize 8
+BoundKey RemovedKey[RemovedQueueSize];
+u_int32_t clockFlag;
+int clockIndex;
+
+int printQTreelog;
 
 #define KeyType QueryRange
 #define ValueType   QueryMeta

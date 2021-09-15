@@ -5,10 +5,10 @@
 #include <time.h>
 #include <Tool/ArrayList.h>
 
+
 DataRegionType dataRegionType = Zipf;
 int valueSpan = 30; // 2 ^valueSpan
 int maxValue ;
-int span = 10000;
 int redunc = 5;  // 2^redunc
 int coordianteRedunc = 2;  // 2^redunc
 SearchKeyType searchKeyType = RAND;
@@ -19,25 +19,27 @@ int TOTAL = (int) 100, TRACE_LEN = 100000;
 double insertRatio = 0;
 u_int64_t checkLeaf = 0;
 u_int64_t checkQuery = 0;
+int removePoint = 512;
 
 int test() {
 #undef BOrder_65
 #define BOrder_129
-    double generateT, putT, removeT, mixT;
+    double generateT = 0, putT = 0, removeT = 0, mixT = 0;
     srand((unsigned)time(NULL));
     clock_t   start,   finish, time1, time2;
     QTree qTree;
     QTreeConstructor(&qTree, 2);
     QueryMeta* queries = (QueryMeta*)malloc(sizeof(QueryMeta) * TOTAL * 2);
+    QueryMeta* removeQuery = (QueryMeta*)malloc(sizeof(QueryMeta) * TOTAL);
     time1 = start = clock();
 
-    for(int i = 0; i < TOTAL * 2;i ++){
+    for(int i = 0; i < TOTAL * 2 ;i ++){
         QueryMetaConstructor(queries + i);
-        if((i + 1) % TRACE_LEN == 0){
-            time2 = clock();
-            printf("generate %d use %lfs\n", TRACE_LEN, (double)(time2 - time1)/CLOCKS_PER_SEC );
-            time1 = time2;
-        }
+    }
+    DataRegionType  dataRegionTypeOld = dataRegionType;
+    dataRegionType = Remove;
+    for(int i = 0; i < TOTAL;i ++){
+        QueryMetaConstructor(removeQuery + i);
     }
     finish = clock();
     generateT = (double)(finish - start)/CLOCKS_PER_SEC;
@@ -45,16 +47,11 @@ int test() {
 
     int i = 0;
     time1 = start = clock();
-    for(; i < TOTAL; i ++){
-        QTreePut(&qTree, &(queries[i].dataRegion), queries + i);
-        if((i + 1) % TRACE_LEN == 0){
-            time2 = clock();
-            printf("put %d use %lfs\n", TRACE_LEN, (double)(time2 - time1)/CLOCKS_PER_SEC );
-            time1 = time2;
-        }
-    }
-    finish = clock();
-    putT = (double)(finish - start)/CLOCKS_PER_SEC;
+//    for(; i < TOTAL; i ++){
+//        QTreePut(&qTree, &(queries[i].dataRegion), queries + i);
+//    }
+//    finish = clock();
+//    putT = (double)(finish - start)/CLOCKS_PER_SEC;
     Arraylist* removedQuery = ArraylistCreate(TOTAL);
 
     time1 = start = clock();
@@ -66,7 +63,7 @@ int test() {
             QTreePut(&qTree, &(queries[i + TOTAL].dataRegion), queries + i + TOTAL);
             insertNum ++;
         } else{
-            QTreeFindAndRemoveRelatedQueries(&qTree, queries[i + TOTAL].dataRegion.upper, removedQuery);
+            QTreeFindAndRemoveRelatedQueries(&qTree, (removeQuery[i].dataRegion.upper + removeQuery[i].dataRegion.lower) / 2, removedQuery);
             removeNum ++;
         }
     }
@@ -80,11 +77,12 @@ int test() {
     mixT = (double)(finish - start)/CLOCKS_PER_SEC;
 //    printf("remove end! use %lfs\n", (double)(finish - start)/CLOCKS_PER_SEC);
 //    printf( "get and remove end!\n remain:%d\n",  qTree.elements);
-    printf("%d, %d, %d, %.2lf, %d,  %lf,%lf,%lf, %d, %d, %ld, %ld, %ld, %ld, %ld, %ld\n",
-           Border, dataRegionType, searchKeyType, insertRatio, TOTAL,
+    printf("%d, %d, %d, %.2lf, %d,  %.3lf,%.3lf,%.3lf, %d, %d, %ld, %ld, %ld, %ld, %ld, %ld, %ld, %d\n",
+           Border, dataRegionTypeOld, searchKeyType, insertRatio, TOTAL,
            generateT, putT, mixT, insertNum, removeNum, removed, checkQuery, checkLeaf,
-           qTree.leafSplitCount, qTree.internalSplitCount, qTree.whileCount);
+           qTree.leafSplitCount, qTree.internalSplitCount, qTree.whileCount, qTree.funcTime, RemovedQueueSize);
     free(queries) ;
+    free(removeQuery);
     return 0;
 }
 
@@ -109,7 +107,6 @@ int main(){
     config_lookup_int(&cfg, "TRACE_LEN", &TRACE_LEN);
     config_lookup_int(&cfg, "dataRegionType", &regionType);
     config_lookup_int(&cfg, "valueSpan", &valueSpan);
-    config_lookup_int(&cfg, "searchKeyType", &keyType);
     config_lookup_float(&cfg, "insertRatio", &insertRatio);
     switch (regionType) {
         case 0:
@@ -125,37 +122,8 @@ int main(){
             dataRegionType = Zipf;
             break;
     }
-    switch (keyType) {
-        case 0:
-            searchKeyType = LOW;
-            break;
-        case 1:
-            searchKeyType = DYMID;
-            break;
-        case 2:
-            searchKeyType = Mid;
-            break;
-        case 3:
-            searchKeyType = RAND;
-            break;
-
-
-    }
-
-//    maxValue = 1 << (valueSpan - 1);
     maxValue = TOTAL;
-//    span = maxValue >> 1;
-    span = 1024;
-//    TOTAL = 10000000;
-//    TRACE_LEN = 10000000;
-//    dataRegionType = Random;
-//    valueSpan = 20;
-//    searchKeyType = LOW;
-//    printf("TOTAL: %d, TRACE_LEN:%d, dataRegionType:%d, valueSpan:%d, searchKeyType:%d \n",
-//           TOTAL, TRACE_LEN, dataRegionType, valueSpan, searchKeyType);
-//    for (int i = 0; i < 10; ++i) {
-//        test();
-//    }
+
     test();
     return 0;
 }

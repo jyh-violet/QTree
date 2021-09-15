@@ -3,12 +3,12 @@ make
 result=$1
 n=20000000
 tracelen=2000000000
-dataRegionType=1
 valueSpan=24
-keytype=(0 1 2)
-ratios=(0.5 0.75 0.95)
+keytype=(0 2 3)
+ratios=(0.5 0.75 0.95 1.0)
 repeteNum=5
 
+dataRegionType=1
 for r in ${ratios[*]}
 do
   for type in ${keytype[*]}

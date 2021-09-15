@@ -3,14 +3,12 @@
 //
 
 #include "QueryMeta.h"
-extern u_int64_t checkQuery;
 
 char* getQueryId(QueryMeta* queryMeta){
     return queryMeta->queryId;
 }
 
 BOOL QueryMetaCover(QueryMeta* queryMeta, int value){
-    checkQuery ++;
     return  QueryRangeCover((queryMeta->dataRegion), (value));
 }
 void QueryMetaConstructor(QueryMeta* queryMeta){

@@ -10,13 +10,15 @@ typedef enum DataRegionType {
     Same,
     Random,
     Increase,
-    Zipf
+    Zipf,
+    Remove
 }DataRegionType;
 
 typedef enum SearchKeyType{
     LOW,
     DYMID,
     Mid,
+    REMOVE,
     RAND
 }SearchKeyType;
 

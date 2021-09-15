@@ -8,6 +8,7 @@
 
 extern SearchKeyType searchKeyType;
 extern u_int64_t checkLeaf;
+extern u_int64_t checkQuery;
 
 void QTreeConstructor(QTree* qTree,  int BOrder){
     memset(qTree, 0, sizeof (QTree));
@@ -37,13 +38,16 @@ void QTreeConstructor(QTree* qTree,  int BOrder){
         case 0:
             searchKeyType = LOW;
             break;
-        case 1:
+        case  1:
             searchKeyType = DYMID;
             break;
         case 2:
             searchKeyType = Mid;
             break;
-        case 3:
+        case  3:
+            searchKeyType = REMOVE;
+            break;
+        case  4:
             searchKeyType = RAND;
             break;
     }
@@ -54,6 +58,12 @@ void QTreeConstructor(QTree* qTree,  int BOrder){
 }
 
 void QTreeDestroy(QTree* qTree){
+    if(printQTreelog){
+        printf("%d, %d,  %ld, %ld, %ld, %ld, %ld, %ld\n",
+               Border, searchKeyType, checkQuery, checkLeaf,
+               qTree->leafSplitCount, qTree->internalSplitCount, qTree->whileCount, qTree->funcTime);
+
+    }
 //    printf("searchKeyType:%d, Border:%d, leafSplitCount: %d, internalSplitCount:%d, funcTime:%ld, funcCount:%d, whileCount:%d\n",
 //           searchKeyType, Border, qTree->leafSplitCount,  qTree->internalSplitCount,  qTree->funcTime,  qTree->funcCount,  qTree->whileCount);
     NodeDestroy(qTree->root);
@@ -163,6 +173,29 @@ inline void setSearchKey(Node* node, KeyType * key){
         case Mid:
             key->searchKey = (key->lower + key->upper) >> 1;
             break;
+        case REMOVE:
+            if(key->searchKey == -1){
+//                if(key->upper < removePoint){
+//                    key->searchKey = key->upper;
+//                } else if(key->lower > removePoint){
+//                    key->searchKey = key->lower;
+//                } else{
+//                    key->searchKey = removePoint;
+//                }
+                int index = clockIndex;
+                for (int i = 0; i < RemovedQueueSize; ++i) {
+                    index --;
+                    index = index < 0? index + RemovedQueueSize: index;
+                    if(QueryRangeCover(*key, RemovedKey[index])){
+                        key->searchKey = RemovedKey[index];
+                        break;
+                    }
+                }
+                if(key->searchKey == -1){
+                    key->searchKey = (key->lower + key->upper) >> 1;
+                }
+            }
+            break;
     }
 }
 
@@ -170,12 +203,12 @@ inline LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key) {
 
     Node* node = qTree->root;
     int slot = 0;
+    setSearchKey(node, key);
+
     while (!NodeIsLeaf(node)) {
         qTree->whileCount++;
         InternalNode *nodeInternal = (InternalNode*) node;
-
-        setSearchKey(node, key);
-//        clock_gettime(CLOCK_REALTIME, &startTmp);
+        //        clock_gettime(CLOCK_REALTIME, &startTmp);
         slot = NodeFindSlotByKey(node, key);
 //        clock_gettime(CLOCK_REALTIME, &endTmp);
 //        funcTime += (endTmp.tv_sec - startTmp.tv_sec) * 1e9 +  endTmp.tv_nsec - startTmp.tv_nsec;
@@ -190,7 +223,6 @@ inline LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key) {
             exit(-1);
         }
     }
-    setSearchKey(node, key);
 
     return (NodeIsLeaf(node) ? (LeafNode*) node : NULL);
 }
@@ -260,6 +292,21 @@ Node* QTreePut(QTree* qTree, QueryRange * key, QueryMeta * value){
 
 
 void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* removedQuery){
+    if(searchKeyType == REMOVE){
+        for (int i = 0; i < RemovedQueueSize; ++i) {
+            clockIndex = (clockIndex + 1) % RemovedQueueSize;
+            if(RemovedKey[clockIndex] == attribute){
+                break;
+            }
+            if(clockFlag & (1 << clockIndex)){
+                clockFlag &= ~(1 << clockIndex);
+            } else{
+                RemovedKey[clockIndex] = attribute;
+                clockFlag |= (1 << clockIndex);
+                break;
+            }
+        }
+    }
     Node* node = qTree->root;
     int slot = 0;
     KeyType  queryRange;
@@ -273,7 +320,7 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
             BOOL getNode = FALSE;
             InternalNode* nodeInternal = (InternalNode*) node;
             for(slot = 0; slot <= nodeInternal->node.allocated; slot ++){
-                if(((nodeInternal->childs[slot]->maxValue) >= key->upper)){
+                if(((nodeInternal->childs[slot]->maxValue) >= key->upper) && ((nodeInternal->childs[slot]->minValue) <= key->upper)){
                     node = nodeInternal->childs[slot];
                     stackPush(qTree->stackNodes, qTree->stackNodesIndex, nodeInternal);
                     stackPush(qTree->stackSlots, qTree->stackSlotsIndex, slot);
@@ -324,8 +371,10 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
             resetMax = FALSE;
             resetMin = FALSE;
             for(int i = 0; i < leafNode->node.allocated ; i ++){
+                checkQuery ++;
                 //                    System.out.println("query:" + leafNode.values[i]);
-                if(QueryMetaCover(leafNode->values[i], attribute)){
+                if(QueryRangeCover(leafNode->node.keys[i], attribute)){
+
                     if(leafNode->node.keys[i].upper == leafNode->node.maxValue){
                         resetMax = TRUE;
                     }

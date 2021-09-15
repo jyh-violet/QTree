@@ -7,8 +7,7 @@
 static int rangeCount;
 extern  DataRegionType dataRegionType;
 extern int maxValue;
-extern int span;
-
+extern int removePoint;
 
 
 void QueryRangeConstructor(QueryRange *queryRange){
@@ -23,18 +22,23 @@ void QueryRangeConstructor(QueryRange *queryRange){
         case  Random:
             r = (int) RAND_RANGE(maxValue);
             diff = (int) RAND_RANGE(span);
-            queryRange->lower = r + span - diff / 2;
-            queryRange->upper = r + span + diff / 2;
+            queryRange->lower = r + span  - diff / 4 * 3;
+            queryRange->upper = r + span + diff / 4;
             break;
         case Zipf:
             randNum = zipf(0.99, maxValue);
             diff = (int) RAND_RANGE(span);
-            queryRange->lower =  randNum + span  - diff / 2;
-            queryRange->upper =  randNum + span  + diff / 2;
+            queryRange->lower =  randNum + span  - diff / 4 * 3;
+            queryRange->upper =  randNum + span  + diff / 4 ;
             break;
         case Increase:
             queryRange->lower = rangeCount ++ ;
             queryRange->upper = rangeCount ++ ;
+            break;
+        case Remove:
+            randNum = zipf(0.99, maxValue);
+            queryRange->lower = removePoint + randNum;
+            queryRange->upper =  removePoint + randNum;
             break;
     }
 //    queryRange->boundInclude = 3;
