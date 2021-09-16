@@ -29,11 +29,11 @@ int test() {
     clock_t   start,   finish, time1, time2;
     QTree qTree;
     QTreeConstructor(&qTree, 2);
-    QueryMeta* queries = (QueryMeta*)malloc(sizeof(QueryMeta) * TOTAL * 2);
+    QueryMeta* queries = (QueryMeta*)malloc(sizeof(QueryMeta) * TOTAL);
     QueryMeta* removeQuery = (QueryMeta*)malloc(sizeof(QueryMeta) * TOTAL);
     time1 = start = clock();
 
-    for(int i = 0; i < TOTAL * 2 ;i ++){
+    for(int i = 0; i < TOTAL ;i ++){
         QueryMetaConstructor(queries + i);
     }
     DataRegionType  dataRegionTypeOld = dataRegionType;
@@ -46,7 +46,7 @@ int test() {
 //    printf("generate end! use %lfs\n", (double)(finish - start)/CLOCKS_PER_SEC );
 
     int i = 0;
-    time1 = start = clock();
+//    time1 = start = clock();
 //    for(; i < TOTAL; i ++){
 //        QTreePut(&qTree, &(queries[i].dataRegion), queries + i);
 //    }

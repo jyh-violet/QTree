@@ -148,7 +148,7 @@ void printLeafNode(LeafNode* leafNode){
         QueryRange * k = &leafNode->node.keys[i];
         QueryMeta* v = leafNode->values[i];
 //        printQueryRange(k);
-        printf("%d:", k->searchKey);
+        printf("%d:", k->lower);
         printQueryRange(k);
         printf("Q[%s] | ",v->queryId );
     }

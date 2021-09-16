@@ -68,6 +68,30 @@ int NodeFindSlotByKey( Node* node, KeyType* searchKey) {
     return -(low + 1);  // key not found.
 }
 
+int NodeFindMinSlotByKey( Node* node, KeyType* searchKey) {
+    // return Arrays.binarySearch(keys, 0, allocated, searchKey);
+    node->tree->funcTime ++;
+    if(node->allocated == 0){
+        return -1;
+    }
+    int low = 0;
+    int high = node->allocated - 1;
+
+    while (low <= high) {
+        int mid = (low + high) >> 1;
+        KeyType midVal = (node->keys[mid]);
+
+        if (QueryRangeLT(midVal, *searchKey)) {
+            low = mid + 1;
+        } else if (QueryRangeGE(midVal, *searchKey)) {
+            high = mid - 1;
+        } else {
+            return mid; // key found
+        }
+    }
+    return -(low + 1);  // key not found.
+}
+
 void printNode(Node* node){
     if(NodeIsLeaf(node)){
         printLeafNode((LeafNode*)node);

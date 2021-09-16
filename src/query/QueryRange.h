@@ -10,10 +10,14 @@
 #define span 1024
 
 #define QueryRangeLT(queryRange1, queryRange2) \
-(BOOL)(((QueryRange)queryRange1).searchKey < ((QueryRange)queryRange2).searchKey)
+(BOOL)(((QueryRange)queryRange1).lower < ((QueryRange)queryRange2).lower)
 
 #define QueryRangeGT(queryRange1, queryRange2)  \
-(BOOL)(((QueryRange)queryRange1).searchKey > ((QueryRange)queryRange2).searchKey)
+(BOOL)(((QueryRange)queryRange1).lower > ((QueryRange)queryRange2).lower)
+
+#define QueryRangeGE(queryRange1, queryRange2)  \
+(BOOL)(((QueryRange)queryRange1).lower >= ((QueryRange)queryRange2).lower)
+
 
 #define QueryRangeMaxGE(queryRange1, queryRange2)  \
 (BOOL)(((QueryRange)queryRange1).upper >= ((QueryRange)queryRange2).upper)
@@ -31,7 +35,6 @@
 typedef struct QueryRange{
     BoundKey lower; // lower bound of the region
     BoundKey upper;  // upper bound of the region
-    BoundKey searchKey; // in [lower, upper], used as the search key in the tree
 }QueryRange;
 
 

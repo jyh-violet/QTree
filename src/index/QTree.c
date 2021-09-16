@@ -139,64 +139,64 @@ extern SearchKeyType searchKeyType;
 struct timespec startTmp, endTmp;
 
 inline void setSearchKey(Node* node, KeyType * key){
-    node->tree->funcCount ++;
-    switch (searchKeyType) {
-        case LOW:
-            key->searchKey = key->lower;
-            break;
-        case DYMID:
-            if(node->maxValue == 0){
-                key->searchKey = (key->lower + key->upper) >> 1;
-            } else if((key->lower < (node->maxValue)) && (key-> upper > (node->minValue))){
-                BoundKey low = (node->minValue);
-                if((key->lower > (node->minValue))){
-                    low = key->lower;
-                }
-                BoundKey high =(node->maxValue);
-                if((key->upper < (node->maxValue))){
-                    high = key->upper;
-                }
-                key->searchKey = (low + high) >> 1;
-            }
-            break;
-        case RAND:
-            if(key->searchKey == -1){
-                if(key->upper == key->lower){
-                    key->searchKey = key->lower;
-                }else{
-                    int randNum = rand() % (key->upper - key->lower);
-                    key->searchKey  = key->lower + randNum;
-                }
-
-            }
-            break;
-        case Mid:
-            key->searchKey = (key->lower + key->upper) >> 1;
-            break;
-        case REMOVE:
-            if(key->searchKey == -1){
-//                if(key->upper < removePoint){
-//                    key->searchKey = key->upper;
-//                } else if(key->lower > removePoint){
-//                    key->searchKey = key->lower;
-//                } else{
-//                    key->searchKey = removePoint;
+//    node->tree->funcCount ++;
+//    switch (searchKeyType) {
+//        case LOW:
+//            key->searchKey = key->lower;
+//            break;
+//        case DYMID:
+//            if(node->maxValue == 0){
+//                key->searchKey = (key->lower + key->upper) >> 1;
+//            } else if((key->lower < (node->maxValue)) && (key-> upper > (node->minValue))){
+//                BoundKey low = (node->minValue);
+//                if((key->lower > (node->minValue))){
+//                    low = key->lower;
 //                }
-                int index = clockIndex;
-                for (int i = 0; i < RemovedQueueSize; ++i) {
-                    index --;
-                    index = index < 0? index + RemovedQueueSize: index;
-                    if(QueryRangeCover(*key, RemovedKey[index])){
-                        key->searchKey = RemovedKey[index];
-                        break;
-                    }
-                }
-                if(key->searchKey == -1){
-                    key->searchKey = (key->lower + key->upper) >> 1;
-                }
-            }
-            break;
-    }
+//                BoundKey high =(node->maxValue);
+//                if((key->upper < (node->maxValue))){
+//                    high = key->upper;
+//                }
+//                key->searchKey = (low + high) >> 1;
+//            }
+//            break;
+//        case RAND:
+//            if(key->searchKey == -1){
+//                if(key->upper == key->lower){
+//                    key->searchKey = key->lower;
+//                }else{
+//                    int randNum = rand() % (key->upper - key->lower);
+//                    key->searchKey  = key->lower + randNum;
+//                }
+//
+//            }
+//            break;
+//        case Mid:
+//            key->searchKey = (key->lower + key->upper) >> 1;
+//            break;
+//        case REMOVE:
+//            if(key->searchKey == -1){
+////                if(key->upper < removePoint){
+////                    key->searchKey = key->upper;
+////                } else if(key->lower > removePoint){
+////                    key->searchKey = key->lower;
+////                } else{
+////                    key->searchKey = removePoint;
+////                }
+//                int index = clockIndex;
+//                for (int i = 0; i < RemovedQueueSize; ++i) {
+//                    index --;
+//                    index = index < 0? index + RemovedQueueSize: index;
+//                    if(QueryRangeCover(*key, RemovedKey[index])){
+//                        key->searchKey = RemovedKey[index];
+//                        break;
+//                    }
+//                }
+//                if(key->searchKey == -1){
+//                    key->searchKey = (key->lower + key->upper) >> 1;
+//                }
+//            }
+//            break;
+//    }
 }
 
 inline LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key) {
@@ -292,21 +292,21 @@ Node* QTreePut(QTree* qTree, QueryRange * key, QueryMeta * value){
 
 
 void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* removedQuery){
-    if(searchKeyType == REMOVE){
-        for (int i = 0; i < RemovedQueueSize; ++i) {
-            clockIndex = (clockIndex + 1) % RemovedQueueSize;
-            if(RemovedKey[clockIndex] == attribute){
-                break;
-            }
-            if(clockFlag & (1 << clockIndex)){
-                clockFlag &= ~(1 << clockIndex);
-            } else{
-                RemovedKey[clockIndex] = attribute;
-                clockFlag |= (1 << clockIndex);
-                break;
-            }
-        }
-    }
+//    if(searchKeyType == REMOVE){
+//        for (int i = 0; i < RemovedQueueSize; ++i) {
+//            clockIndex = (clockIndex + 1) % RemovedQueueSize;
+//            if(RemovedKey[clockIndex] == attribute){
+//                break;
+//            }
+//            if(clockFlag & (1 << clockIndex)){
+//                clockFlag &= ~(1 << clockIndex);
+//            } else{
+//                RemovedKey[clockIndex] = attribute;
+//                clockFlag |= (1 << clockIndex);
+//                break;
+//            }
+//        }
+//    }
     Node* node = qTree->root;
     int slot = 0;
     KeyType  queryRange;
@@ -320,16 +320,16 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
             BOOL getNode = FALSE;
             InternalNode* nodeInternal = (InternalNode*) node;
             for(slot = 0; slot <= nodeInternal->node.allocated; slot ++){
-                if(((nodeInternal->childs[slot]->maxValue) >= key->lower) && ((nodeInternal->childs[slot]->minValue) <= key->upper)){
+                if(((nodeInternal->childs[slot]->maxValue) >= key->lower)){
                     node = nodeInternal->childs[slot];
                     stackPush(qTree->stackNodes, qTree->stackNodesIndex, nodeInternal);
                     stackPush(qTree->stackSlots, qTree->stackSlotsIndex, slot);
                     getNode = TRUE;
                     break;
                 }
-//                if(slot < nodeInternal->node.allocated && ( (nodeInternal->childs[slot + 1]->minValue) > key->lower)){
-//                    break;
-//                }
+                if(slot < nodeInternal->node.allocated && ( (nodeInternal->node.keys[slot]).lower > key->upper)){
+                    break;
+                }
             }
             //                System.out.println("getNode:" + getNode + ", node:" + node);
             if(!getNode){
@@ -337,7 +337,7 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
                 while (!stackEmpty(qTree->stackNodes, qTree->stackNodesIndex)){
                     node = (Node*)stackPop(qTree->stackNodes, qTree->stackNodesIndex);
                     slot = stackPop(qTree->stackSlots, qTree->stackSlotsIndex);
-                    if(slot >= node->allocated ){
+                    if(slot >= node->allocated || node->keys[slot].lower > key->upper){
                         for(int i = 0; i < slot; i ++ ){
                             InternalNodeCheckUnderflowWithRight(((InternalNode*) node), i);
                         }
@@ -349,20 +349,13 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
                         }
                     }else {
                         InternalNode* internalNode = (InternalNode*) node;
-                        for (; slot < node->allocated; slot ++) {
-                            if(((internalNode->childs[slot + 1]->maxValue) >= key->lower) && ((internalNode->childs[slot + 1]->minValue) <= key->upper)){
-                                node = internalNode->childs[slot + 1];
-                                stackPush(qTree->stackNodes, qTree->stackNodesIndex, internalNode);
-                                stackPush(qTree->stackSlots, qTree->stackSlotsIndex, slot + 1);
-                                //                            System.out.println("another node:" + node);
-                                slot = 0;
-                                getAnother = TRUE;
-                                break;
-                            }
-                        }
-                        if(getAnother == TRUE){
-                            break;
-                        }
+                        node = internalNode->childs[slot + 1];
+                        stackPush(qTree->stackNodes, qTree->stackNodesIndex, internalNode);
+                        stackPush(qTree->stackSlots, qTree->stackSlotsIndex, slot + 1);
+                        //                            System.out.println("another node:" + node);
+                        slot = 0;
+                        getAnother = TRUE;
+                        break;
 
                     }
                 }
@@ -414,7 +407,7 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
                 node = (Node*)stackPop(qTree->stackNodes, qTree->stackNodesIndex);
                 slot =stackPop(qTree->stackSlots, qTree->stackSlotsIndex);
 
-                if(slot >= node->allocated ){
+                if(slot >= node->allocated || node->keys[slot].lower > key->upper){
                     for(int i = 0; i < slot; i ++ ){
                         InternalNodeCheckUnderflowWithRight(((InternalNode*) node),i);
                     }
@@ -425,14 +418,16 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
                         InternalNodeResetMinValue(((InternalNode*) node));
                     }
 
-                }else if(((((InternalNode*) node)->childs[slot + 1]->maxValue) >= key->lower) && ((((InternalNode*) node)->childs[slot + 1]->minValue) <= key->upper)) {
+                }else {
                     InternalNode* internalNode = (InternalNode*) node;
                     node = internalNode->childs[slot + 1];
                     stackPush(qTree->stackNodes, qTree->stackNodesIndex, internalNode);
                     stackPush(qTree->stackSlots, qTree->stackSlotsIndex, slot + 1);
+                    //                            System.out.println("another node:" + node);
                     slot = 0;
                     getAnother = TRUE;
                     break;
+
                 }
             }
             if(!getAnother){

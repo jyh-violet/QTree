@@ -191,7 +191,7 @@ void printInternalNode(InternalNode* internalNode){
         } else {
             printf("<");
         }
-        printf("%d", k->searchKey);
+        printf("%d", k->lower);
         printf(">C%d:Node%d<",  i + 1, internalNode->childs[i + 1]->id);
 
     }

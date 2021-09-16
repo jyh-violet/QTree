@@ -9,7 +9,7 @@
 #include "../query/QueryRange.h"
 #include "../holder/RangeHolder.h"
 #include "../Tool/ArrayList.h"
-#define maxDepth 16
+#define maxDepth 8
 #define Border  33
 
 #define stackPop(stack, index)  stack[ --index]
@@ -26,7 +26,7 @@ typedef struct InternalNode InternalNode;
 typedef struct LeafNode LeafNode;
 typedef struct Node Node;
 
-#define RemovedQueueSize 8
+#define RemovedQueueSize 16
 BoundKey RemovedKey[RemovedQueueSize];
 u_int32_t clockFlag;
 int clockIndex;
@@ -96,7 +96,7 @@ void NodeResetId(Node* node);
 void NodeMerge(Node* node, InternalNode* nodeParent, int slot,
                Node* nodeFROM);
 KeyType NodeSplitShiftKeysLeft(Node* node);
-
+int NodeFindMinSlotByKey( Node* node, KeyType* searchKey) ;
 
 
 void LeafNodeConstructor(LeafNode* leafNode, QTree *tree);

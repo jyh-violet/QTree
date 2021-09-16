@@ -42,7 +42,7 @@ void QueryRangeConstructor(QueryRange *queryRange){
             break;
     }
 //    queryRange->boundInclude = 3;
-    queryRange->searchKey  = -1;
+//    queryRange->searchKey  = -1;
 }
 
 void QueryRangeConstructorWithPara(QueryRange *queryRange, BoundKey startKey, BoundKey endKey, BOOL lowerInclude, BOOL upperInclude){
@@ -57,7 +57,7 @@ void QueryRangeConstructorWithPara(QueryRange *queryRange, BoundKey startKey, Bo
 //    }else{
 //        queryRange-> boundInclude = 0;
 //    }
-    queryRange->searchKey = -1;
+//    queryRange->searchKey = -1;
 }
 
 void printQueryRange(QueryRange* queryRange){
