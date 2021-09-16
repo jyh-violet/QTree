@@ -208,6 +208,9 @@ inline LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key) {
     while (!NodeIsLeaf(node)) {
         qTree->whileCount++;
         InternalNode *nodeInternal = (InternalNode*) node;
+        if(searchKeyType == DYMID){
+            setSearchKey(node, key);
+        }
         //        clock_gettime(CLOCK_REALTIME, &startTmp);
         slot = NodeFindSlotByKey(node, key);
 //        clock_gettime(CLOCK_REALTIME, &endTmp);
