@@ -320,7 +320,7 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
             BOOL getNode = FALSE;
             InternalNode* nodeInternal = (InternalNode*) node;
             for(slot = 0; slot <= nodeInternal->node.allocated; slot ++){
-                if(((nodeInternal->childs[slot + 1]->maxValue) >= key->lower) && ((nodeInternal->childs[slot + 1]->minValue) <= key->upper)){
+                if(((nodeInternal->childs[slot]->maxValue) >= key->lower) && ((nodeInternal->childs[slot]->minValue) <= key->upper)){
                     node = nodeInternal->childs[slot];
                     stackPush(qTree->stackNodes, qTree->stackNodesIndex, nodeInternal);
                     stackPush(qTree->stackSlots, qTree->stackSlotsIndex, slot);
