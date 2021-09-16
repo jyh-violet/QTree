@@ -9,8 +9,8 @@
 #include "../query/QueryRange.h"
 #include "../holder/RangeHolder.h"
 #include "../Tool/ArrayList.h"
-#define maxDepth 8
-#define Border  17
+#define maxDepth 16
+#define Border  33
 
 #define stackPop(stack, index)  stack[ --index]
 #define stackPush(stack, index, elem)  stack[index ++] = elem
