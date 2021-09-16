@@ -4,7 +4,7 @@ result=$1
 n=20000000
 tracelen=2000000000
 valueSpan=24
-keytype=(0 2 3)
+keytype=(0)
 ratios=(0.5 0.75 0.95 1.0)
 repeteNum=5
 

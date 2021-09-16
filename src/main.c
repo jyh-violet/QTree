@@ -60,7 +60,7 @@ int test() {
         int randNum = rand();
         double ratio = ((double )randNum) / ((double )RAND_MAX + 1);
         if(ratio < insertRatio){
-            QTreePut(&qTree, &(queries[i + TOTAL].dataRegion), queries + i + TOTAL);
+            QTreePut(&qTree, &(queries[i].dataRegion), queries + i);
             insertNum ++;
         } else{
             QTreeFindAndRemoveRelatedQueries(&qTree, (removeQuery[i].dataRegion.upper + removeQuery[i].dataRegion.lower) / 2, removedQuery);
