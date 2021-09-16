@@ -320,7 +320,7 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
             BOOL getNode = FALSE;
             InternalNode* nodeInternal = (InternalNode*) node;
             for(slot = 0; slot <= nodeInternal->node.allocated; slot ++){
-                if(((nodeInternal->childs[slot]->maxValue) >= key->lower) && ((nodeInternal->childs[slot]->minValue) <= key->upper)){
+                if(((nodeInternal->childs[slot]->maxValue) >= key->lower) ){
                     node = nodeInternal->childs[slot];
                     stackPush(qTree->stackNodes, qTree->stackNodesIndex, nodeInternal);
                     stackPush(qTree->stackSlots, qTree->stackSlotsIndex, slot);
@@ -425,14 +425,23 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
                         InternalNodeResetMinValue(((InternalNode*) node));
                     }
 
-                }else if(((((InternalNode*) node)->childs[slot + 1]->maxValue) >= key->lower) && ((((InternalNode*) node)->childs[slot + 1]->minValue) <= key->upper)) {
+                }else {
                     InternalNode* internalNode = (InternalNode*) node;
-                    node = internalNode->childs[slot + 1];
-                    stackPush(qTree->stackNodes, qTree->stackNodesIndex, internalNode);
-                    stackPush(qTree->stackSlots, qTree->stackSlotsIndex, slot + 1);
-                    slot = 0;
-                    getAnother = TRUE;
-                    break;
+                    for (; slot < node->allocated; slot ++) {
+                        if(((internalNode->childs[slot + 1]->maxValue) >= key->lower) && ((internalNode->childs[slot + 1]->minValue) <= key->upper)){
+                            node = internalNode->childs[slot + 1];
+                            stackPush(qTree->stackNodes, qTree->stackNodesIndex, internalNode);
+                            stackPush(qTree->stackSlots, qTree->stackSlotsIndex, slot + 1);
+                            //                            System.out.println("another node:" + node);
+                            slot = 0;
+                            getAnother = TRUE;
+                            break;
+                        }
+                    }
+                    if(getAnother == TRUE){
+                        break;
+                    }
+
                 }
             }
             if(!getAnother){
