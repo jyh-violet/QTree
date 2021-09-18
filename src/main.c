@@ -19,6 +19,7 @@ int TOTAL = (int) 100, TRACE_LEN = 100000;
 double insertRatio = 0;
 u_int64_t checkLeaf = 0;
 u_int64_t checkQuery = 0;
+u_int64_t checkInternal = 0;
 int removePoint = 512;
 
 int test() {
@@ -29,11 +30,11 @@ int test() {
     clock_t   start,   finish, time1, time2;
     QTree qTree;
     QTreeConstructor(&qTree, 2);
-    QueryMeta* queries = (QueryMeta*)malloc(sizeof(QueryMeta) * TOTAL * 2);
+    QueryMeta* queries = (QueryMeta*)malloc(sizeof(QueryMeta) * TOTAL );
     QueryMeta* removeQuery = (QueryMeta*)malloc(sizeof(QueryMeta) * TOTAL);
     time1 = start = clock();
 
-    for(int i = 0; i < TOTAL * 2 ;i ++){
+    for(int i = 0; i < TOTAL ;i ++){
         QueryMetaConstructor(queries + i);
     }
     DataRegionType  dataRegionTypeOld = dataRegionType;
@@ -60,7 +61,7 @@ int test() {
         int randNum = rand();
         double ratio = ((double )randNum) / ((double )RAND_MAX + 1);
         if(ratio < insertRatio){
-            QTreePut(&qTree, &(queries[i + TOTAL].dataRegion), queries + i + TOTAL);
+            QTreePut(&qTree, &(queries[i].dataRegion), queries + i);
             insertNum ++;
         } else{
             QTreeFindAndRemoveRelatedQueries(&qTree, (removeQuery[i].dataRegion.upper + removeQuery[i].dataRegion.lower) / 2, removedQuery);
@@ -77,9 +78,9 @@ int test() {
     mixT = (double)(finish - start)/CLOCKS_PER_SEC;
 //    printf("remove end! use %lfs\n", (double)(finish - start)/CLOCKS_PER_SEC);
 //    printf( "get and remove end!\n remain:%d\n",  qTree.elements);
-    printf("%d, %d, %d, %.2lf, %d,  %.3lf,%.3lf,%.3lf, %d, %d, %ld, %ld, %ld, %ld, %ld, %ld, %ld, %d\n",
-           Border, dataRegionTypeOld, searchKeyType, insertRatio, TOTAL,
-           generateT, putT, mixT, insertNum, removeNum, removed, checkQuery, checkLeaf,
+printf("%d, %d, %d, %.2lf, %d,  %d,  %.3lf,%.3lf,%.3lf, %d, %d, %ld, %ld, %ld,  %ld, %ld, %ld, %ld, %ld, %d\n",
+           Border, dataRegionTypeOld, searchKeyType, insertRatio, removePoint, TOTAL,
+           generateT, putT, mixT, insertNum, removeNum, removed, checkQuery, checkLeaf, checkInternal,
            qTree.leafSplitCount, qTree.internalSplitCount, qTree.whileCount, qTree.funcTime, RemovedQueueSize);
     free(queries) ;
     free(removeQuery);

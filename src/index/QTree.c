@@ -9,6 +9,7 @@
 extern SearchKeyType searchKeyType;
 extern u_int64_t checkLeaf;
 extern u_int64_t checkQuery;
+extern u_int64_t checkInternal;
 
 void QTreeConstructor(QTree* qTree,  int BOrder){
     memset(qTree, 0, sizeof (QTree));
@@ -355,6 +356,7 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
                         InternalNode* internalNode = (InternalNode*) node;
                         for (; slot < node->allocated; slot ++) {
                             if(((internalNode->childs[slot + 1]->maxValue) >= key->lower) && ((internalNode->childs[slot + 1]->minValue) <= key->upper)){
+                                checkInternal ++;
                                 node = internalNode->childs[slot + 1];
                                 stackPush(qTree->stackNodes, qTree->stackNodesIndex, internalNode);
                                 stackPush(qTree->stackSlots, qTree->stackSlotsIndex, slot + 1);
@@ -433,6 +435,7 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
                     InternalNode* internalNode = (InternalNode*) node;
                     for (; slot < node->allocated; slot ++) {
                         if(((internalNode->childs[slot + 1]->maxValue) >= key->lower) && ((internalNode->childs[slot + 1]->minValue) <= key->upper)){
+                            checkInternal ++;
                             node = internalNode->childs[slot + 1];
                             stackPush(qTree->stackNodes, qTree->stackNodesIndex, internalNode);
                             stackPush(qTree->stackSlots, qTree->stackSlotsIndex, slot + 1);
