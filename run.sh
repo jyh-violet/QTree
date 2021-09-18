@@ -10,9 +10,9 @@ removePoint=(0 64 128)
 dataRegionType=(1 3)
 repeteNum=5
 
-for data in ${dataRegionType{*}}
+for data in ${dataRegionType[*]}
 do
-  for point in ${removePoint{*}}
+  for point in ${removePoint[*]}
   do
     for r in ${ratios[*]}
     do
@@ -24,7 +24,8 @@ RACE_LEN = $tracelen
 dataRegionType = $data
 valueSpan = $valueSpan
 searchKeyType = $type
-insertRatio = $r" >> config.cfg
+insertRatio = $r
+removePoint = $point" >> config.cfg
               echo "
               "  >> $result
         for i in `seq 1 $repeteNum`
