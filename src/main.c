@@ -19,7 +19,8 @@ int TOTAL = (int) 100, TRACE_LEN = 100000;
 double insertRatio = 0;
 u_int64_t checkLeaf = 0;
 u_int64_t checkQuery = 0;
-int removePoint = 512;
+u_int64_t checkInternal = 0;
+int removePoint = 0;
 
 int test() {
 #undef BOrder_65
@@ -77,9 +78,9 @@ int test() {
     mixT = (double)(finish - start)/CLOCKS_PER_SEC;
 //    printf("remove end! use %lfs\n", (double)(finish - start)/CLOCKS_PER_SEC);
 //    printf( "get and remove end!\n remain:%d\n",  qTree.elements);
-    printf("%d, %d, %d, %.2lf, %d,  %.3lf,%.3lf,%.3lf, %d, %d, %ld, %ld, %ld, %ld, %ld, %ld, %ld, %d\n",
+printf("%d, %d, %d, %.2lf, %d,  %.3lf,%.3lf,%.3lf, %d, %d, %ld, %ld, %ld,  %ld, %ld, %ld, %ld, %ld, %d\n",
            Border, dataRegionTypeOld, searchKeyType, insertRatio, TOTAL,
-           generateT, putT, mixT, insertNum, removeNum, removed, checkQuery, checkLeaf,
+           generateT, putT, mixT, insertNum, removeNum, removed, checkQuery, checkLeaf, checkInternal,
            qTree.leafSplitCount, qTree.internalSplitCount, qTree.whileCount, qTree.funcTime, RemovedQueueSize);
     free(queries) ;
     free(removeQuery);
