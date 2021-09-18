@@ -34,6 +34,7 @@ void QTreeConstructor(QTree* qTree,  int BOrder){
         config_destroy(&cfg);
     }
     int  keyType;
+    config_lookup_int(&cfg, "removePoint", &removePoint);
     config_lookup_int(&cfg, "searchKeyType", &keyType);
     switch (keyType) {
         case 0:
@@ -209,6 +210,9 @@ inline LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key) {
     while (!NodeIsLeaf(node)) {
         qTree->whileCount++;
         InternalNode *nodeInternal = (InternalNode*) node;
+        if(searchKeyType == DYMID){
+            setSearchKey(node, key);
+        }
         //        clock_gettime(CLOCK_REALTIME, &startTmp);
         slot = NodeFindSlotByKey(node, key);
 //        clock_gettime(CLOCK_REALTIME, &endTmp);
