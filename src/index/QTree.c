@@ -68,7 +68,7 @@ void QTreeDestroy(QTree* qTree){
     }
 //    printf("searchKeyType:%d, Border:%d, leafSplitCount: %d, internalSplitCount:%d, funcTime:%ld, funcCount:%d, whileCount:%d\n",
 //           searchKeyType, Border, qTree->leafSplitCount,  qTree->internalSplitCount,  qTree->funcTime,  qTree->funcCount,  qTree->whileCount);
-    NodeDestroy(qTree->root);
+//    NodeDestroy(qTree->root);
 }
 
 void printQTree( QTree* qTree){
