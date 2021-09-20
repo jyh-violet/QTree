@@ -61,8 +61,8 @@ void QTreeConstructor(QTree* qTree,  int BOrder){
 
 void QTreeDestroy(QTree* qTree){
     if(printQTreelog){
-        printf("%d, %d,  %ld, %ld, %ld, %ld, %ld, %ld, %ld\n",
-               Border, searchKeyType, checkQuery, checkLeaf,
+        printf("%d, %d,  %ld, %ld, %ld, %ld, %ld, %ld, %ld, ",
+               Border, searchKeyType, checkQuery, checkLeaf, checkInternal,
                qTree->leafSplitCount, qTree->internalSplitCount, qTree->whileCount, qTree->funcTime);
 
     }
