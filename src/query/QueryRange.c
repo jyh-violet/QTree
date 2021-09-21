@@ -37,8 +37,8 @@ void QueryRangeConstructor(QueryRange *queryRange){
             break;
         case Remove:
             randNum = zipf(0.99, maxValue);
-            queryRange->lower =  removePoint + span;
-            queryRange->upper =  removePoint + span;
+            queryRange->lower =  removePoint  + randNum;
+            queryRange->upper =  removePoint  + randNum;
             break;
     }
 //    queryRange->boundInclude = 3;

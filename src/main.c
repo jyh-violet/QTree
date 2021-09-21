@@ -87,44 +87,44 @@ printf("%d, %d, %d, %.2lf, %d,  %d,  %.3lf,%.3lf,%.3lf, %d, %d, %ld, %ld, %ld,  
     return 0;
 }
 
-//int main(){
-//
-//    const char ConfigFile[]= "config.cfg";
-//
-//    config_t cfg;
-//
-//    config_init(&cfg);
-//
-//    /* Read the file. If there is an error, report it and exit. */
-//    if(! config_read_file(&cfg, ConfigFile))
-//    {
-//        fprintf(stderr, "%s:%d - %s\n", config_error_file(&cfg),
-//                config_error_line(&cfg), config_error_text(&cfg));
-//        config_destroy(&cfg);
-//        return(EXIT_FAILURE);
-//    }
-//    int regionType, keyType;
-//    config_lookup_int(&cfg, "TOTAL", &TOTAL);
-//    config_lookup_int(&cfg, "TRACE_LEN", &TRACE_LEN);
-//    config_lookup_int(&cfg, "dataRegionType", &regionType);
-//    config_lookup_int(&cfg, "valueSpan", &valueSpan);
-//    config_lookup_float(&cfg, "insertRatio", &insertRatio);
-//    switch (regionType) {
-//        case 0:
-//            dataRegionType = Same;
-//            break;
-//        case 1:
-//            dataRegionType = Random;
-//            break;
-//        case 2:
-//            dataRegionType = Increase;
-//            break;
-//        case 3:
-//            dataRegionType = Zipf;
-//            break;
-//    }
-//    maxValue = TOTAL;
-//
-//    test();
-//    return 0;
-//}
+int main(){
+
+    const char ConfigFile[]= "config.cfg";
+
+    config_t cfg;
+
+    config_init(&cfg);
+
+    /* Read the file. If there is an error, report it and exit. */
+    if(! config_read_file(&cfg, ConfigFile))
+    {
+        fprintf(stderr, "%s:%d - %s\n", config_error_file(&cfg),
+                config_error_line(&cfg), config_error_text(&cfg));
+        config_destroy(&cfg);
+        return(EXIT_FAILURE);
+    }
+    int regionType, keyType;
+    config_lookup_int(&cfg, "TOTAL", &TOTAL);
+    config_lookup_int(&cfg, "TRACE_LEN", &TRACE_LEN);
+    config_lookup_int(&cfg, "dataRegionType", &regionType);
+    config_lookup_int(&cfg, "valueSpan", &valueSpan);
+    config_lookup_float(&cfg, "insertRatio", &insertRatio);
+    switch (regionType) {
+        case 0:
+            dataRegionType = Same;
+            break;
+        case 1:
+            dataRegionType = Random;
+            break;
+        case 2:
+            dataRegionType = Increase;
+            break;
+        case 3:
+            dataRegionType = Zipf;
+            break;
+    }
+    maxValue = TOTAL;
+
+    test();
+    return 0;
+}
