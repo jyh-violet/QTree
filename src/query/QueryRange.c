@@ -22,13 +22,13 @@ void QueryRangeConstructor(QueryRange *queryRange){
         case  Random:
             r = (int) RAND_RANGE(maxValue);
             diff = (int) RAND_RANGE(span);
-            queryRange->lower = r + span  - diff;
+            queryRange->lower = r + span;
             queryRange->upper = r + span + diff;
             break;
         case Zipf:
             randNum = zipf(0.99, maxValue);
             diff = (int) RAND_RANGE(span);
-            queryRange->lower =  randNum + span  - diff ;
+            queryRange->lower =  randNum + span ;
             queryRange->upper =  randNum + span  + diff ;
             break;
         case Increase:
@@ -37,8 +37,8 @@ void QueryRangeConstructor(QueryRange *queryRange){
             break;
         case Remove:
             randNum = zipf(0.99, maxValue);
-            queryRange->lower =  randNum + span;
-            queryRange->upper =  randNum + span;
+            queryRange->lower =  removePoint + span;
+            queryRange->upper =  removePoint + span;
             break;
     }
 //    queryRange->boundInclude = 3;
