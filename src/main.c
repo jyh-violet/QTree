@@ -7,6 +7,7 @@
 
 
 DataRegionType dataRegionType = Zipf;
+DataPointType dataPointType = RemovePoint;
 int valueSpan = 30; // 2 ^valueSpan
 int maxValue ;
 int redunc = 5;  // 2^redunc
@@ -20,7 +21,7 @@ double insertRatio = 0;
 u_int64_t checkLeaf = 0;
 u_int64_t checkQuery = 0;
 u_int64_t checkInternal = 0;
-int removePoint = 512;
+int removePoint = 0;
 
 int test() {
 #undef BOrder_65
@@ -103,26 +104,14 @@ int main(){
         config_destroy(&cfg);
         return(EXIT_FAILURE);
     }
-    int regionType, keyType;
     config_lookup_int(&cfg, "TOTAL", &TOTAL);
     config_lookup_int(&cfg, "TRACE_LEN", &TRACE_LEN);
-    config_lookup_int(&cfg, "dataRegionType", &regionType);
+    config_lookup_int(&cfg, "dataRegionType", &dataRegionType);
+    config_lookup_int(&cfg, "dataPointType", &dataPointType);
+    config_lookup_int(&cfg, "valueSpan", &valueSpan);
     config_lookup_int(&cfg, "valueSpan", &valueSpan);
     config_lookup_float(&cfg, "insertRatio", &insertRatio);
-    switch (regionType) {
-        case 0:
-            dataRegionType = Same;
-            break;
-        case 1:
-            dataRegionType = Random;
-            break;
-        case 2:
-            dataRegionType = Increase;
-            break;
-        case 3:
-            dataRegionType = Zipf;
-            break;
-    }
+
     maxValue = TOTAL;
 
     test();

@@ -14,6 +14,12 @@ typedef enum DataRegionType {
     Remove
 }DataRegionType;
 
+typedef enum DataPointType{
+    RemovePoint,
+    LowPoint,
+    MidPoint
+}DataPointType;
+
 typedef enum SearchKeyType{
     LOW,
     DYMID,
