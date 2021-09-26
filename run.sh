@@ -8,30 +8,33 @@ keytype=(0)
 ratios=(0.5 0.75 0.95 1.0)
 removePoint=(0 64 128)
 dataRegionType=(1 3)
+dataPointType=(0 1 2)
 repeteNum=5
-
-for data in ${dataRegionType[*]}
+for dataPoint in ${dataPointType[*]}
 do
-  for point in ${removePoint[*]}
+  for data in ${dataRegionType[*]}
   do
-    for r in ${ratios[*]}
+    for point in ${removePoint[*]}
     do
-      for type in ${keytype[*]}
+      for r in ${ratios[*]}
       do
-        rm config.cfg
-        echo "TOTAL = $n
+        for type in ${keytype[*]}
+        do
+          rm config.cfg
+          echo "TOTAL = $n
 RACE_LEN = $tracelen
 dataRegionType = $data
 valueSpan = $valueSpan
 searchKeyType = $type
 insertRatio = $r
-removePoint = $point" >> config.cfg
-              echo "
-              "  >> $result
-        for i in `seq 1 $repeteNum`
-          do
-             ./QTree >> $result
-          done
+removePoint = $point
+dataPointType = $dataPoint" >> config.cfg
+                echo -e "\n" >> $result
+          for i in `seq 1 $repeteNum`
+            do
+               ./QTree >> $result
+            done
+        done
       done
     done
   done

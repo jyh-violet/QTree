@@ -10,7 +10,7 @@
 #include "../holder/RangeHolder.h"
 #include "../Tool/ArrayList.h"
 #define maxDepth 8
-#define Border  17
+#define Border  33
 
 #define stackPop(stack, index)  stack[ --index]
 #define stackPush(stack, index, elem)  stack[index ++] = elem
@@ -26,7 +26,7 @@ typedef struct InternalNode InternalNode;
 typedef struct LeafNode LeafNode;
 typedef struct Node Node;
 
-#define RemovedQueueSize 16
+#define RemovedQueueSize 64
 BoundKey RemovedKey[RemovedQueueSize];
 u_int32_t clockFlag;
 int clockIndex;

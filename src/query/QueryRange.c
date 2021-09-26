@@ -6,6 +6,7 @@
 
 static int rangeCount;
 extern  DataRegionType dataRegionType;
+extern  DataPointType dataPointType;
 extern int maxValue;
 extern int removePoint;
 
@@ -22,14 +23,39 @@ void QueryRangeConstructor(QueryRange *queryRange){
         case  Random:
             r = (int) RAND_RANGE(maxValue);
             diff = (int) RAND_RANGE(span);
-            queryRange->lower = r + span;
-            queryRange->upper = r + span + diff;
+            switch (dataPointType) {
+                case RemovePoint:
+                    queryRange->lower = r + span - diff / 4 * 3;
+                    queryRange->upper = r + span + diff / 4 ;
+                    break;
+                case LowPoint:
+                    queryRange->lower = r + span ;
+                    queryRange->upper = r + span + diff ;
+                    break;
+                case MidPoint:
+                    queryRange->lower = r + span - diff / 2;
+                    queryRange->upper = r + span + diff / 2;
+                    break;
+            }
+
             break;
         case Zipf:
             randNum = zipf(0.99, maxValue);
             diff = (int) RAND_RANGE(span);
-            queryRange->lower =  randNum + span ;
-            queryRange->upper =  randNum + span  + diff ;
+            switch (dataPointType) {
+                case RemovePoint:
+                    queryRange->lower = randNum + span - diff / 4 * 3;
+                    queryRange->upper = randNum + span + diff / 4 ;
+                    break;
+                case  LowPoint:
+                    queryRange->lower = randNum + span ;
+                    queryRange->upper = randNum + span + diff ;
+                    break;
+                case  MidPoint:
+                    queryRange->lower = randNum + span - diff / 2;
+                    queryRange->upper = randNum + span + diff / 2;
+                    break;
+            }
             break;
         case Increase:
             queryRange->lower = rangeCount ++ ;
@@ -37,8 +63,8 @@ void QueryRangeConstructor(QueryRange *queryRange){
             break;
         case Remove:
             randNum = zipf(0.99, maxValue);
-            queryRange->lower =  removePoint  + randNum;
-            queryRange->upper =  removePoint  + randNum;
+            queryRange->lower =  removePoint  + randNum + span ;
+            queryRange->upper =  removePoint  + randNum + span;
             break;
     }
 //    queryRange->boundInclude = 3;
