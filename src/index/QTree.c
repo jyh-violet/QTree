@@ -244,13 +244,15 @@ Node* QTreePut(QTree* qTree, QueryRange * key, QueryMeta * value){
         printf("QTreeFindLeafNode error!\n");
         exit(-1);
     }
-    //
-    // Find in leaf node for key
-    int slot = NodeFindSlotByKey((Node*)nodeLeaf, key);
-
-    slot = (slot >= 0)?(slot + 1):((-slot) - 1);
-
-    LeafNodeAdd(nodeLeaf, slot, key, value);
+//    //
+//    // Find in leaf node for key
+//    int slot = NodeFindSlotByKey((Node*)nodeLeaf, key);
+//
+//    slot = (slot >= 0)?(slot + 1):((-slot) - 1);
+//
+//    LeafNodeAdd(nodeLeaf, slot, key, value);
+    LeafNodeAddLast(nodeLeaf, key, value);
+    int slot;
     Node*   splitedNode = (NodeIsFull((Node*)nodeLeaf) ? LeafNodeSplit(nodeLeaf) : NULL);
     // Iterate back over nodes checking overflow / splitting
     while (!stackEmpty(qTree->stackNodes, qTree->stackNodesIndex)) {
@@ -273,7 +275,6 @@ Node* QTreePut(QTree* qTree, QueryRange * key, QueryMeta * value){
 
         if(NodeIsFull((Node*)node)){
             splitedNode = InternalNodeSplit(node);
-
         }else{
             splitedNode = NULL;
         }
@@ -323,6 +324,7 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
             InternalNode* nodeInternal = (InternalNode*) node;
             for(slot = 0; slot <= nodeInternal->node.allocated; slot ++){
                 if(((nodeInternal->childs[slot]->maxValue) >= key->lower) && ((nodeInternal->childs[slot]->minValue) <= key->upper)){
+                    checkInternal ++;
                     node = nodeInternal->childs[slot];
                     stackPush(qTree->stackNodes, qTree->stackNodesIndex, nodeInternal);
                     stackPush(qTree->stackSlots, qTree->stackSlotsIndex, slot);

@@ -27,6 +27,7 @@ int test() {
 #undef BOrder_65
 #define BOrder_129
     double generateT = 0, putT = 0, removeT = 0, mixT = 0;
+//    TOTAL = 100;
     srand((unsigned)time(NULL));
     clock_t   start,   finish, time1, time2;
     QTree qTree;
@@ -47,15 +48,16 @@ int test() {
     generateT = (double)(finish - start)/CLOCKS_PER_SEC;
 //    printf("generate end! use %lfs\n", (double)(finish - start)/CLOCKS_PER_SEC );
 
-    int i = 0;
     time1 = start = clock();
-//    for(; i < TOTAL; i ++){
+//    for(    int i = 0; i < TOTAL; i ++){
 //        QTreePut(&qTree, &(queries[i].dataRegion), queries + i);
 //    }
 //    finish = clock();
 //    putT = (double)(finish - start)/CLOCKS_PER_SEC;
-    Arraylist* removedQuery = ArraylistCreate(TOTAL);
+//    printQTree(&qTree);
 
+
+    Arraylist* removedQuery = ArraylistCreate(TOTAL);
     time1 = start = clock();
     int insertNum = 0, removeNum = 0;
     for (int i = 0; i < TOTAL; ++i) {
@@ -79,8 +81,8 @@ int test() {
     mixT = (double)(finish - start)/CLOCKS_PER_SEC;
 //    printf("remove end! use %lfs\n", (double)(finish - start)/CLOCKS_PER_SEC);
 //    printf( "get and remove end!\n remain:%d\n",  qTree.elements);
-printf("%d, %d, %d, %.2lf, %d,  %d,  %.3lf,%.3lf,%.3lf, %d, %d, %ld, %ld, %ld,  %ld, %ld, %ld, %ld, %ld, %d\n",
-           Border, dataRegionTypeOld, searchKeyType, insertRatio, removePoint, TOTAL,
+printf("%d, %d, %d, %d, %.2lf, %d,  %d,  %.3lf,%.3lf,%.3lf, %d, %d, %ld, %ld, %ld,  %ld, %ld, %ld, %ld, %ld, %d\n",
+           Border, dataPointType, dataRegionTypeOld, searchKeyType, insertRatio, removePoint, TOTAL,
            generateT, putT, mixT, insertNum, removeNum, removed, checkQuery, checkLeaf, checkInternal,
            qTree.leafSplitCount, qTree.internalSplitCount, qTree.whileCount, qTree.funcTime, RemovedQueueSize);
     free(queries) ;

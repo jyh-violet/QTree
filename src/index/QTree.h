@@ -61,10 +61,11 @@ typedef struct Node{
 }Node;
 
 
- struct LeafNode {
+struct LeafNode {
     Node  node;
     ValueType* values[Border];
 };
+
  struct InternalNode {
     Node node;
     Node* childs[Border + 1];
@@ -105,6 +106,7 @@ void LeafNodeMerge(LeafNode* leafNode, InternalNode* nodeParent, int slot,
                    Node* nodeFROMx);
 void * LeafNodeRemove(LeafNode* leafNode, int slot);
 BOOL LeafNodeAdd(LeafNode* leafNode, int slot, KeyType * newKey, ValueType * newValue);
+BOOL LeafNodeAddLast(LeafNode* leafNode, KeyType * newKey, ValueType * newValue);
 void LeafNodeAllocId(LeafNode* leafNode);
 void LeafNodeResetMaxValue(LeafNode* node);
 void LeafNodeResetMinValue(LeafNode* node);
@@ -114,7 +116,7 @@ int LeafNodeGetId(LeafNode* node) ;
 int LeafNodeGetHeight(LeafNode* node);
 void LeafNodeResetId(LeafNode* node);
 void printLeafNode(LeafNode* leafNode);
-
+void LeafNodeResetMinKey(LeafNode* leafNode);
 
 
 
@@ -135,6 +137,7 @@ BoundKey  InternalNodeRemove(InternalNode* node, int slot);
 void InternalNodeMerge(Node* node, InternalNode* nodeParent, int slot, Node* nodeFROMx);
 void printInternalNode(InternalNode* internalNode);
 
-
+void quickSelect(KeyType arr[], int k, int s, int e);
+void swap(KeyType arr[], int a, int b);
 
 #endif //QTREE_QTREE_H
