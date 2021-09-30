@@ -213,10 +213,7 @@ inline LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key) {
         if(searchKeyType == DYMID){
             setSearchKey(node, key);
         }
-        //        clock_gettime(CLOCK_REALTIME, &startTmp);
         slot = NodeFindSlotByKey(node, key);
-//        clock_gettime(CLOCK_REALTIME, &endTmp);
-//        funcTime += (endTmp.tv_sec - startTmp.tv_sec) * 1e9 +  endTmp.tv_nsec - startTmp.tv_nsec;
         slot = ((slot < 0) ? (-slot) - 1 : slot + 1);
 
         stackPush(qTree->stackNodes, qTree->stackNodesIndex, nodeInternal);

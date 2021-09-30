@@ -106,9 +106,8 @@ int main(){
     }
     config_lookup_int(&cfg, "TOTAL", &TOTAL);
     config_lookup_int(&cfg, "TRACE_LEN", &TRACE_LEN);
-    config_lookup_int(&cfg, "dataRegionType", &dataRegionType);
-    config_lookup_int(&cfg, "dataPointType", &dataPointType);
-    config_lookup_int(&cfg, "valueSpan", &valueSpan);
+    config_lookup_int(&cfg, "dataRegionType", (int*)&dataRegionType);
+    config_lookup_int(&cfg, "dataPointType", (int*)&dataPointType);
     config_lookup_int(&cfg, "valueSpan", &valueSpan);
     config_lookup_float(&cfg, "insertRatio", &insertRatio);
 
