@@ -64,7 +64,7 @@ void QTreeDestroy(QTree* qTree){
     if(printQTreelog){
         printf("%d, %d,  %ld, %ld, %ld,  %ld, %ld, %ld, %ld, ",
                Border, searchKeyType, checkQuery, checkLeaf, checkInternal,
-               qTree->leafSplitCount, qTree->internalSplitCount, qTree->whileCount, qTree->funcTime);
+               qTree->leafSplitCount, qTree->internalSplitCount, qTree->whileCount, qTree->funcCount);
 
     }
 //    printf("searchKeyType:%d, Border:%d, leafSplitCount: %d, internalSplitCount:%d, funcTime:%ld, funcCount:%d, whileCount:%d\n",
@@ -193,6 +193,7 @@ inline void setSearchKey(Node* node, KeyType * key){
 }
 
 inline LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key) {
+    qTree->funcCount ++;
 
     Node* node = qTree->root;
     int slot = 0;
@@ -256,7 +257,7 @@ void QTreePut(QTree* qTree, QueryRange * key, QueryMeta * value){
         qTree->batchKey[qTree->batchIndex][0] = *key;
         qTree->batchValue[qTree->batchIndex][0] = value;
         qTree->batchCount[qTree->batchIndex] = 1;
-        qTree->batchIndex = qTree->batchIndex % batchSize;
+        qTree->batchIndex = (qTree->batchIndex + 1) % batchSize;
     }
 }
 
@@ -343,6 +344,22 @@ void QTreePutBatch(QTree* qTree, QueryRange key[], QueryMeta* value[], int batch
 
 
 
+//delete queries in the batch queue
+void QTreeCheckBatch(QTree* qTree, int attribute, Arraylist* removedQuery){
+    for (int i = 0; i < batchSize; ++i) {
+        int newCount = 0;
+        for (int j = 0; j < qTree->batchCount[i]; ++j) {
+            if(QueryRangeCover(qTree->batchKey[i][j], attribute)){
+                ArraylistAdd(removedQuery, qTree->batchValue[i][j]);
+            } else{
+                qTree->batchKey[i][newCount] = qTree->batchKey[i][j];
+                qTree->batchValue[i][newCount ++] =  qTree->batchValue[i][j];
+            }
+        }
+        qTree->batchCount[i] = newCount;
+    }
+}
+
 void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* removedQuery){
     if(searchKeyType == REMOVE){
         for (int i = 0; i < RemovedQueueSize; ++i) {
@@ -359,18 +376,7 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
             }
         }
     }
-    for (int i = 0; i < batchSize; ++i) {
-        int newCount = 0;
-        for (int j = 0; j < qTree->batchCount[i]; ++j) {
-            if(QueryRangeCover(qTree->batchKey[i][j], attribute)){
-                ArraylistAdd(removedQuery, qTree->batchValue[i][j]);
-            } else{
-                qTree->batchKey[i][newCount] = qTree->batchKey[i][j];
-                qTree->batchValue[i][newCount ++] =  qTree->batchValue[i][j];
-            }
-            qTree->batchCount[i] = newCount;
-        }
-    }
+    QTreeCheckBatch(qTree, attribute, removedQuery);
     Node* node = qTree->root;
     int slot = 0;
     KeyType  queryRange;

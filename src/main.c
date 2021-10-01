@@ -84,7 +84,7 @@ int test() {
 printf("%d, %d, %d, %d, %.2lf, %d,  %d,  %.3lf,%.3lf,%.3lf, %d, %d, %ld, %ld, %ld,  %ld, %ld, %ld, %ld, %ld, %d\n",
            Border, dataPointType, dataRegionTypeOld, searchKeyType, insertRatio, removePoint, TOTAL,
            generateT, putT, mixT, insertNum, removeNum, removed, checkQuery, checkLeaf, checkInternal,
-           qTree.leafSplitCount, qTree.internalSplitCount, qTree.whileCount, qTree.funcTime, RemovedQueueSize);
+           qTree.leafSplitCount, qTree.internalSplitCount, qTree.whileCount, qTree.funcCount, RemovedQueueSize);
     free(queries) ;
     free(removeQuery);
     return 0;

@@ -47,7 +47,6 @@ typedef struct QTree {
     size_t internalSplitCount;
     size_t funcCount;
     size_t whileCount;
-    long funcTime;
     InternalNode* stackNodes[maxDepth];
     int          stackSlots[maxDepth];
     BoundKey batchSearchKey[batchSize];
@@ -87,6 +86,7 @@ LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key);
 void QTreePut(QTree* qTree, KeyType * key, ValueType * value);
 void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* removedQuery);
 void QTreePutBatch(QTree* qTree, QueryRange key[], QueryMeta* value[], int bachSize);
+void QTreeCheckBatch(QTree* qTree, int attribute, Arraylist* removedQuery);
 
 void NodeCheckTree(Node* node);
 void NodeConstructor(Node* node, QTree *tree);
