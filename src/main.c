@@ -49,11 +49,11 @@ int test() {
 //    printf("generate end! use %lfs\n", (double)(finish - start)/CLOCKS_PER_SEC );
 
     time1 = start = clock();
-    for(    int i = 0; i < TOTAL; i ++){
-        QTreePut(&qTree, &(queries[i].dataRegion), queries + i);
-    }
-    finish = clock();
-    putT = (double)(finish - start)/CLOCKS_PER_SEC;
+//    for(    int i = 0; i < TOTAL; i ++){
+//        QTreePut(&qTree, &(queries[i].dataRegion), queries + i);
+//    }
+//    finish = clock();
+//    putT = (double)(finish - start)/CLOCKS_PER_SEC;
 //    printQTree(&qTree);
 
 
@@ -67,7 +67,7 @@ int test() {
             QTreePut(&qTree, &(queries[i].dataRegion), queries + i);
             insertNum ++;
         } else{
-            QTreeFindAndRemoveRelatedQueries(&qTree, (queries[i].dataRegion.upper + queries[i].dataRegion.lower) / 2, removedQuery);
+            QTreeFindAndRemoveRelatedQueries(&qTree, (removeQuery[i].dataRegion.upper + removeQuery[i].dataRegion.lower) / 2, removedQuery);
             removeNum ++;
         }
     }
