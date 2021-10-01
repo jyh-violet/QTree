@@ -166,9 +166,7 @@ Node* LeafNodeSplit(LeafNode* leafNode) {
     if(medianToLow < 0){
         printf("median cal error\n");
     }
-    if (leafNode->node.allocated  + newHigh->node.allocated + medianNum != oldSize){
-        int i = 0;
-    }
+
     for (int i = 0; i < medianToLow; ++i) {
         LeafNodeAddLast(leafNode, &medianKey, medianValue[i]);
     }
