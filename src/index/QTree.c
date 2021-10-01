@@ -10,6 +10,7 @@ extern SearchKeyType searchKeyType;
 extern u_int64_t checkLeaf;
 extern u_int64_t checkQuery;
 extern u_int64_t checkInternal;
+extern SearchKeyType searchKeyType;
 
 void QTreeConstructor(QTree* qTree,  int BOrder){
     memset(qTree, 0, sizeof (QTree));
@@ -136,9 +137,6 @@ inline void QTreeMakeNewRoot(QTree* qTree, Node* splitedNode){
     InternalNodeResetMinValue(nodeRootNew);
     qTree->root = (Node* )nodeRootNew;
 }
-extern SearchKeyType searchKeyType;
-
-struct timespec startTmp, endTmp;
 
 inline void setSearchKey(Node* node, KeyType * key){
     node->tree->funcCount ++;
@@ -177,13 +175,6 @@ inline void setSearchKey(Node* node, KeyType * key){
             break;
         case REMOVE:
             if(key->searchKey == -1){
-//                if(key->upper < removePoint){
-//                    key->searchKey = key->upper;
-//                } else if(key->lower > removePoint){
-//                    key->searchKey = key->lower;
-//                } else{
-//                    key->searchKey = removePoint;
-//                }
                 int index = clockIndex;
                 for (int i = 0; i < RemovedQueueSize; ++i) {
                     index --;
@@ -231,9 +222,6 @@ inline LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key) {
 
 
 Node* QTreePut(QTree* qTree, QueryRange * key, QueryMeta * value){
-//    if(qTree->elements == 1519){
-//        printNode(qTree->root);
-//    }
     if(key == NULL || value == NULL){
         return NULL;
     }
@@ -244,13 +232,7 @@ Node* QTreePut(QTree* qTree, QueryRange * key, QueryMeta * value){
         printf("QTreeFindLeafNode error!\n");
         exit(-1);
     }
-//    //
-//    // Find in leaf node for key
-//    int slot = NodeFindSlotByKey((Node*)nodeLeaf, key);
-//
-//    slot = (slot >= 0)?(slot + 1):((-slot) - 1);
-//
-//    LeafNodeAdd(nodeLeaf, slot, key, value);
+    // unsorted leaf, insert into the End
     LeafNodeAddLast(nodeLeaf, key, value);
     int slot;
     Node*   splitedNode = (NodeIsFull((Node*)nodeLeaf) ? LeafNodeSplit(nodeLeaf) : NULL);
@@ -280,8 +262,6 @@ Node* QTreePut(QTree* qTree, QueryRange * key, QueryMeta * value){
         }
         //    splitedNode = (node->isFull() ? node->split() : NULL);
     }
-
-
 
     qTree->elements++;
     if (splitedNode != NULL) {   // root was split, make new root
