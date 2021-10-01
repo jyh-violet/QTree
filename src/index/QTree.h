@@ -36,6 +36,7 @@ int printQTreelog;
 #define KeyType QueryRange
 #define ValueType   QueryMeta
 #define batchSize    10
+#define MaxBatchCount Border/4
 typedef struct QTree {
     Node *root;
     int elements;

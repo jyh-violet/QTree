@@ -223,13 +223,13 @@ void QTreePut(QTree* qTree, QueryRange * key, QueryMeta * value){
     // put into a batch
     for (int i = 0; i < batchSize; ++i) {
         int index = (qTree->batchIndex + i) % batchSize;
-        if( qTree->batchCount[index] > 0 && QueryRangeCover(*key, qTree->batchSearchKey[index]) && qTree->batchCount[index] < batchSize){
+        if( qTree->batchCount[index] > 0 && QueryRangeCover(*key, qTree->batchSearchKey[index]) && qTree->batchCount[index] < MaxBatchCount){
             key->searchKey = qTree->batchSearchKey[index];
             int innerIndex = qTree->batchCount[index];
             qTree->batchKey[index][innerIndex] = *key;
             qTree->batchValue[index][innerIndex] = value;
             qTree->batchCount[index] ++;
-            if(qTree->batchCount[index] >= batchSize){
+            if(qTree->batchCount[index] >= MaxBatchCount){
                 QTreePutBatch(qTree, qTree->batchKey[index], qTree->batchValue[index], qTree->batchCount[index]);
                 qTree->batchCount[qTree->batchIndex] = 0;
             }
@@ -256,6 +256,7 @@ void QTreePut(QTree* qTree, QueryRange * key, QueryMeta * value){
         qTree->batchKey[qTree->batchIndex][0] = *key;
         qTree->batchValue[qTree->batchIndex][0] = value;
         qTree->batchCount[qTree->batchIndex] = 1;
+        qTree->batchIndex = qTree->batchIndex % batchSize;
     }
 }
 
