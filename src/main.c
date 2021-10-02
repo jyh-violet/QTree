@@ -27,7 +27,7 @@ int test() {
 #undef BOrder_65
 #define BOrder_129
     double generateT = 0, putT = 0, removeT = 0, mixT = 0;
-//    TOTAL = 100;
+//    TOTAL = 100000;
     srand((unsigned)time(NULL));
     clock_t   start,   finish, time1, time2;
     QTree qTree;
@@ -54,7 +54,11 @@ int test() {
 //    }
 //    finish = clock();
 //    putT = (double)(finish - start)/CLOCKS_PER_SEC;
-//    printQTree(&qTree);
+//    int num = qTree.elements;
+//    for(int i = 0; i < batchSize; i ++){
+//        num += qTree.batchCount[i];
+//    }
+//    printf("%d\n", num);
 
 
     Arraylist* removedQuery = ArraylistCreate(TOTAL);

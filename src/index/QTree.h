@@ -35,7 +35,7 @@ int printQTreelog;
 
 #define KeyType QueryRange
 #define ValueType   QueryMeta
-#define batchSize    1
+#define batchSize    2
 #define MaxBatchCount (Border/2 - 1)
 typedef struct QTree {
     Node *root;
@@ -53,10 +53,12 @@ typedef struct QTree {
     BoundKey batchSearchKey[batchSize];
     KeyType batchKey[batchSize][MaxBatchCount];
     ValueType* batchValue[batchSize][MaxBatchCount];
+    pthread_rwlock_t batchRwlock[batchSize];
     int     batchIndex;
 }QTree;
 
 typedef struct Node{
+    pthread_rwlock_t rwlock;
     int id ;
     int allocated ;
     BoundKey maxValue ;

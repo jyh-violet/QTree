@@ -3,16 +3,23 @@
 //
 
 #include <query/QueryRange.h>
+#include <pthread.h>
 #include "QTree.h"
 
 void NodeConstructor(Node* node, QTree *tree){
     node-> id = 0;
     node-> allocated = 0;
     node->tree = tree;
+    if(pthread_rwlock_init(&node->rwlock, NULL) != 0){
+        printf("node init lock error!\n");
+        exit(-1);
+    }
+
 //    node->keys = malloc(sizeof(KeyType *) * tree->Border);
 //    memset(node->keys,0, sizeof(KeyType *) * Border);
 }
 void NodeDestroy(Node* node){
+    pthread_rwlock_destroy(&node->rwlock);
 //    free(node->keys);
     if(NodeIsLeaf(node)){
         LeafNodeDestroy((LeafNode*)node);

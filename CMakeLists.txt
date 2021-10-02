@@ -28,7 +28,7 @@ add_library(index src/index/Node.c src/index/QTree.h src/index/QTree.c src/index
 target_link_libraries(index PUBLIC query)
 
 add_library(main  src/main.c)
-target_link_libraries(main PUBLIC index)
+target_link_libraries(main PUBLIC index -lpthread)
 
 #6.add executable file，添加要编译的可执行文件
 ADD_EXECUTABLE(${PROJECT_NAME}  ${TEST_MATH})
