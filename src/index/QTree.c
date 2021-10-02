@@ -263,7 +263,7 @@ void QTreePut(QTree* qTree, QueryRange * key, QueryMeta * value){
 
 
 
-void QTreePutBatch(QTree* qTree, QueryRange key[], QueryMeta* value[], int batchCount){
+inline void QTreePutBatch(QTree* qTree, QueryRange key[], QueryMeta* value[], int batchCount){
     if(key == NULL || value == NULL){
         return ;
     }
@@ -345,7 +345,7 @@ void QTreePutBatch(QTree* qTree, QueryRange key[], QueryMeta* value[], int batch
 
 
 //delete queries in the batch queue
-void QTreeCheckBatch(QTree* qTree, int attribute, Arraylist* removedQuery){
+inline void QTreeCheckBatch(QTree* qTree, int attribute, Arraylist* removedQuery){
     for (int i = 0; i < batchSize; ++i) {
         int newCount = 0;
         for (int j = 0; j < qTree->batchCount[i]; ++j) {
