@@ -61,6 +61,7 @@ Node* InternalNodeSplit(InternalNode* internalNode) {
     InternalNode* newHigh = (InternalNode* )malloc(sizeof (InternalNode));
     InternalNodeConstructor(newHigh, internalNode->node.tree);
     InternalNodeAllocId(newHigh);
+//    pthread_rwlock_wrlock(&newHigh->node.rwlock);
     // int j = ((allocated >> 1) | (allocated & 1)); // dividir por dos y sumar el resto (0 o 1)
     int j = (internalNode->node.allocated >> 1); // dividir por dos (libro)
     int newsize = internalNode->node.allocated - j;

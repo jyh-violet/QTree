@@ -62,7 +62,10 @@ void QTreeConstructor(QTree* qTree,  int BOrder){
             exit(-1);
         }
     }
-
+    if(pthread_rwlock_init(&qTree->rwlock, NULL) != 0){
+        printf("node init lock error!\n");
+        exit(-1);
+    }
 //    printf("QTree searchKeyType = %d\n", searchKeyType);
 //    memset(qTree->stackSlots,0, maxDepth * sizeof (int));
 //    memset(qTree->stackNodes,0, maxDepth * sizeof (InternalNode *));
@@ -72,6 +75,7 @@ void QTreeDestroy(QTree* qTree){
     for (int i = 0; i < batchSize; ++i) {
         pthread_rwlock_destroy(qTree->batchRwlock + i);
     }
+    pthread_rwlock_destroy(&qTree->rwlock);
     if(printQTreelog){
         printf("%d, %d,  %ld, %ld, %ld,  %ld, %ld, %ld, %ld, ",
                Border, searchKeyType, checkQuery, checkLeaf, checkInternal,
@@ -212,6 +216,7 @@ inline LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key) {
     while (!NodeIsLeaf(node)) {
         qTree->whileCount++;
         InternalNode *nodeInternal = (InternalNode*) node;
+//        pthread_rwlock_rdlock(&node->rwlock);
         slot = NodeFindSlotByKey(node, key);
         slot = ((slot < 0) ? (-slot) - 1 : slot + 1);
 
@@ -233,11 +238,11 @@ void QTreePut(QTree* qTree, QueryRange * key, QueryMeta * value){
         return ;
     }
     // put into a batch
-    for (int i = 0; i < batchSize; ++i) {
-        int index = (qTree->batchIndex + i) % batchSize;
-//        pthread_rwlock_rdlock(qTree->batchRwlock + index);
+    int batchIndex = qTree->batchIndex % batchSize;
+    qTree->batchIndex ++;
+    for (int index = 0; index < batchSize; ++index) {
+        pthread_rwlock_wrlock(qTree->batchRwlock + index);
         if( qTree->batchCount[index] > 0 && QueryRangeCover(*key, qTree->batchSearchKey[index]) && qTree->batchCount[index] < MaxBatchCount){
-//            pthread_rwlock_wrlock(qTree->batchRwlock + index);
             key->searchKey = qTree->batchSearchKey[index];
             int innerIndex = qTree->batchCount[index];
             qTree->batchKey[index][innerIndex] = *key;
@@ -247,17 +252,15 @@ void QTreePut(QTree* qTree, QueryRange * key, QueryMeta * value){
                 QTreePutBatch(qTree, qTree->batchKey[index], qTree->batchValue[index], qTree->batchCount[index]);
                 qTree->batchCount[qTree->batchIndex] = 0;
             }
-//            pthread_rwlock_unlock(qTree->batchRwlock + index);
+            pthread_rwlock_unlock(qTree->batchRwlock + index);
             return;
         }
-//        pthread_rwlock_unlock(qTree->batchRwlock + index);
+        pthread_rwlock_unlock(qTree->batchRwlock + index);
     }
     // find an empty batch
-    for (int i = 0; i < batchSize; ++i) {
-        int index = (qTree->batchIndex + i) % batchSize;
-//        pthread_rwlock_rdlock(qTree->batchRwlock + index);
+    for (int index = 0; index < batchSize; ++index) {
+        pthread_rwlock_wrlock(qTree->batchRwlock + index);
         if( qTree->batchCount[index] == 0){
-//            pthread_rwlock_wrlock(qTree->batchRwlock + index);
             if(qTree->batchCount[index] == 0){
                 setSearchKey(NULL, key);
                 qTree->batchSearchKey[index] = key->searchKey;
@@ -267,24 +270,24 @@ void QTreePut(QTree* qTree, QueryRange * key, QueryMeta * value){
             qTree->batchKey[index][0] = *key;
             qTree->batchValue[index][0] = value;
             qTree->batchCount[index] ++;
-//            pthread_rwlock_unlock(qTree->batchRwlock + index);
+            pthread_rwlock_unlock(qTree->batchRwlock + index);
             return;
         }
-//        pthread_rwlock_unlock(qTree->batchRwlock + index);
+        pthread_rwlock_unlock(qTree->batchRwlock + index);
     }
-    int index = qTree->batchIndex;
-//    pthread_rwlock_wrlock(qTree->batchRwlock + index);
+    int index = batchIndex;
+    pthread_rwlock_wrlock(qTree->batchRwlock + index);
     // replace the first batch
     if(qTree->batchCount[index] > 0){
         QTreePutBatch(qTree, qTree->batchKey[index], qTree->batchValue[index], qTree->batchCount[index]);
+        qTree->batchCount[index] = 0;
     }
-//    pthread_rwlock_unlock(qTree->batchRwlock + index);
     setSearchKey(NULL, key);
     qTree->batchSearchKey[index] = key->searchKey;
-    qTree->batchKey[index][0] = *key;
-    qTree->batchValue[index][0] = value;
-    qTree->batchCount[index] = 1;
-    qTree->batchIndex = (qTree->batchIndex + 1) % batchSize;
+    qTree->batchKey[index][qTree->batchCount[index]] = *key;
+    qTree->batchValue[index][qTree->batchCount[index]] = value;
+    qTree->batchCount[index]++;
+    pthread_rwlock_unlock(qTree->batchRwlock + index);
 }
 
 
@@ -293,8 +296,9 @@ inline void QTreePutBatch(QTree* qTree, QueryRange key[], QueryMeta* value[], in
     if(key == NULL || value == NULL){
         return ;
     }
-
+    pthread_rwlock_wrlock(&qTree->rwlock);
     LeafNode* nodeLeaf = QTreeFindLeafNode(qTree, &key[0]);
+
     if (nodeLeaf == NULL) {
         printf("QTreeFindLeafNode error!\n");
         exit(-1);
@@ -346,14 +350,21 @@ inline void QTreePutBatch(QTree* qTree, QueryRange key[], QueryMeta* value[], in
         }
         slot = stackPop(qTree->stackSlots, qTree->stackSlotsIndex);
         //            System.out.println(key + ", "  + otherBound + "," + node.id + ", "  + node.keys[0] + "," + slot);
+        int writeLock = 0;
         if (splitedNode != NULL) {
+            writeLock = 1;
+//            pthread_rwlock_wrlock(&node->node.rwlock);
             // split occurred in previous phase, splitedNode is new child
             KeyType  childKey = NodeSplitShiftKeysLeft(splitedNode);
             InternalNodeAdd(node, slot, &childKey, splitedNode);
-
+//            pthread_rwlock_unlock(splitedNode);
         }
+//        pthread_rwlock_unlock(node->childs[slot]);
 
         if(NodeIsFull((Node*)node)){
+//            if(!writeLock){
+//                pthread_rwlock_wrlock(&node->node.rwlock);
+//            }
             splitedNode = InternalNodeSplit(node);
         }else{
             splitedNode = NULL;
@@ -365,6 +376,9 @@ inline void QTreePutBatch(QTree* qTree, QueryRange key[], QueryMeta* value[], in
     if (splitedNode != NULL) {   // root was split, make new root
         QTreeMakeNewRoot(qTree, splitedNode);
     }
+
+    pthread_rwlock_unlock(&qTree->rwlock);
+
 //    NodeCheckTree(qTree->root);
 }
 
@@ -373,6 +387,7 @@ inline void QTreePutBatch(QTree* qTree, QueryRange key[], QueryMeta* value[], in
 //delete queries in the batch queue
 inline void QTreeCheckBatch(QTree* qTree, int attribute, Arraylist* removedQuery){
     for (int i = 0; i < batchSize; ++i) {
+        pthread_rwlock_wrlock(qTree->batchRwlock + i);
         int newCount = 0;
         for (int j = 0; j < qTree->batchCount[i]; ++j) {
             if(QueryRangeCover(qTree->batchKey[i][j], attribute)){
@@ -383,10 +398,12 @@ inline void QTreeCheckBatch(QTree* qTree, int attribute, Arraylist* removedQuery
             }
         }
         qTree->batchCount[i] = newCount;
+        pthread_rwlock_unlock(qTree->batchRwlock + i);
     }
 }
 
 void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* removedQuery){
+    pthread_rwlock_wrlock(&qTree->rwlock);
     if(searchKeyType == REMOVE){
         for (int i = 0; i < RemovedQueueSize; ++i) {
             clockIndex = (clockIndex + 1) % RemovedQueueSize;
@@ -550,6 +567,7 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
             break;
         }
     }
+    pthread_rwlock_unlock(&qTree->rwlock);
 //    NodeCheckTree(qTree->root);
 }
 

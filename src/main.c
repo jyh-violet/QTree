@@ -6,6 +6,8 @@
 #include <Tool/ArrayList.h>
 
 
+#define MaxThread 10
+
 DataRegionType dataRegionType = Zipf;
 DataPointType dataPointType = RemovePoint;
 int valueSpan = 30; // 2 ^valueSpan
@@ -15,13 +17,44 @@ int coordianteRedunc = 2;  // 2^redunc
 SearchKeyType searchKeyType = RAND;
 int Qid = 0;
 BOOL countFragment = FALSE;
-int removeNum = 10;
 int TOTAL = (int) 100, TRACE_LEN = 100000;
 double insertRatio = 0;
 u_int64_t checkLeaf = 0;
 u_int64_t checkQuery = 0;
 u_int64_t checkInternal = 0;
 int removePoint = 0;
+_Atomic int insertNum = 0, removeNum = 0;
+int threadnum = 2;
+
+typedef struct ThreadAttributes{
+    QTree* qTree;
+    QueryMeta* queries ;
+    QueryMeta* removeQuery;
+    int start;
+    int end;
+}ThreadAttributes;
+
+void testInsert(ThreadAttributes* attributes){
+    for(    int i = attributes->start; i <  attributes->end; i ++){
+        QTreePut(attributes->qTree, &(attributes->queries[i].dataRegion), attributes->queries + i);
+    }
+}
+
+size_t testMix(ThreadAttributes* attributes){
+    Arraylist* removedQuery = ArraylistCreate(TOTAL);
+    for (int i = attributes->start; i <  attributes->end; ++i) {
+        int randNum = rand();
+        double ratio = ((double )randNum) / ((double )RAND_MAX + 1);
+        if(ratio < insertRatio){
+            QTreePut(attributes->qTree, &(attributes->queries[i].dataRegion), attributes->queries + i);
+            insertNum ++;
+        } else{
+            QTreeFindAndRemoveRelatedQueries(attributes->qTree, (attributes->queries[i].dataRegion.upper + attributes->queries[i].dataRegion.lower) / 2, removedQuery);
+            removeNum ++;
+        }
+    }
+    return removedQuery->size;
+}
 
 int test() {
 #undef BOrder_65
@@ -48,35 +81,63 @@ int test() {
     generateT = (double)(finish - start)/CLOCKS_PER_SEC;
 //    printf("generate end! use %lfs\n", (double)(finish - start)/CLOCKS_PER_SEC );
 
+    int perThread = TOTAL / threadnum;
     time1 = start = clock();
+    pthread_t thread[MaxThread];
+    ThreadAttributes attributes[MaxThread];
+    for (int i = 0; i < threadnum; ++i) {
+        attributes[i].start = i * perThread;
+        attributes[i].end = i == (threadnum - 1)? TOTAL: (i + 1)* perThread;
+        attributes[i].queries = queries;
+        attributes[i].removeQuery = removeQuery;
+        attributes[i].qTree = &qTree;
+        pthread_create(&thread[i], 0, (void *(*)(void *))testInsert, (void *)&attributes[i]);
+    }
+    for (int i = 0; i < threadnum; ++i) {
+        pthread_join(thread[i], NULL);
+    }
 //    for(    int i = 0; i < TOTAL; i ++){
 //        QTreePut(&qTree, &(queries[i].dataRegion), queries + i);
 //    }
-//    finish = clock();
-//    putT = (double)(finish - start)/CLOCKS_PER_SEC;
-//    int num = qTree.elements;
-//    for(int i = 0; i < batchSize; i ++){
-//        num += qTree.batchCount[i];
-//    }
-//    printf("%d\n", num);
+    finish = clock();
+    putT = (double)(finish - start)/CLOCKS_PER_SEC;
+    int num = qTree.elements;
+    for(int i = 0; i < batchSize; i ++){
+        num += qTree.batchCount[i];
+    }
+    printf("%d\n", num);
 
 
     Arraylist* removedQuery = ArraylistCreate(TOTAL);
     time1 = start = clock();
-    int insertNum = 0, removeNum = 0;
-    for (int i = 0; i < TOTAL; ++i) {
-        int randNum = rand();
-        double ratio = ((double )randNum) / ((double )RAND_MAX + 1);
-        if(ratio < insertRatio){
-            QTreePut(&qTree, &(queries[i].dataRegion), queries + i);
-            insertNum ++;
-        } else{
-            QTreeFindAndRemoveRelatedQueries(&qTree, (removeQuery[i].dataRegion.upper + removeQuery[i].dataRegion.lower) / 2, removedQuery);
-            removeNum ++;
-        }
+
+    for (int i = 0; i < threadnum; ++i) {
+        attributes[i].start = i * perThread;
+        attributes[i].end = i == (threadnum - 1)? TOTAL: (i + 1)* perThread;
+        attributes[i].queries = queries;
+        attributes[i].removeQuery = removeQuery;
+        attributes[i].qTree = &qTree;
+        pthread_create(&thread[i], 0, testMix, &attributes[i]);
     }
+    size_t removed = 0;
+    for (int i = 0; i < threadnum; ++i) {
+        size_t removedNum;
+        pthread_join(thread[i], &removedNum);
+        removed += removedNum;
+    }
+//    for (int i = 0; i < TOTAL; ++i) {
+//        int randNum = rand();
+//        double ratio = ((double )randNum) / ((double )RAND_MAX + 1);
+//        if(ratio < insertRatio){
+//            QTreePut(&qTree, &(queries[i].dataRegion), queries + i);
+//            insertNum ++;
+//        } else{
+//            QTreeFindAndRemoveRelatedQueries(&qTree, (queries[i].dataRegion.upper + queries[i].dataRegion.lower) / 2, removedQuery);
+//            removeNum ++;
+//        }
+//    }
     finish = clock();
-    size_t removed = removedQuery->size;
+
 //    printf( "get and remove end!\n remain:%d\n",  qTree.elements);
     ArraylistDeallocate(removedQuery);
 
@@ -116,6 +177,7 @@ int main(){
     config_lookup_int(&cfg, "dataPointType", (int*)&dataPointType);
     config_lookup_int(&cfg, "valueSpan", &valueSpan);
     config_lookup_float(&cfg, "insertRatio", &insertRatio);
+    config_lookup_int(&cfg, "threadnum", &threadnum);
 
     maxValue = TOTAL;
 

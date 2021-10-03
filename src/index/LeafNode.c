@@ -1,6 +1,7 @@
 //
 // Created by workshop on 9/5/2021.
 //
+
 #include "QTree.h"
 
 inline void LeafNodeConstructor(LeafNode* leafNode, QTree *tree){
@@ -143,6 +144,7 @@ Node* LeafNodeSplit(LeafNode* leafNode) {
     LeafNode* newHigh = (LeafNode*)malloc(sizeof (LeafNode));
     LeafNodeConstructor(newHigh, leafNode->node.tree);
     LeafNodeAllocId(newHigh);
+//    pthread_rwlock_wrlock(&newHigh->node.rwlock);
 
     int median = leafNode->node.allocated >> 1;
     KeyType copyKey[Border];

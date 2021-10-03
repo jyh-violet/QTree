@@ -9,6 +9,7 @@
 #include "../query/QueryRange.h"
 #include "../holder/RangeHolder.h"
 #include "../Tool/ArrayList.h"
+#include <pthread.h>
 #define maxDepth 16
 #define Border  65
 
@@ -38,6 +39,7 @@ int printQTreelog;
 #define batchSize    2
 #define MaxBatchCount (Border/2 - 1)
 typedef struct QTree {
+    pthread_rwlock_t rwlock;
     Node *root;
     int elements;
     int maxNodeID;
@@ -54,7 +56,7 @@ typedef struct QTree {
     KeyType batchKey[batchSize][MaxBatchCount];
     ValueType* batchValue[batchSize][MaxBatchCount];
     pthread_rwlock_t batchRwlock[batchSize];
-    int     batchIndex;
+    _Atomic int     batchIndex;
 }QTree;
 
 typedef struct Node{
