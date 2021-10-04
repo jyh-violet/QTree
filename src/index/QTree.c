@@ -55,12 +55,17 @@ void QTreeConstructor(QTree* qTree,  int BOrder){
             break;
     }
 
+    if(pthread_rwlock_init(&qTree->rwlock, NULL) != 0){
+        printf("node init lock error!\n");
+        exit(-1);
+    }
 //    printf("QTree searchKeyType = %d\n", searchKeyType);
 //    memset(qTree->stackSlots,0, maxDepth * sizeof (int));
 //    memset(qTree->stackNodes,0, maxDepth * sizeof (InternalNode *));
 }
 
 void QTreeDestroy(QTree* qTree){
+    pthread_rwlock_destroy(&qTree->rwlock);
     if(printQTreelog){
         printf("%d, %d,  %ld, %ld, %ld,  %ld, %ld, %ld, %ld, ",
                Border, searchKeyType, checkQuery, checkLeaf, checkInternal,
@@ -225,7 +230,7 @@ Node* QTreePut(QTree* qTree, QueryRange * key, QueryMeta * value){
     if(key == NULL || value == NULL){
         return NULL;
     }
-
+    pthread_rwlock_wrlock(&qTree->rwlock);
 
     LeafNode* nodeLeaf = QTreeFindLeafNode(qTree, key);
     if (nodeLeaf == NULL) {
@@ -267,6 +272,7 @@ Node* QTreePut(QTree* qTree, QueryRange * key, QueryMeta * value){
     if (splitedNode != NULL) {   // root was split, make new root
         QTreeMakeNewRoot(qTree, splitedNode);
     }
+    pthread_rwlock_unlock(&qTree->rwlock);
 //    NodeCheckTree(qTree->root);
     return splitedNode;
 
@@ -275,6 +281,7 @@ Node* QTreePut(QTree* qTree, QueryRange * key, QueryMeta * value){
 
 
 void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* removedQuery){
+    pthread_rwlock_wrlock(&qTree->rwlock);
     if(searchKeyType == REMOVE){
         for (int i = 0; i < RemovedQueueSize; ++i) {
             clockIndex = (clockIndex + 1) % RemovedQueueSize;
@@ -437,6 +444,7 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
             break;
         }
     }
+    pthread_rwlock_unlock(&qTree->rwlock);
 //    NodeCheckTree(qTree->root);
 }
 

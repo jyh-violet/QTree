@@ -9,6 +9,8 @@
 #include "../query/QueryRange.h"
 #include "../holder/RangeHolder.h"
 #include "../Tool/ArrayList.h"
+#include <pthread.h>
+
 #define maxDepth 16
 #define Border  65
 
@@ -37,6 +39,7 @@ int printQTreelog;
 #define ValueType   QueryMeta
 
 typedef struct QTree {
+    pthread_rwlock_t rwlock;
     Node *root;
     int elements;
     int maxNodeID;
