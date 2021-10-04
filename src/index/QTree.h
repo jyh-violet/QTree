@@ -36,7 +36,7 @@ int printQTreelog;
 
 #define KeyType QueryRange
 #define ValueType   QueryMeta
-#define batchSize    2
+#define batchSize    8
 #define MaxBatchCount (Border/2 - 1)
 typedef struct QTree {
     pthread_rwlock_t rwlock;

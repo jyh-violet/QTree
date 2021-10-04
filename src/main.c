@@ -24,7 +24,7 @@ u_int64_t checkQuery = 0;
 u_int64_t checkInternal = 0;
 int removePoint = 0;
 _Atomic int insertNum = 0, removeNum = 0;
-int threadnum = 2;
+int threadnum = 4;
 
 typedef struct ThreadAttributes{
     QTree* qTree;
