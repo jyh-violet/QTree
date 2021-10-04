@@ -433,8 +433,10 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
     BoundKey removedMax = 0, removedMin = maxValue;
     BOOL resetMax = FALSE;
     BOOL resetMin = FALSE;
+    BOOL firstLeaf = FALSE;
     while (TRUE) {
         while (!NodeIsLeaf(node)){
+            firstLeaf = TRUE;
             BOOL getNode = FALSE;
             InternalNode* nodeInternal = (InternalNode*) node;
             for(slot = 0; slot <= nodeInternal->node.allocated; slot ++){
@@ -518,14 +520,26 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
             }
             leafNode->node.allocated = j;
             if(resetMax){
-                removedMax = leafNode->node.maxValue;
+                if(firstLeaf){
+                    removedMax = leafNode->node.maxValue;
+                } else{
+                    if(removedMax < leafNode->node.maxValue){
+                        removedMax = leafNode->node.maxValue;
+                    }
+                }
                 LeafNodeResetMaxValue(leafNode);
-
             }
             if(resetMin){
-                removedMin = leafNode->node.minValue;
+                if(firstLeaf){
+                    removedMin = leafNode->node.minValue;
+                } else{
+                    if(removedMin > leafNode->node.minValue){
+                        removedMin = leafNode->node.minValue;
+                    }
+                }
                 LeafNodeResetMinValue(leafNode);
             }
+            firstLeaf = FALSE;
             if(stackEmpty(qTree->stackNodes, qTree->stackNodesIndex)){
                 break;
             }
