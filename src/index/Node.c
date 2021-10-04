@@ -118,3 +118,10 @@ KeyType  NodeSplitShiftKeysLeft(Node* node){
     }
 }
 
+BOOL NodeCheckMaxMin(Node * node){
+    if(NodeIsLeaf(node)){
+        return LeafNodeCheckMaxMin((LeafNode*)node);
+    } else{
+        return InternalNodeCheckMaxMin((InternalNode *)node);
+    }
+}

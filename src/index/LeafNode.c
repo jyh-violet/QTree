@@ -25,10 +25,10 @@ void LeafNodeMerge(LeafNode* leafNode, InternalNode* nodeParent, int slot,
     memcpy(nodeTO->values + sizeTO , nodeFROM->values, (sizeFROM) * sizeof(ValueType *));
 
     nodeTO->node.allocated += sizeFROM; // keys of FROM and key of nodeParent
-    if((nodeTO->node.maxValue)< (nodeFROM->node.maxValue)){
+    if(sizeTO == 0 || (sizeFROM > 0 && nodeTO->node.maxValue < nodeFROM->node.maxValue)){
         nodeTO->node.maxValue = nodeFROM->node.maxValue;
     }
-    if((nodeTO->node.minValue) > (nodeFROM->node.minValue)){
+    if(sizeTO == 0 || (sizeFROM > 0 && (nodeTO->node.minValue) > (nodeFROM->node.minValue))){
         nodeTO->node.minValue = nodeFROM->node.minValue;
     }
 
@@ -152,6 +152,7 @@ Node* LeafNodeSplit(LeafNode* leafNode) {
     int oldSize = leafNode->node.allocated;
     leafNode->node.allocated = 0;
     ValueType* medianValue[Border];
+    KeyType medianKeys[Border];
     int medianNum = 0;
     for (int i = 0; i < oldSize; ++i) {
         if(QueryRangeGT(leafNode->node.keys[i], medianKey)){
@@ -159,6 +160,7 @@ Node* LeafNodeSplit(LeafNode* leafNode) {
         } else if (QueryRangeLT(leafNode->node.keys[i], medianKey)){
             LeafNodeAddLast(leafNode, leafNode->node.keys + i, leafNode->values[i]);
         } else{
+            medianKeys[medianNum] = leafNode->node.keys[i];
             medianValue[medianNum ++] = leafNode->values[i];
         }
     }
@@ -168,10 +170,10 @@ Node* LeafNodeSplit(LeafNode* leafNode) {
     }
 
     for (int i = 0; i < medianToLow; ++i) {
-        LeafNodeAddLast(leafNode, &medianKey, medianValue[i]);
+        LeafNodeAddLast(leafNode, medianKeys + i, medianValue[i]);
     }
     for (int i = medianToLow; i < medianNum; ++i) {
-        LeafNodeAddLast(newHigh, &medianKey, medianValue[i]);
+        LeafNodeAddLast(newHigh,medianKeys + i, medianValue[i]);
     }
 
     return (Node*)newHigh;
@@ -220,4 +222,24 @@ void printLeafNode(LeafNode* leafNode){
         printf("Q[%s] | ",v->queryId );
     }
     printf("}\n");
+}
+
+BOOL LeafNodeCheckMaxMin(LeafNode * leafNode){
+    if(leafNode->node.allocated == 0){
+        return TRUE;
+    }
+    int findMin = FALSE, findMax = FALSE;
+    for(int i = 0; i < leafNode->node.allocated; i ++){
+        if(leafNode->node.keys[i].lower == leafNode->node.minValue){
+            findMin = TRUE;
+        }
+        if(leafNode->node.keys[i].upper == leafNode->node.maxValue){
+            findMax = TRUE;
+        }
+    }
+    if(findMin == TRUE && findMax ==TRUE){
+        return TRUE;
+    } else{
+        return FALSE;
+    }
 }

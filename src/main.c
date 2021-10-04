@@ -26,7 +26,8 @@ int test() {
 #undef BOrder_65
 #define BOrder_129
     double generateT = 0, putT = 0, removeT = 0, mixT = 0;
-//    TRACE_LEN = 1000000;
+//    TOTAL = 1000;
+    TRACE_LEN = 100000;
     srand((unsigned)time(NULL));
     clock_t   start,   finish, time1, time2;
     QTree qTree;
@@ -76,17 +77,22 @@ int test() {
             QTreeFindAndRemoveRelatedQueries(&qTree, (removeQuery[i].dataRegion.upper + removeQuery[i].dataRegion.lower) / 2, removedQuery);
             removeNum ++;
         }
-//        if((i + 1) % TRACE_LEN == 0){
-//            time2 = clock();
-//            printf("%d, used %lf s \n", i, (double)(time2 - time1)/CLOCKS_PER_SEC);
-//            time1 = time2;
-//        }
+        if(QTreeCheckMaxMin(&qTree) ==FALSE){
+            printQTree(&qTree);
+            printf("QTreeCheckMaxMin error: %d, %d\n", i, mixPara[i] < insertRatio? 0 : 1);
+//            exit(-1);
+        }
+        if((i + 1) % TRACE_LEN == 0){
+            time2 = clock();
+            printf("%d, used %lf s \n", i, (double)(time2 - time1)/CLOCKS_PER_SEC);
+            time1 = time2;
+        }
     }
     finish = clock();
     size_t removed = removedQuery->size;
 //    printf( "get and remove end!\n remain:%d\n",  qTree.elements);
     ArraylistDeallocate(removedQuery);
-
+//    printQTree(&qTree);
     QTreeDestroy(&qTree);
 
     mixT = (double)(finish - start)/CLOCKS_PER_SEC;
