@@ -88,7 +88,9 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
 void QTreePutBatch(QTree* qTree, QueryRange key[], QueryMeta* value[], int bachSize);
 void QTreeCheckBatch(QTree* qTree, int attribute, Arraylist* removedQuery);
 void QTreePutOne(QTree* qTree, QueryRange* key, QueryMeta* value);
-
+Node* checkInternalNode(QTree* qTree, InternalNode* nodeInternal,  KeyType* key);
+void checkLeafNode(QTree* qTree, LeafNode* leafNode, BoundKey* removedMax, BoundKey* removedMin, BoundKey attribute, Arraylist* removedQuery, BOOL firstLeaf);
+Node* getAnotherNode(QTree* qTree, KeyType* key, BoundKey removedMax, BoundKey removedMin);
 
 void NodeCheckTree(Node* node);
 void NodeConstructor(Node* node, QTree *tree);
