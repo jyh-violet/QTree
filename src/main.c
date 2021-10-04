@@ -54,14 +54,14 @@ int test() {
 //    printf("generate end! use %lfs\n", (double)(finish - start)/CLOCKS_PER_SEC );
 
     time1 = start = clock();
-//    for(    int i = 0; i < TOTAL; i ++){
-//        QTreePut(&qTree, &(queries[i].dataRegion), queries + i);
-//    }
-//    finish = clock();
-//    putT = (double)(finish - start)/CLOCKS_PER_SEC;
-//    int num = qTree.elements;
-//    num += qTree.batchCount;
-//    printf("%d\n", num);
+    for(    int i = 0; i < TOTAL; i ++){
+        QTreePut(&qTree, &(queries[i].dataRegion), queries + i);
+    }
+    finish = clock();
+    putT = (double)(finish - start)/CLOCKS_PER_SEC;
+    int num = qTree.elements;
+    num += qTree.batchCount;
+    printf("%d\n", num);
 
 
     Arraylist* removedQuery = ArraylistCreate(TOTAL);
@@ -73,7 +73,7 @@ int test() {
             QTreePut(&qTree, &(queries[i].dataRegion), queries + i);
             insertNum ++;
         } else{
-            QTreeFindAndRemoveRelatedQueries(&qTree, (removeQuery[i].dataRegion.upper + removeQuery[i].dataRegion.lower) / 2, removedQuery);
+            QTreeFindAndRemoveRelatedQueries(&qTree, (queries[i].dataRegion.upper + queries[i].dataRegion.lower) / 2, removedQuery);
             removeNum ++;
         }
 //        if((i + 1) % TRACE_LEN == 0){
@@ -92,10 +92,10 @@ int test() {
     mixT = (double)(finish - start)/CLOCKS_PER_SEC;
 //    printf("remove end! use %lfs\n", (double)(finish - start)/CLOCKS_PER_SEC);
 //    printf( "get and remove end!\n remain:%d\n",  qTree.elements);
-printf("%d, %d, %d, %d, %.2lf, %d,  %d,  %.3lf,%.3lf,%.3lf, %d, %d, %ld, %ld, %ld,  %ld, %ld, %ld, %ld, %ld, %d, %d, %d\n",
+printf("%d, %d, %d, %d, %.2lf, %d,  %d,  %.3lf,%.3lf,%.3lf, %d, %d, %ld, %ld, %ld,  %ld, %ld, %ld, %ld, %ld, %d, %d, %d, %d\n",
            Border, dataPointType, dataRegionTypeOld, searchKeyType, insertRatio, removePoint, TOTAL,
            generateT, putT, mixT, insertNum, removeNum, removed, checkQuery, checkLeaf, checkInternal,
-           qTree.leafSplitCount, qTree.internalSplitCount, qTree.whileCount, qTree.funcCount, RemovedQueueSize, batchMissThreshold, MaxBatchCount);
+           qTree.leafSplitCount, qTree.internalSplitCount, qTree.whileCount, qTree.funcCount, RemovedQueueSize, batchMissThreshold, MaxBatchCount, maxInternal);
     free(queries) ;
     free(removeQuery);
     return 0;

@@ -12,6 +12,7 @@
 #define maxDepth 16
 #define Border  65
 
+#define stackFirst(stack, index)  stack[index - 1]
 #define stackPop(stack, index)  stack[ --index]
 #define stackPush(stack, index, elem)  stack[index ++] = elem
 #define stackEmpty(stack, index)  (index==0)
@@ -32,6 +33,7 @@ u_int32_t clockFlag;
 int clockIndex;
 
 int printQTreelog;
+int maxInternal;
 
 #define KeyType QueryRange
 #define ValueType   QueryMeta
