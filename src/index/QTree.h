@@ -35,7 +35,7 @@ int printQTreelog;
 
 #define KeyType QueryRange
 #define ValueType   QueryMeta
-#define batchSize    2
+#define batchMissThreshold  5
 #define MaxBatchCount (Border/2 - 1)
 typedef struct QTree {
     Node *root;
@@ -49,16 +49,14 @@ typedef struct QTree {
     size_t whileCount;
     InternalNode* stackNodes[maxDepth];
     int          stackSlots[maxDepth];
-    int     batchCount[batchSize];
-    BoundKey batchSearchKey[batchSize];
-    KeyType batchKey[batchSize][MaxBatchCount];
-    ValueType* batchValue[batchSize][MaxBatchCount];
-    pthread_rwlock_t batchRwlock[batchSize];
-    int     batchIndex;
+    int     batchCount;
+    int     batchMissCount;
+    BoundKey batchSearchKey;
+    KeyType batchKey[MaxBatchCount];
+    ValueType* batchValue[MaxBatchCount];
 }QTree;
 
 typedef struct Node{
-    pthread_rwlock_t rwlock;
     int id ;
     int allocated ;
     BoundKey maxValue ;
@@ -89,6 +87,8 @@ void QTreePut(QTree* qTree, KeyType * key, ValueType * value);
 void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* removedQuery);
 void QTreePutBatch(QTree* qTree, QueryRange key[], QueryMeta* value[], int bachSize);
 void QTreeCheckBatch(QTree* qTree, int attribute, Arraylist* removedQuery);
+void QTreePutOne(QTree* qTree, QueryRange* key, QueryMeta* value);
+
 
 void NodeCheckTree(Node* node);
 void NodeConstructor(Node* node, QTree *tree);

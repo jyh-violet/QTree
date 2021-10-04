@@ -15,7 +15,6 @@ int coordianteRedunc = 2;  // 2^redunc
 SearchKeyType searchKeyType = RAND;
 int Qid = 0;
 BOOL countFragment = FALSE;
-int removeNum = 10;
 int TOTAL = (int) 100, TRACE_LEN = 100000;
 double insertRatio = 0;
 u_int64_t checkLeaf = 0;
@@ -27,11 +26,17 @@ int test() {
 #undef BOrder_65
 #define BOrder_129
     double generateT = 0, putT = 0, removeT = 0, mixT = 0;
-//    TOTAL = 100000;
+//    TRACE_LEN = 1000000;
     srand((unsigned)time(NULL));
     clock_t   start,   finish, time1, time2;
     QTree qTree;
     QTreeConstructor(&qTree, 2);
+    double *mixPara = (double *) malloc(sizeof (double ) * TOTAL);
+    for (int i = 0; i < TOTAL; ++i) {
+        int randNum = rand();
+        mixPara[i] =    ((double )randNum) / ((double )RAND_MAX + 1);
+    }
+
     QueryMeta* queries = (QueryMeta*)malloc(sizeof(QueryMeta) * TOTAL );
     QueryMeta* removeQuery = (QueryMeta*)malloc(sizeof(QueryMeta) * TOTAL);
     time1 = start = clock();
@@ -55,9 +60,7 @@ int test() {
 //    finish = clock();
 //    putT = (double)(finish - start)/CLOCKS_PER_SEC;
 //    int num = qTree.elements;
-//    for(int i = 0; i < batchSize; i ++){
-//        num += qTree.batchCount[i];
-//    }
+//    num += qTree.batchCount;
 //    printf("%d\n", num);
 
 
@@ -65,15 +68,19 @@ int test() {
     time1 = start = clock();
     int insertNum = 0, removeNum = 0;
     for (int i = 0; i < TOTAL; ++i) {
-        int randNum = rand();
-        double ratio = ((double )randNum) / ((double )RAND_MAX + 1);
-        if(ratio < insertRatio){
+
+        if(mixPara[i] < insertRatio){
             QTreePut(&qTree, &(queries[i].dataRegion), queries + i);
             insertNum ++;
         } else{
             QTreeFindAndRemoveRelatedQueries(&qTree, (removeQuery[i].dataRegion.upper + removeQuery[i].dataRegion.lower) / 2, removedQuery);
             removeNum ++;
         }
+//        if((i + 1) % TRACE_LEN == 0){
+//            time2 = clock();
+//            printf("%d, used %lf s \n", i, (double)(time2 - time1)/CLOCKS_PER_SEC);
+//            time1 = time2;
+//        }
     }
     finish = clock();
     size_t removed = removedQuery->size;
@@ -88,7 +95,7 @@ int test() {
 printf("%d, %d, %d, %d, %.2lf, %d,  %d,  %.3lf,%.3lf,%.3lf, %d, %d, %ld, %ld, %ld,  %ld, %ld, %ld, %ld, %ld, %d, %d, %d\n",
            Border, dataPointType, dataRegionTypeOld, searchKeyType, insertRatio, removePoint, TOTAL,
            generateT, putT, mixT, insertNum, removeNum, removed, checkQuery, checkLeaf, checkInternal,
-           qTree.leafSplitCount, qTree.internalSplitCount, qTree.whileCount, qTree.funcCount, RemovedQueueSize, batchSize, MaxBatchCount);
+           qTree.leafSplitCount, qTree.internalSplitCount, qTree.whileCount, qTree.funcCount, RemovedQueueSize, batchMissThreshold, MaxBatchCount);
     free(queries) ;
     free(removeQuery);
     return 0;
