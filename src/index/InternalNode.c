@@ -166,10 +166,10 @@ void InternalNodeMerge(Node* internalNode, InternalNode* nodeParent, int slot, N
     // add key to nodeTO
     nodeTO->node.keys[sizeTO] = nodeParent->node.keys[slot];
     nodeTO->node.allocated += sizeFROM + 1; // keys of FROM and key of nodeParent
-    if(nodeTO->node.maxValue < nodeFROM->node.maxValue){
+    if(sizeTO == 0 || (sizeFROM > 0 && nodeTO->node.maxValue < nodeFROM->node.maxValue)){
         nodeTO->node.maxValue = nodeFROM->node.maxValue;
     }
-    if((nodeTO->node.minValue) > (nodeFROM->node.minValue)){
+    if(sizeTO == 0 || (sizeFROM > 0 && (nodeTO->node.minValue) > (nodeFROM->node.minValue))){
         nodeTO->node.minValue = nodeFROM->node.minValue;
     }
 
@@ -196,4 +196,27 @@ void printInternalNode(InternalNode* internalNode){
 
     }
     printf("}\n");
+}
+
+BOOL InternalNodeCheckMaxMin(InternalNode * internalNode){
+    if(internalNode->node.allocated == 0){
+        return TRUE;
+    }
+    int findMin = FALSE, findMax = FALSE;
+    for(int i = 0; i <= internalNode->node.allocated; i ++){
+        if(NodeCheckMaxMin(internalNode->childs[i]) == FALSE){
+            return FALSE;
+        }
+        if(internalNode->node.maxValue == internalNode->childs[i]->maxValue){
+            findMax = TRUE;
+        }
+        if(internalNode->node.minValue == internalNode->childs[i]->minValue){
+            findMin = TRUE;
+        }
+    }
+    if(findMin == TRUE && findMax ==TRUE){
+        return TRUE;
+    } else{
+        return FALSE;
+    }
 }

@@ -25,10 +25,10 @@ void LeafNodeMerge(LeafNode* leafNode, InternalNode* nodeParent, int slot,
     memcpy(nodeTO->values + sizeTO , nodeFROM->values, (sizeFROM) * sizeof(ValueType *));
 
     nodeTO->node.allocated += sizeFROM; // keys of FROM and key of nodeParent
-    if((nodeTO->node.maxValue)< (nodeFROM->node.maxValue)){
+    if(sizeTO == 0 || (sizeFROM > 0 && nodeTO->node.maxValue < nodeFROM->node.maxValue)){
         nodeTO->node.maxValue = nodeFROM->node.maxValue;
     }
-    if((nodeTO->node.minValue) > (nodeFROM->node.minValue)){
+    if(sizeTO == 0 || (sizeFROM > 0 && (nodeTO->node.minValue) > (nodeFROM->node.minValue))){
         nodeTO->node.minValue = nodeFROM->node.minValue;
     }
 
@@ -153,4 +153,24 @@ void printLeafNode(LeafNode* leafNode){
         printf("Q[%s] | ",v->queryId );
     }
     printf("}\n");
+}
+
+BOOL LeafNodeCheckMaxMin(LeafNode * leafNode){
+    if(leafNode->node.allocated == 0){
+        return TRUE;
+    }
+    int findMin = FALSE, findMax = FALSE;
+    for(int i = 0; i < leafNode->node.allocated; i ++){
+        if(leafNode->node.keys[i].lower == leafNode->node.minValue){
+            findMin = TRUE;
+        }
+        if(leafNode->node.keys[i].upper == leafNode->node.maxValue){
+            findMax = TRUE;
+        }
+    }
+    if(findMin == TRUE && findMax ==TRUE){
+        return TRUE;
+    } else{
+        return FALSE;
+    }
 }

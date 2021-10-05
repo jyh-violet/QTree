@@ -46,7 +46,6 @@ BOOL NodeIsFull(Node* node){ // node is full
 
 int NodeFindSlotByKey( Node* node, KeyType* searchKey) {
     // return Arrays.binarySearch(keys, 0, allocated, searchKey);
-    node->tree->funcTime ++;
     if(node->allocated == 0){
         return -1;
     }
@@ -70,7 +69,6 @@ int NodeFindSlotByKey( Node* node, KeyType* searchKey) {
 
 int NodeFindMinSlotByKey( Node* node, KeyType* searchKey) {
     // return Arrays.binarySearch(keys, 0, allocated, searchKey);
-    node->tree->funcTime ++;
     if(node->allocated == 0){
         return -1;
     }
@@ -141,3 +139,10 @@ KeyType  NodeSplitShiftKeysLeft(Node* node){
     }
 }
 
+BOOL NodeCheckMaxMin(Node * node){
+    if(NodeIsLeaf(node)){
+        return LeafNodeCheckMaxMin((LeafNode*)node);
+    } else{
+        return InternalNodeCheckMaxMin((InternalNode *)node);
+    }
+}
