@@ -46,7 +46,6 @@ typedef struct QTree {
     size_t internalSplitCount;
     size_t funcCount;
     size_t whileCount;
-    long funcTime;
     InternalNode* stackNodes[maxDepth];
     int          stackSlots[maxDepth];
 }QTree;
@@ -80,7 +79,10 @@ void QTreeMakeNewRoot(QTree* qTree, Node* splitedNode);
 LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key);
 Node* QTreePut(QTree* qTree, KeyType * key, ValueType * value);
 void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* removedQuery);
-
+Node* checkInternalNode(QTree* qTree, InternalNode* nodeInternal,  KeyType* key);
+void checkLeafNode(QTree* qTree, LeafNode* leafNode, BoundKey* removedMax, BoundKey* removedMin, BoundKey attribute, Arraylist* removedQuery);
+Node* getAnotherNode(QTree* qTree, KeyType* key, BoundKey removedMax, BoundKey removedMin);
+BOOL QTreeCheckMaxMin(QTree* qTree);
 
 void NodeCheckTree(Node* node);
 void NodeConstructor(Node* node, QTree *tree);
@@ -97,7 +99,7 @@ void NodeResetId(Node* node);
 void NodeMerge(Node* node, InternalNode* nodeParent, int slot,
                Node* nodeFROM);
 KeyType NodeSplitShiftKeysLeft(Node* node);
-
+BOOL NodeCheckMaxMin(Node * node);
 
 
 void LeafNodeConstructor(LeafNode* leafNode, QTree *tree);
@@ -117,7 +119,7 @@ int LeafNodeGetHeight(LeafNode* node);
 void LeafNodeResetId(LeafNode* node);
 void printLeafNode(LeafNode* leafNode);
 void LeafNodeResetMinKey(LeafNode* leafNode);
-
+BOOL LeafNodeCheckMaxMin(LeafNode * leafNode);
 
 
 
@@ -136,6 +138,7 @@ BOOL InternalNodeCheckUnderflowWithRight(InternalNode* node, int slot);
 BoundKey  InternalNodeRemove(InternalNode* node, int slot);
 void InternalNodeMerge(Node* node, InternalNode* nodeParent, int slot, Node* nodeFROMx);
 void printInternalNode(InternalNode* internalNode);
+BOOL InternalNodeCheckMaxMin(InternalNode * internalNode);
 
 void quickSelect(KeyType arr[], int k, int s, int e);
 void swap(KeyType arr[], int a, int b);
