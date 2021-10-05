@@ -294,7 +294,7 @@ inline void checkLeafNode(QTree* qTree, LeafNode* leafNode, BoundKey* removedMax
     for(int i = 0; i < leafNode->node.allocated ; i ++){
         checkQuery ++;
         //                    System.out.println("query:" + leafNode.values[i]);
-        if(QueryRangeCover(leafNode->node.keys[i], attribute)){
+        if(CheckLeafNodeCover(leafNode,i, attribute)){
 
             if(leafNode->node.keys[i].upper >= leafNode->node.maxValue){
                 resetMax = TRUE;
