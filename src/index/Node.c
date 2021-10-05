@@ -123,3 +123,11 @@ BOOL NodeCheckMaxMin(Node * node){
         return InternalNodeCheckMaxMin((InternalNode *)node);
     }
 }
+
+BOOL NodeFindAndRemove(Node* node, Arraylist* removedQuery, BoundKey* removedMax, BoundKey* removedMin, BoundKey attribute){
+    if(NodeIsLeaf(node)){
+        return LeafNodeFindAndRemove((LeafNode*)node, removedQuery, removedMax, removedMin, attribute);
+    } else{
+        return InternalNodeFindAndRemove((InternalNode*)node, removedQuery, removedMax, removedMin, attribute);
+    }
+}

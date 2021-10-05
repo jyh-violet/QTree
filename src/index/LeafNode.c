@@ -174,3 +174,47 @@ BOOL LeafNodeCheckMaxMin(LeafNode * leafNode){
         return FALSE;
     }
 }
+
+extern u_int64_t checkLeaf;
+extern u_int64_t checkQuery;
+
+BOOL LeafNodeFindAndRemove(LeafNode * leafNode, Arraylist* removedQuery, BoundKey* removedMax, BoundKey* removedMin, BoundKey attribute){
+    checkLeaf ++;
+    int j = 0;
+    BOOL resetMax = FALSE;
+    BOOL resetMin = FALSE;
+    *removedMin = maxValue;
+    *removedMax = 0;
+    for(int i = 0; i < leafNode->node.allocated ; i ++){
+        checkQuery ++;
+        //                    System.out.println("query:" + leafNode.values[i]);
+        if(QueryRangeCover(leafNode->node.keys[i], attribute)){
+
+            if(leafNode->node.keys[i].upper >= leafNode->node.maxValue){
+                resetMax = TRUE;
+            }
+            if(leafNode->node.keys[i].lower <= leafNode->node.minValue){
+                resetMin = TRUE;
+            }
+            ArraylistAdd(removedQuery, leafNode->values[i]);
+            leafNode->node.tree->elements --;
+        }else {
+            leafNode->node.keys[j] = leafNode->node.keys[i];
+            leafNode->values[j ++] = leafNode->values[i];
+        }
+    }
+    leafNode->node.allocated = j;
+    if(resetMax){
+        if(*removedMax < leafNode->node.maxValue){
+            *removedMax = leafNode->node.maxValue;
+        }
+        LeafNodeResetMaxValue(leafNode);
+    }
+    if(resetMin){
+        if(*removedMin > leafNode->node.minValue){
+            *removedMin = leafNode->node.minValue;
+        }
+        LeafNodeResetMinValue(leafNode);
+    }
+    return resetMax || resetMin;
+}

@@ -220,3 +220,35 @@ BOOL InternalNodeCheckMaxMin(InternalNode * internalNode){
         return FALSE;
     }
 }
+extern u_int64_t checkInternal;
+BOOL InternalNodeFindAndRemove(InternalNode * internalNode, Arraylist* removedQuery, BoundKey* removedMax, BoundKey* removedMin, BoundKey attribute){
+    checkInternal ++;
+    BOOL resetMaxOrMin = FALSE;
+    *removedMin = maxValue;
+    *removedMax = 0;
+    BoundKey childRemoveMax = maxValue, childRemoveMin = 0;
+    for(int slot = 0; slot <= internalNode->node.allocated; slot ++){
+        if(((internalNode->childs[slot]->maxValue) >= attribute) && ((internalNode->childs[slot]->minValue) <= attribute)){
+            if(NodeFindAndRemove(internalNode->childs[slot], removedQuery, &childRemoveMax, &childRemoveMax, attribute)){
+                if(childRemoveMax > *removedMax){
+                    *removedMax = childRemoveMax;
+                }
+                if(childRemoveMin < *removedMin){
+                    *removedMin = childRemoveMin;
+                }
+            }
+        }
+    }
+    for(int i = 0; i < internalNode->node.allocated; i ++ ){
+        InternalNodeCheckUnderflowWithRight((internalNode), i);
+    }
+    if(internalNode->node.maxValue <= *removedMax){
+        InternalNodeResetMaxValue((internalNode));
+        resetMaxOrMin = TRUE;
+    }
+    if(internalNode->node.minValue >= *removedMin){
+        InternalNodeResetMinValue((internalNode));
+        resetMaxOrMin = TRUE;
+    }
+    return resetMaxOrMin;
+}

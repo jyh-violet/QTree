@@ -99,6 +99,7 @@ void NodeMerge(Node* node, InternalNode* nodeParent, int slot,
                Node* nodeFROM);
 KeyType NodeSplitShiftKeysLeft(Node* node);
 BOOL NodeCheckMaxMin(Node * node);
+BOOL NodeFindAndRemove(Node* node, Arraylist* removedQuery, BoundKey* removedMax, BoundKey* removedMin, BoundKey attribute);
 
 
 void LeafNodeConstructor(LeafNode* leafNode, QTree *tree);
@@ -117,7 +118,7 @@ int LeafNodeGetHeight(LeafNode* node);
 void LeafNodeResetId(LeafNode* node);
 void printLeafNode(LeafNode* leafNode);
 BOOL LeafNodeCheckMaxMin(LeafNode * leafNode);
-
+BOOL LeafNodeFindAndRemove(LeafNode * leafNode, Arraylist* removedQuery, BoundKey* removedMax, BoundKey* removedMin, BoundKey attribute);
 
 
 void InternalNodeConstructor(InternalNode* internalNode, QTree* qTree);
@@ -136,7 +137,7 @@ BoundKey  InternalNodeRemove(InternalNode* node, int slot);
 void InternalNodeMerge(Node* node, InternalNode* nodeParent, int slot, Node* nodeFROMx);
 void printInternalNode(InternalNode* internalNode);
 BOOL InternalNodeCheckMaxMin(InternalNode * internalNode);
-
+BOOL InternalNodeFindAndRemove(InternalNode * internalNode, Arraylist* removedQuery, BoundKey* removedMax, BoundKey* removedMin, BoundKey attribute);
 
 
 #endif //QTREE_QTREE_H

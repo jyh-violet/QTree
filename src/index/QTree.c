@@ -429,6 +429,35 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
 }
 
 
+//void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* removedQuery){
+//    if(searchKeyType == REMOVE){
+//        for (int i = 0; i < RemovedQueueSize; ++i) {
+//            clockIndex = (clockIndex + 1) % RemovedQueueSize;
+//            if(RemovedKey[clockIndex] == attribute){
+//                break;
+//            }
+//            if(clockFlag & (1 << clockIndex)){
+//                clockFlag &= ~(1 << clockIndex);
+//            } else{
+//                RemovedKey[clockIndex] = attribute;
+//                clockFlag |= (1 << clockIndex);
+//                break;
+//            }
+//        }
+//    }
+//
+//    int oldCheckInternal = checkInternal, oldRemove = removedQuery->size;
+//    checkInternal = 0;
+//    BoundKey removedMax, removedMin;
+//    NodeFindAndRemove(qTree->root, removedQuery, &removedMax, &removedMin, attribute);
+//    checkInternal = checkInternal / (removedQuery->size - oldRemove + 1);
+//    if(checkInternal < oldCheckInternal){
+//        checkInternal = oldCheckInternal;
+//    }
+//    //    NodeCheckTree(qTree->root);
+//}
+
+
 BOOL QTreeCheckMaxMin(QTree* qTree){
     return NodeCheckMaxMin(qTree->root);
 }
