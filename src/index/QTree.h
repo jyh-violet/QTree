@@ -18,6 +18,14 @@
 
 #define NodeIsLeaf(node)  (((Node*)node)->id >= 0)
 
+#define CheckQuery
+
+#ifdef CheckQuery
+#define CheckLeafNodeCover(leafNode, i, attribute)  QueryMetaCover(((LeafNode*)leafNode)->values[i], attribute)
+#else
+#define CheckLeafNodeCover(leafNode, i, attribute)  QueryRangeCover (((LeafNode*)leafNode)->node.keys[i], attribute)
+#endif
+
 extern int maxValue;
 extern int removePoint;
 extern int Qid;
