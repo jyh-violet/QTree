@@ -28,6 +28,13 @@ typedef enum SearchKeyType{
     RAND
 }SearchKeyType;
 
+typedef enum OptimizationType{
+    None,
+    NoSort,
+    BatchAndNoSort,
+    Batch
+}OptimizationType;
+
 typedef enum BOOL{
     FALSE,
     TRUE

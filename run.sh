@@ -10,30 +10,40 @@ removePoint=(0)
 dataRegionType=(1 3)
 dataPointType=(0 1 2)
 repeteNum=5
-for dataPoint in ${dataPointType[*]}
+optimizationType=(0 1 2)
+checkQueryMeta=(0 1)
+for checkQ in ${checkQueryMeta[*]}
 do
-  for data in ${dataRegionType[*]}
+  for opt in ${optimizationType[*]}
   do
-    for point in ${removePoint[*]}
+    for dataPoint in ${dataPointType[*]}
     do
-      for r in ${ratios[*]}
+      for data in ${dataRegionType[*]}
       do
-        for type in ${keytype[*]}
+        for point in ${removePoint[*]}
         do
-          rm config.cfg
-          echo "TOTAL = $n
+          for r in ${ratios[*]}
+          do
+            for type in ${keytype[*]}
+            do
+              rm config.cfg
+              echo "TOTAL = $n
 RACE_LEN = $tracelen
 dataRegionType = $data
 valueSpan = $valueSpan
 searchKeyType = $type
 insertRatio = $r
 removePoint = $point
-dataPointType = $dataPoint" >> config.cfg
-                echo -e "\n" >> $result
-          for i in `seq 1 $repeteNum`
-            do
-               ./QTree >> $result
+dataPointType = $dataPoint
+optimizationType = $opt
+optimizationType = $checkQ" >> config.cfg
+                    echo -e "\n" >> $result
+              for i in `seq 1 $repeteNum`
+                do
+                  ./QTree >> $result
+                done
             done
+          done
         done
       done
     done

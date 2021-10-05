@@ -36,8 +36,11 @@ void QTreeConstructor(QTree* qTree,  int BOrder){
         config_destroy(&cfg);
     }
     int  keyType;
-    config_lookup_int(&cfg, "removePoint", &removePoint);
-    config_lookup_int(&cfg, "searchKeyType", &keyType);
+    config_lookup_int(&cfg, "removePoint", (int*)&removePoint);
+    config_lookup_int(&cfg, "searchKeyType", (int*)&keyType);
+    config_lookup_int(&cfg, "optimizationType", (int*)&optimizationType);
+    config_lookup_int(&cfg, "checkQueryMeta", &checkQueryMeta);
+
     switch (keyType) {
         case 0:
             searchKeyType = LOW;
@@ -62,13 +65,13 @@ void QTreeConstructor(QTree* qTree,  int BOrder){
 //    memset(qTree->stackNodes,0, maxDepth * sizeof (InternalNode *));
 }
 
-void QTreeDestroy(QTree* qTree){
-    if(printQTreelog){
-        printf("%d, %d,  %ld, %ld, %ld,  %ld, %ld, %ld, %ld, ",
-               Border, searchKeyType, checkQuery, checkLeaf, checkInternal,
-               qTree->leafSplitCount, qTree->internalSplitCount, qTree->whileCount, qTree->funcCount);
+void printQTreeStatistics(QTree * qTree){
+    printf("%d, %d, %d, %d,  %ld, %ld, %ld,  %ld, %ld, %ld, %ld, %ld, %ld, %ld, %d",
+           Border, checkQueryMeta, optimizationType, searchKeyType, checkQuery, checkLeaf, checkInternal, checkQuery, checkLeaf, checkInternal,
+               qTree->leafSplitCount, qTree->internalSplitCount, qTree->whileCount, qTree->funcCount, RemovedQueueSize);
+}
 
-    }
+void QTreeDestroy(QTree* qTree){
 //    printf("searchKeyType:%d, Border:%d, leafSplitCount: %d, internalSplitCount:%d, funcTime:%ld, funcCount:%d, whileCount:%d\n",
 //           searchKeyType, Border, qTree->leafSplitCount,  qTree->internalSplitCount,  qTree->funcTime,  qTree->funcCount,  qTree->whileCount);
 //    NodeDestroy(qTree->root);
@@ -223,6 +226,14 @@ void QTreePut(QTree* qTree, QueryRange * key, QueryMeta * value){
     if(key == NULL || value == NULL){
         return ;
     }
+    switch (optimizationType) {
+        case None:
+        case NoSort:
+            setSearchKey(NULL, key);
+            QTreePutOne(qTree, key, value);
+            return;
+
+    }
     // empty batch
     if( qTree->batchCount == 0){
         setSearchKey(NULL, key);
@@ -277,11 +288,29 @@ inline void QTreePutOne(QTree* qTree, QueryRange* key, QueryMeta* value){
         exit(-1);
     }
     BoundKey min = key->lower, max = key->upper;
-    LeafNodeAddLast(nodeLeaf, key, value);
+    int slot;
+    switch (optimizationType) {
+        case None:
+            // Find in leaf node for key
+            slot = NodeFindSlotByKey((Node*)nodeLeaf, key);
+
+            slot = (slot >= 0)?(slot + 1):((-slot) - 1);
+
+            LeafNodeAdd(nodeLeaf, slot, key, value);
+            break;
+        case NoSort:
+        case BatchAndNoSort:
+            LeafNodeAddLast(nodeLeaf, key, value);
+            break;
+        default:
+            printf("unSupport type:%d\n", optimizationType);
+            exit(-1);
+    }
+    //
+
     Node*   splitedNode = (NodeIsFull((Node*)nodeLeaf) ? LeafNodeSplit(nodeLeaf) : NULL);
 
     // Iterate back over nodes checking overflow / splitting
-    int slot;
     while (!stackEmpty(qTree->stackNodes, qTree->stackNodesIndex)) {
         //        cout << slot << endl;
         InternalNode* node = stackPop(qTree->stackNodes, qTree->stackNodesIndex);
@@ -423,6 +452,14 @@ inline Node* checkInternalNode(QTree* qTree, InternalNode* nodeInternal,  KeyTyp
     return node;
 }
 
+inline BOOL CheckLeafNodeCover(LeafNode * leafNode, int i,  BoundKey attribute){
+    if(checkQueryMeta){
+        return QueryRangeCover (((LeafNode*)leafNode)->node.keys[i], attribute);
+    }else{
+        return  QueryMetaCover(((LeafNode*)leafNode)->values[i], attribute);
+    }
+}
+
 inline void checkLeafNode(QTree* qTree, LeafNode* leafNode, BoundKey* removedMax, BoundKey* removedMin, BoundKey attribute, Arraylist* removedQuery){
     int j = 0;
     BOOL resetMax = FALSE;
@@ -493,6 +530,8 @@ inline Node* getAnotherNode(QTree* qTree, KeyType* key, BoundKey removedMax, Bou
     return node;
 }
 
+
+
 void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* removedQuery){
     if(searchKeyType == REMOVE){
         for (int i = 0; i < RemovedQueueSize; ++i) {
@@ -514,7 +553,9 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
 //    }
     int oldCheckInternal = checkInternal, oldRemove = removedQuery->size;
     checkInternal = 0;
-    QTreeCheckBatch(qTree, attribute, removedQuery);
+    if(optimizationType == BatchAndNoSort){
+        QTreeCheckBatch(qTree, attribute, removedQuery);
+    }
     Node* node = qTree->root;
     KeyType  queryRange;
     KeyType* key = &queryRange;

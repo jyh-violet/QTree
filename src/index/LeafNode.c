@@ -135,7 +135,40 @@ inline void quickSelect(KeyType arr[], int k, int s, int e){
     }
 }
 
-Node* LeafNodeSplit(LeafNode* leafNode) {
+Node* LeafNodeSplit_Sort(LeafNode* leafNode) {
+    if(leafNode->node.tree == NULL){
+        printLeafNode(leafNode);
+    }
+    leafNode->node.tree->leafSplitCount ++;
+    LeafNode* newHigh = (LeafNode*)malloc(sizeof (LeafNode));
+    LeafNodeConstructor(newHigh, leafNode->node.tree);
+    LeafNodeAllocId(newHigh);
+
+    int j = leafNode->node.allocated >> 1; // dividir por dos (libro)
+    int newsize = leafNode->node.allocated - j;
+    // if (log.isDebugEnabled()) log.debug("split j=" + j);
+    memcpy(newHigh->node.keys, leafNode->node.keys + j,  newsize * sizeof (KeyType ));
+
+    memcpy(newHigh->values, leafNode->values + j,  newsize * sizeof (ValueType *));
+
+    memset(leafNode->node.keys + j, 0, sizeof (KeyType) * newsize);
+    memset(leafNode->values + j, 0, sizeof (ValueType*) * newsize);
+    //    for (int i = j; i < j + newsize; i++) {
+    //        leafNode->node.keys[i] = NULL;
+    //        // clear bound id of the influenced query
+    //        leafNode->values[i] = NULL;
+    //    }
+    newHigh->node.allocated = newsize;
+    leafNode->node.allocated -= newsize;
+    LeafNodeResetMaxValue(leafNode);
+    LeafNodeResetMaxValue(newHigh);
+    LeafNodeResetMinValue(leafNode);
+    LeafNodeResetMinValue(newHigh);
+    return (Node*)newHigh;
+}
+
+
+Node* LeafNodeSplit_NoSort(LeafNode* leafNode) {
     if(leafNode->node.tree == NULL){
         printLeafNode(leafNode);
     }
@@ -179,6 +212,19 @@ Node* LeafNodeSplit(LeafNode* leafNode) {
     return (Node*)newHigh;
 }
 
+Node* LeafNodeSplit(LeafNode* leafNode) {
+    switch (optimizationType) {
+        case None:
+            return LeafNodeSplit_Sort(leafNode);
+        case NoSort:
+        case BatchAndNoSort:
+            return LeafNodeSplit_NoSort(leafNode);
+        default:
+            return NULL;
+
+    }
+}
+
 inline void LeafNodeResetMinKey(LeafNode* leafNode){
     int minIndex = 0;
     for(int i = 1; i < leafNode->node.allocated; i ++){
@@ -190,7 +236,9 @@ inline void LeafNodeResetMinKey(LeafNode* leafNode){
 }
 
 KeyType  LeafNodeSplitShiftKeysLeft(LeafNode* leafNode) {
-    LeafNodeResetMinKey(leafNode);
+    if(optimizationType == NoSort || optimizationType == BatchAndNoSort){
+        LeafNodeResetMinKey(leafNode);
+    }
     return leafNode->node.keys[0];
 }
 
