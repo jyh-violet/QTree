@@ -220,3 +220,12 @@ BOOL InternalNodeCheckMaxMin(InternalNode * internalNode){
         return FALSE;
     }
 }
+
+BOOL InternalNodeCheckKey(InternalNode * internalNode){
+    for(int i = 0; i <= internalNode->node.allocated; i ++){
+        if(NodeCheckKey(internalNode->childs[i]) == FALSE){
+            return FALSE;
+        }
+    }
+    return TRUE;
+}

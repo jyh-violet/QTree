@@ -233,6 +233,9 @@ inline void LeafNodeResetMinKey(LeafNode* leafNode){
         }
     }
     swap(leafNode->node.keys, 0, minIndex);
+    ValueType* temp = leafNode->values[0];
+    leafNode->values[0] = leafNode->values[minIndex];
+    leafNode->values[minIndex] = temp;
 }
 
 KeyType  LeafNodeSplitShiftKeysLeft(LeafNode* leafNode) {
@@ -290,4 +293,13 @@ BOOL LeafNodeCheckMaxMin(LeafNode * leafNode){
     } else{
         return FALSE;
     }
+}
+
+BOOL LeafNodeCheckKey(LeafNode * leafNode){
+    for (int i = 0; i < leafNode->node.allocated; ++i) {
+        if(leafNode->node.keys[i].upper != leafNode->values[i]->dataRegion.upper || leafNode->node.keys[i].lower != leafNode->values[i]->dataRegion.lower){
+            return FALSE;
+        }
+    }
+    return TRUE;
 }
