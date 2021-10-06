@@ -125,3 +125,11 @@ BOOL NodeCheckMaxMin(Node * node){
         return InternalNodeCheckMaxMin((InternalNode *)node);
     }
 }
+
+BOOL NodeCheckKey(Node * node){
+    if(NodeIsLeaf(node)){
+        return LeafNodeCheckKey((LeafNode*)node);
+    } else{
+        return InternalNodeCheckKey((InternalNode *)node);
+    }
+}

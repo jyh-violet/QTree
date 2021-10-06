@@ -562,3 +562,7 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
 BOOL QTreeCheckMaxMin(QTree* qTree){
     return NodeCheckMaxMin(qTree->root);
 }
+
+BOOL QTreeCheckKey(QTree* qTree){
+    return NodeCheckKey(qTree->root);
+}
