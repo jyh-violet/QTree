@@ -187,6 +187,9 @@ inline void LeafNodeResetMinKey(LeafNode* leafNode){
         }
     }
     swap(leafNode->node.keys, 0, minIndex);
+    ValueType* temp = leafNode->values[0];
+    leafNode->values[0] = leafNode->values[minIndex];
+    leafNode->values[minIndex] = temp;
 }
 
 KeyType  LeafNodeSplitShiftKeysLeft(LeafNode* leafNode) {
@@ -219,7 +222,9 @@ void printLeafNode(LeafNode* leafNode){
 //        printQueryRange(k);
         printf("%d:", k->searchKey);
         printQueryRange(k);
-        printf("Q[%s] | ",v->queryId );
+        printf("Q[%s] ",v->queryId );
+        printQueryRange(&v->dataRegion);
+        printf("| ");
     }
     printf("}\n");
 }
