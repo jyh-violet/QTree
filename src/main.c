@@ -75,16 +75,16 @@ int test() {
             QTreeFindAndRemoveRelatedQueries(&qTree, (removeQuery[i].dataRegion.upper + removeQuery[i].dataRegion.lower) / 2, removedQuery);
             removeNum ++;
         }
-//        if(QTreeCheckMaxMin(&qTree) ==FALSE){
-//            printQTree(&qTree);
-//            printf("QTreeCheckMaxMin error: %d, %d\n", i, mixPara[i] < insertRatio? 0 : 1);
-////            exit(-1);
-//        }
-//        if((i + 1) % TRACE_LEN == 0){
-//            time2 = clock();
-//            printf("%d, used %lf s \n", i, (double)(time2 - time1)/CLOCKS_PER_SEC);
-//            time1 = time2;
-//        }
+        if(QTreeCheckKey(&qTree) ==FALSE){
+            printQTree(&qTree);
+            printf("QTreeCheckMaxMin error: %d, %d\n", i, mixPara[i] < insertRatio? 0 : 1);
+//            exit(-1);
+        }
+        if((i + 1) % TRACE_LEN == 0){
+            time2 = clock();
+            printf("%d, used %lf s \n", i, (double)(time2 - time1)/CLOCKS_PER_SEC);
+            time1 = time2;
+        }
     }
     finish = clock();
     size_t removed = removedQuery->size;
