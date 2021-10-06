@@ -58,6 +58,34 @@ BOOL LeafNodeAdd(LeafNode* leafNode, int slot, KeyType * newKey, ValueType * new
     }
     return TRUE;
 }
+BOOL LeafNodeAddBatch(LeafNode* leafNode, int slot, KeyType newKey[], ValueType * newValue[], int batchCount, BoundKey *min, BoundKey* max){
+    if(leafNode->node.allocated + batchCount > Border){
+        printf("LeafNodeAddBatch, batch too large. allocated:%d, batchCount:%d\n", leafNode->node.allocated, batchCount);
+    }
+    if (slot < leafNode->node.allocated) {
+        memcpy(leafNode->node.keys + slot + batchCount, leafNode->node.keys + slot, (leafNode->node.allocated - slot) * sizeof(KeyType ));
+        memcpy(leafNode->values + slot + batchCount, leafNode->values + slot, (leafNode->node.allocated - slot) * sizeof(ValueType *));
+    }
+
+    for (int i = 0; i < batchCount; ++i) {
+        leafNode->node.keys[slot + i] = newKey[i];
+        leafNode->values[slot + i] = newValue[i];
+        if( (newKey[i].upper >  max)){
+            *max = newKey->upper;
+        }
+        if( (newKey[i].lower <  min)){
+            *min = newKey->lower;
+        }
+    }
+    if(leafNode->node.allocated == 0 || leafNode->node.maxValue < *max){
+        leafNode->node.maxValue = *max;
+    }
+    if(leafNode->node.allocated == 0 || leafNode->node.minValue > *min){
+        leafNode->node.minValue = *min;
+    }
+    leafNode->node.allocated += batchCount;
+    return TRUE;
+}
 
 BOOL LeafNodeAddLast(LeafNode* leafNode, KeyType * newKey, ValueType * newValue){
     leafNode->node.keys[leafNode->node.allocated] = *newKey;
@@ -215,11 +243,13 @@ Node* LeafNodeSplit_NoSort(LeafNode* leafNode) {
 Node* LeafNodeSplit(LeafNode* leafNode) {
     switch (optimizationType) {
         case None:
+        case Batch:
             return LeafNodeSplit_Sort(leafNode);
         case NoSort:
         case BatchAndNoSort:
             return LeafNodeSplit_NoSort(leafNode);
         default:
+            printf("LeafNodeSplit unsupported optimizationType:%d\n", optimizationType);
             return NULL;
 
     }

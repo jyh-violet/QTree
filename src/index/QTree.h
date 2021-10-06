@@ -140,6 +140,7 @@ BOOL LeafNodeCheckMaxMin(LeafNode * leafNode);
 Node* LeafNodeSplit_NoSort(LeafNode* leafNode) ;
 Node* LeafNodeSplit_Sort(LeafNode* leafNode);
 BOOL LeafNodeCheckKey(LeafNode * leafNode);
+BOOL LeafNodeAddBatch(LeafNode* leafNode, int slot, KeyType newKey[], ValueType * newValue[], int batchCount, BoundKey *min, BoundKey* max);
 
 void InternalNodeConstructor(InternalNode* internalNode, QTree* qTree);
 void InternalNodeDestroy(InternalNode* internalNode);
