@@ -36,7 +36,7 @@ insertRatio = $r
 removePoint = $point
 dataPointType = $dataPoint
 optimizationType = $opt
-optimizationType = $checkQ" >> config.cfg
+checkQueryMeta = $checkQ" >> config.cfg
                     echo -e "\n" >> $result
               for i in `seq 1 $repeteNum`
                 do
