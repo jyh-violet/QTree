@@ -588,7 +588,7 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
 //    }
     int oldCheckInternal = checkInternal, oldRemove = removedQuery->size;
     checkInternal = 0;
-    if(optimizationType == BatchAndNoSort){
+    if(optimizationType == BatchAndNoSort || optimizationType == Batch){
         QTreeCheckBatch(qTree, attribute, removedQuery);
     }
     Node* node = qTree->root;

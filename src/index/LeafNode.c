@@ -70,11 +70,11 @@ BOOL LeafNodeAddBatch(LeafNode* leafNode, int slot, KeyType newKey[], ValueType 
     for (int i = 0; i < batchCount; ++i) {
         leafNode->node.keys[slot + i] = newKey[i];
         leafNode->values[slot + i] = newValue[i];
-        if( (newKey[i].upper >  max)){
-            *max = newKey->upper;
+        if( (newKey[i].upper >  *max)){
+            *max = newKey[i].upper;
         }
-        if( (newKey[i].lower <  min)){
-            *min = newKey->lower;
+        if( (newKey[i].lower <  *min)){
+            *min = newKey[i].lower;
         }
     }
     if(leafNode->node.allocated == 0 || leafNode->node.maxValue < *max){
