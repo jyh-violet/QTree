@@ -10,6 +10,9 @@ removePoint=(0 64 128)
 dataRegionType=(1 3)
 dataPointType=(0 1 2)
 repeteNum=5
+checkQueryMeta=(0 1)
+for checkQ in ${checkQueryMeta[*]}
+do
 for dataPoint in ${dataPointType[*]}
 do
   for data in ${dataRegionType[*]}
@@ -28,7 +31,8 @@ valueSpan = $valueSpan
 searchKeyType = $type
 insertRatio = $r
 removePoint = $point
-dataPointType = $dataPoint" >> config.cfg
+dataPointType = $dataPoint
+checkQueryMeta = $checkQ" >> config.cfg
                 echo -e "\n" >> $result
           for i in `seq 1 $repeteNum`
             do
@@ -38,4 +42,5 @@ dataPointType = $dataPoint" >> config.cfg
       done
     done
   done
+done
 done

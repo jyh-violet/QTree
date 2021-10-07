@@ -36,6 +36,7 @@ void QTreeConstructor(QTree* qTree,  int BOrder){
     int  keyType;
     config_lookup_int(&cfg, "removePoint", &removePoint);
     config_lookup_int(&cfg, "searchKeyType", &keyType);
+    config_lookup_int(&cfg, "checkQueryMeta", &checkQueryMeta);
     switch (keyType) {
         case 0:
             searchKeyType = LOW;
@@ -61,8 +62,8 @@ void QTreeConstructor(QTree* qTree,  int BOrder){
 
 void QTreeDestroy(QTree* qTree){
     if(printQTreelog){
-        printf("%d, %d,  %ld, %ld, %ld, %ld, %ld, %ld, %ld, ",
-               Border, searchKeyType, checkQuery, checkLeaf, checkInternal,
+        printf("%d, %d, %d, %ld, %ld, %ld, %ld, %ld, %ld, %ld, ",
+               Border, checkQueryMeta, searchKeyType, checkQuery, checkLeaf, checkInternal,
                qTree->leafSplitCount, qTree->internalSplitCount, qTree->whileCount, qTree->funcCount);
 
     }
@@ -301,6 +302,14 @@ inline Node* checkInternalNode(QTree* qTree, InternalNode* nodeInternal,  KeyTyp
         }
     }
     return node;
+}
+
+inline BOOL CheckLeafNodeCover(LeafNode * leafNode, int i,  BoundKey attribute){
+    if(checkQueryMeta){
+        return QueryRangeCover (((LeafNode*)leafNode)->node.keys[i], attribute);
+    }else{
+        return  QueryMetaCover(((LeafNode*)leafNode)->values[i], attribute);
+    }
 }
 
 inline void checkLeafNode(QTree* qTree, LeafNode* leafNode, BoundKey* removedMax, BoundKey* removedMin, BoundKey attribute, Arraylist* removedQuery){

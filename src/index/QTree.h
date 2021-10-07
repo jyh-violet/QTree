@@ -18,13 +18,7 @@
 
 #define NodeIsLeaf(node)  (((Node*)node)->id >= 0)
 
-#define CheckQuery
-
-#ifdef CheckQuery
-#define CheckLeafNodeCover(leafNode, i, attribute)  QueryMetaCover(((LeafNode*)leafNode)->values[i], attribute)
-#else
-#define CheckLeafNodeCover(leafNode, i, attribute)  QueryRangeCover (((LeafNode*)leafNode)->node.keys[i], attribute)
-#endif
+int checkQueryMeta;
 
 extern int maxValue;
 extern int removePoint;
@@ -90,6 +84,7 @@ Node* checkInternalNode(QTree* qTree, InternalNode* nodeInternal,  KeyType* key)
 void checkLeafNode(QTree* qTree, LeafNode* leafNode, BoundKey* removedMax, BoundKey* removedMin, BoundKey attribute, Arraylist* removedQuery);
 Node* getAnotherNode(QTree* qTree, KeyType* key, BoundKey removedMax, BoundKey removedMin);
 BOOL QTreeCheckMaxMin(QTree* qTree);
+BOOL CheckLeafNodeCover(LeafNode * leafNode, int i,  BoundKey attribute);
 
 void NodeCheckTree(Node* node);
 void NodeConstructor(Node* node, QTree *tree);
