@@ -85,6 +85,7 @@ void checkLeafNode(QTree* qTree, LeafNode* leafNode, BoundKey* removedMax, Bound
 Node* getAnotherNode(QTree* qTree, KeyType* key, BoundKey removedMax, BoundKey removedMin);
 BOOL QTreeCheckMaxMin(QTree* qTree);
 BOOL CheckLeafNodeCover(LeafNode * leafNode, int i,  BoundKey attribute);
+void printQTreeStatistics(QTree * qTree);
 
 void NodeCheckTree(Node* node);
 void NodeConstructor(Node* node, QTree *tree);

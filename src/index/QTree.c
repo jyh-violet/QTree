@@ -60,13 +60,13 @@ void QTreeConstructor(QTree* qTree,  int BOrder){
 //    memset(qTree->stackNodes,0, maxDepth * sizeof (InternalNode *));
 }
 
-void QTreeDestroy(QTree* qTree){
-    if(printQTreelog){
-        printf("%d, %d, %d, %ld, %ld, %ld, %ld, %ld, %ld, %ld, ",
-               Border, checkQueryMeta, searchKeyType, checkQuery, checkLeaf, checkInternal,
-               qTree->leafSplitCount, qTree->internalSplitCount, qTree->whileCount, qTree->funcCount);
+void printQTreeStatistics(QTree * qTree){
+    printf("%d, %d, -1, -1,  %ld, %ld, %ld,  %ld, %ld, %ld, %ld, %d, ",
+           Border, checkQueryMeta, checkQuery, checkLeaf, checkInternal,
+               qTree->leafSplitCount, qTree->internalSplitCount, qTree->whileCount, qTree->funcCount, RemovedQueueSize);
+}
 
-    }
+void QTreeDestroy(QTree* qTree){
 //    printf("searchKeyType:%d, Border:%d, leafSplitCount: %d, internalSplitCount:%d, funcTime:%ld, funcCount:%d, whileCount:%d\n",
 //           searchKeyType, Border, qTree->leafSplitCount,  qTree->internalSplitCount,  qTree->funcTime,  qTree->funcCount,  qTree->whileCount);
 //    NodeDestroy(qTree->root);
