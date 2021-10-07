@@ -18,6 +18,14 @@
 
 #define NodeIsLeaf(node)  (((Node*)node)->id >= 0)
 
+#define CheckQuery
+
+#ifdef CheckQuery
+#define CheckLeafNodeCover(leafNode, i, attribute)  QueryMetaCover(((LeafNode*)leafNode)->values[i], attribute)
+#else
+#define CheckLeafNodeCover(leafNode, i, attribute)  QueryRangeCover (((LeafNode*)leafNode)->node.keys[i], attribute)
+#endif
+
 extern int maxValue;
 extern int removePoint;
 extern int Qid;
@@ -26,7 +34,7 @@ typedef struct InternalNode InternalNode;
 typedef struct LeafNode LeafNode;
 typedef struct Node Node;
 
-#define RemovedQueueSize 64
+#define RemovedQueueSize 8
 BoundKey RemovedKey[RemovedQueueSize];
 u_int32_t clockFlag;
 int clockIndex;
