@@ -240,7 +240,7 @@ Node* LeafNodeSplit_NoSort(LeafNode* leafNode) {
     return (Node*)newHigh;
 }
 
-Node* LeafNodeSplit(LeafNode* leafNode) {
+Node*  LeafNodeSplit(LeafNode* leafNode) {
     switch (optimizationType) {
         case None:
         case Batch:

@@ -412,7 +412,14 @@ inline void QTreePutBatch(QTree* qTree, QueryRange key[], QueryMeta* value[], in
                 }
                 slot = NodeFindSlotByKey((Node*)insertToNode, &key[0]);
                 slot = (slot >= 0)?(slot + 1):((-slot) - 1);
-                LeafNodeAddBatch(insertToNode, slot, key + insertBatchCount, value + insertBatchCount, batchCount - insertBatchCount, &min, &max);
+                BoundKey minTemp = key[insertBatchCount].lower, maxTemp = key[insertBatchCount].upper;
+                LeafNodeAddBatch(insertToNode, slot, key + insertBatchCount, value + insertBatchCount, batchCount - insertBatchCount, &minTemp, &maxTemp);
+                if(min > minTemp){
+                    min = minTemp;
+                }
+                if(max < maxTemp){
+                    max = maxTemp;
+                }
             }
             break;
         }
