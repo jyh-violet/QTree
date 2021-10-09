@@ -496,9 +496,9 @@ inline Node* checkInternalNode(QTree* qTree, InternalNode* nodeInternal,  KeyTyp
 
 inline BOOL CheckLeafNodeCover(LeafNode * leafNode, int i,  BoundKey attribute){
     if(checkQueryMeta){
-        return QueryRangeCover (((LeafNode*)leafNode)->node.keys[i], attribute);
+        return QueryMetaCover(((LeafNode*)leafNode)->values[i], attribute);
     }else{
-        return  QueryMetaCover(((LeafNode*)leafNode)->values[i], attribute);
+        return  QueryRangeCover (((LeafNode*)leafNode)->node.keys[i], attribute);
     }
 }
 
