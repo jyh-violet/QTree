@@ -66,7 +66,7 @@ void QTreeConstructor(QTree* qTree,  int BOrder){
 }
 
 void printQTreeStatistics(QTree * qTree){
-    printf("%d, %d, %d, %d,  %ld, %ld, %ld,  %ld, %ld, %ld, %ld, %ld, %ld, %ld, %d",
+    printf("%d, %d, %d, %d,  %ld, %ld, %ld,  %ld, %ld, %ld, %ld, %ld, %ld, %ld, %d, ",
            Border, checkQueryMeta, optimizationType, searchKeyType, checkQuery, checkLeaf, checkInternal, checkQuery, checkLeaf, checkInternal,
                qTree->leafSplitCount, qTree->internalSplitCount, qTree->whileCount, qTree->funcCount, RemovedQueueSize);
 }
@@ -496,9 +496,9 @@ inline Node* checkInternalNode(QTree* qTree, InternalNode* nodeInternal,  KeyTyp
 
 inline BOOL CheckLeafNodeCover(LeafNode * leafNode, int i,  BoundKey attribute){
     if(checkQueryMeta){
-        return QueryRangeCover (((LeafNode*)leafNode)->node.keys[i], attribute);
+        return QueryMetaCover(((LeafNode*)leafNode)->values[i], attribute);
     }else{
-        return  QueryMetaCover(((LeafNode*)leafNode)->values[i], attribute);
+        return  QueryRangeCover (((LeafNode*)leafNode)->node.keys[i], attribute);
     }
 }
 
