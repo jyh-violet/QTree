@@ -38,12 +38,14 @@ int test() {
         mixPara[i] =    ((double )randNum) / ((double )RAND_MAX + 1);
     }
 
+    QueryMeta* insertQueries = (QueryMeta*)malloc(sizeof(QueryMeta) * TOTAL );
     QueryMeta* queries = (QueryMeta*)malloc(sizeof(QueryMeta) * TOTAL );
     QueryMeta* removeQuery = (QueryMeta*)malloc(sizeof(QueryMeta) * TOTAL);
     time1 = start = clock();
 
     for(int i = 0; i < TOTAL ;i ++){
         QueryMetaConstructor(queries + i);
+        QueryMetaConstructor(insertQueries + i);
     }
     DataRegionType  dataRegionTypeOld = dataRegionType;
     dataRegionType = Remove;
@@ -55,18 +57,19 @@ int test() {
 //    printf("generate end! use %lfs\n", (double)(finish - start)/CLOCKS_PER_SEC );
 
     time1 = start = clock();
-//    for(    int i = 0; i < TOTAL; i ++){
-//        QTreePut(&qTree, &(queries[i].dataRegion), queries + i);
-//    }
-//    finish = clock();
-//    putT = (double)(finish - start)/CLOCKS_PER_SEC;
+    for(    int i = 0; i < TOTAL; i ++){
+        QTreePut(&qTree, &(insertQueries[i].dataRegion), insertQueries + i);
+    }
+    finish = clock();
+    putT = (double)(finish - start)/CLOCKS_PER_SEC;
 //    int num = qTree.elements;
 //    num += qTree.batchCount;
 //    printf("%d\n", num);
 //    printQTree(&qTree);
 
 
-    Arraylist* removedQuery = ArraylistCreate(TOTAL);
+     QTreeResetStatistics(&qTree);
+    Arraylist* removedQuery = ArraylistCreate(TOTAL * 2);
     time1 = start = clock();
     int insertNum = 0, removeNum = 0;
     for (int i = 0; i < TOTAL; ++i) {
@@ -112,32 +115,32 @@ printf("%d, %d, %d,  %d, %d, %d, %.2lf, %d,  %d,  %.3lf,%.3lf,%.3lf, %d, %d, %ld
     free(removeQuery);
     return 0;
 }
-//
-//int main(){
-//
-//    const char ConfigFile[]= "config.cfg";
-//
-//    config_t cfg;
-//
-//    config_init(&cfg);
-//
-//    /* Read the file. If there is an error, report it and exit. */
-//    if(! config_read_file(&cfg, ConfigFile))
-//    {
-//        fprintf(stderr, "%s:%d - %s\n", config_error_file(&cfg),
-//                config_error_line(&cfg), config_error_text(&cfg));
-//        config_destroy(&cfg);
-//        return(EXIT_FAILURE);
-//    }
-//    config_lookup_int(&cfg, "TOTAL", &TOTAL);
-//    config_lookup_int(&cfg, "TRACE_LEN", &TRACE_LEN);
-//    config_lookup_int(&cfg, "dataRegionType", (int*)&dataRegionType);
-//    config_lookup_int(&cfg, "dataPointType", (int*)&dataPointType);
-//    config_lookup_int(&cfg, "valueSpan", &valueSpan);
-//    config_lookup_float(&cfg, "insertRatio", &insertRatio);
-//
-//    maxValue = TOTAL;
-//
-//    test();
-//    return 0;
-//}
+
+int main(){
+
+    const char ConfigFile[]= "config.cfg";
+
+    config_t cfg;
+
+    config_init(&cfg);
+
+    /* Read the file. If there is an error, report it and exit. */
+    if(! config_read_file(&cfg, ConfigFile))
+    {
+        fprintf(stderr, "%s:%d - %s\n", config_error_file(&cfg),
+                config_error_line(&cfg), config_error_text(&cfg));
+        config_destroy(&cfg);
+        return(EXIT_FAILURE);
+    }
+    config_lookup_int(&cfg, "TOTAL", &TOTAL);
+    config_lookup_int(&cfg, "TRACE_LEN", &TRACE_LEN);
+    config_lookup_int(&cfg, "dataRegionType", (int*)&dataRegionType);
+    config_lookup_int(&cfg, "dataPointType", (int*)&dataPointType);
+    config_lookup_int(&cfg, "valueSpan", &valueSpan);
+    config_lookup_float(&cfg, "insertRatio", &insertRatio);
+
+    maxValue = TOTAL;
+
+    test();
+    return 0;
+}

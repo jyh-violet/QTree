@@ -10,8 +10,8 @@ removePoint=(0)
 dataRegionType=(1 3)
 dataPointType=(0 1 2)
 repeteNum=5
-optimizationType=(0 1 2)
-checkQueryMeta=(0 1)
+optimizationType=(0 1 2 3)
+checkQueryMeta=(1)
 for checkQ in ${checkQueryMeta[*]}
 do
   for opt in ${optimizationType[*]}

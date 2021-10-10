@@ -20,17 +20,20 @@ void LeafNodeMerge(LeafNode* leafNode, InternalNode* nodeParent, int slot,
     LeafNode* nodeTO = leafNode;
     int sizeTO = nodeTO->node.allocated;
     int sizeFROM = nodeFROM->node.allocated;
-    // copy keys from nodeFROM to nodeTO
-    memcpy(nodeTO->node.keys + sizeTO , nodeFROM->node.keys, sizeFROM * sizeof(KeyType ));
-    memcpy(nodeTO->values + sizeTO , nodeFROM->values, (sizeFROM) * sizeof(ValueType *));
+    if(sizeFROM > 0){
+        // copy keys from nodeFROM to nodeTO
+        memcpy(nodeTO->node.keys + sizeTO , nodeFROM->node.keys, sizeFROM * sizeof(KeyType ));
+        memcpy(nodeTO->values + sizeTO , nodeFROM->values, (sizeFROM) * sizeof(ValueType *));
 
-    nodeTO->node.allocated += sizeFROM; // keys of FROM and key of nodeParent
-    if(sizeTO == 0 || (sizeFROM > 0 && nodeTO->node.maxValue < nodeFROM->node.maxValue)){
-        nodeTO->node.maxValue = nodeFROM->node.maxValue;
+        nodeTO->node.allocated += sizeFROM; // keys of FROM and key of nodeParent
+        if(sizeTO == 0 || (sizeFROM > 0 && nodeTO->node.maxValue < nodeFROM->node.maxValue)){
+            nodeTO->node.maxValue = nodeFROM->node.maxValue;
+        }
+        if(sizeTO == 0 || (sizeFROM > 0 && (nodeTO->node.minValue) > (nodeFROM->node.minValue))){
+            nodeTO->node.minValue = nodeFROM->node.minValue;
+        }
     }
-    if(sizeTO == 0 || (sizeFROM > 0 && (nodeTO->node.minValue) > (nodeFROM->node.minValue))){
-        nodeTO->node.minValue = nodeFROM->node.minValue;
-    }
+
 
     // remove key from nodeParent
     InternalNodeRemove(nodeParent, slot);

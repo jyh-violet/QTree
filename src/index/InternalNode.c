@@ -33,6 +33,9 @@ BOOL InternalNodeAdd(InternalNode* internalNode, int slot, KeyType * newKey, Nod
 
 
 void InternalNodeResetMaxValue(InternalNode* internalNode){
+    if(internalNode->node.allocated < 0){
+        return;
+    }
     internalNode->node.maxValue = internalNode->childs[0]->maxValue;
     for(int i = 1; i <= internalNode->node.allocated; i ++){
         if( (internalNode->childs[i]->maxValue) > (internalNode->node.maxValue)){
@@ -42,6 +45,9 @@ void InternalNodeResetMaxValue(InternalNode* internalNode){
 }
 
 void InternalNodeResetMinValue(InternalNode* internalNode){
+    if(internalNode->node.allocated < 0){
+        return;
+    }
     internalNode->node.minValue = internalNode->childs[0]->minValue;
     for(int i = 1; i <= internalNode->node.allocated; i ++){
         if((internalNode->node.minValue) >  (internalNode->childs[i]->minValue)){
@@ -119,40 +125,43 @@ void InternalNodeResetId(InternalNode* internalNode){
 
 BOOL InternalNodeCheckUnderflowWithRight(InternalNode* internalNode, int slot){
     Node* nodeLeft = internalNode->childs[slot];
-    while ((slot < internalNode->node.allocated) &&NodeIsUnderFlow(nodeLeft)) {
+    int maxloop = internalNode->node.allocated - slot;
+    int loop = 0;
+    BOOL merge = FALSE;
+    while ((loop < maxloop) &&NodeIsUnderFlow(nodeLeft)) {
         Node* nodeRight = internalNode->childs[slot + 1];
         if (NodeCanMerge(nodeLeft, nodeRight)) {
             NodeMerge(nodeLeft, internalNode, slot, nodeRight);
             internalNode->childs[slot] = nodeLeft;
+            merge = TRUE;
         } else {
             //                nodeLeft.shiftRL(internalNode, slot, nodeRight);
         }
+        loop ++;
 
-        return TRUE;
+//        return TRUE;
     }
-    return FALSE;
+    return merge;
 }
 
-BoundKey InternalNodeRemove(InternalNode* internalNode, int slot) {
+void InternalNodeRemove(InternalNode* internalNode, int slot) {
     if (slot < -1) {
         printf("faking slot=%d allocated=%d\n", slot, internalNode->node.allocated);
         exit(-2);
     }
-    BoundKey removedUpper = internalNode->childs[slot + 1]->maxValue;
 
     if(slot == -1){
-        memcpy(internalNode->node.keys, internalNode->node.keys + 1, (internalNode->node.allocated - 1) * sizeof (KeyType ));
-        memcpy(internalNode->childs, internalNode->childs + 1, (internalNode->node.allocated) * sizeof (Node*));
+        if(internalNode->node.allocated > 0){
+            memcpy(internalNode->node.keys, internalNode->node.keys + 1, (internalNode->node.allocated - 1) * sizeof (KeyType ));
+            memcpy(internalNode->childs, internalNode->childs + 1, (internalNode->node.allocated) * sizeof (Node*));
+        }
     }else if (slot < internalNode->node.allocated) {
         memcpy(internalNode->node.keys + slot, internalNode->node.keys + slot + 1, (internalNode->node.allocated - slot - 1) * sizeof (KeyType ));
         memcpy(internalNode->childs + slot + 1, internalNode->childs + slot + 2, (internalNode->node.allocated - slot - 1) * sizeof (Node*));
     }
-    if (internalNode->node.allocated > 0) {
-        internalNode->node.allocated--;
-    }
+    internalNode->node.allocated--;
 //    internalNode->node.keys[internalNode->node.allocated] = NULL;
     internalNode->childs[internalNode->node.allocated + 1] = NULL;
-    return removedUpper;
 }
 
 void InternalNodeMerge(Node* internalNode, InternalNode* nodeParent, int slot, Node* nodeFROMx) {
@@ -160,17 +169,19 @@ void InternalNodeMerge(Node* internalNode, InternalNode* nodeParent, int slot, N
     InternalNode* nodeTO = (InternalNode*)internalNode;
     int sizeTO = nodeTO->node.allocated;
     int sizeFROM = nodeFROM->node.allocated;
-    // copy keys from nodeFROM to nodeTO
-    memcpy(nodeTO->node.keys + sizeTO + 1, nodeFROM->node.keys, sizeFROM * sizeof(KeyType));
-    memcpy(nodeTO->childs + sizeTO + 1, nodeFROM->childs, (sizeFROM + 1) * sizeof(Node*));
-    // add key to nodeTO
-    nodeTO->node.keys[sizeTO] = nodeParent->node.keys[slot];
-    nodeTO->node.allocated += sizeFROM + 1; // keys of FROM and key of nodeParent
-    if(sizeTO == 0 || (sizeFROM > 0 && nodeTO->node.maxValue < nodeFROM->node.maxValue)){
-        nodeTO->node.maxValue = nodeFROM->node.maxValue;
-    }
-    if(sizeTO == 0 || (sizeFROM > 0 && (nodeTO->node.minValue) > (nodeFROM->node.minValue))){
-        nodeTO->node.minValue = nodeFROM->node.minValue;
+    if(sizeFROM >= 0){
+        // copy keys from nodeFROM to nodeTO
+        memcpy(nodeTO->node.keys + sizeTO + 1, nodeFROM->node.keys, sizeFROM * sizeof(KeyType));
+        memcpy(nodeTO->childs + sizeTO + 1, nodeFROM->childs, (sizeFROM + 1) * sizeof(Node*));
+        // add key to nodeTO
+        nodeTO->node.keys[sizeTO] = nodeParent->node.keys[slot];
+        nodeTO->node.allocated += sizeFROM + 1; // keys of FROM and key of nodeParent
+        if(sizeTO < 0 || (nodeTO->node.maxValue < nodeFROM->node.maxValue)){
+            nodeTO->node.maxValue = nodeFROM->node.maxValue;
+        }
+        if(sizeTO < 0 || ( (nodeTO->node.minValue) > (nodeFROM->node.minValue))){
+            nodeTO->node.minValue = nodeFROM->node.minValue;
+        }
     }
 
     // remove key from nodeParent
@@ -199,7 +210,7 @@ void printInternalNode(InternalNode* internalNode){
 }
 
 BOOL InternalNodeCheckMaxMin(InternalNode * internalNode){
-    if(internalNode->node.allocated == 0){
+    if(internalNode->node.allocated < 0){
         return TRUE;
     }
     int findMin = FALSE, findMax = FALSE;
