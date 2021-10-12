@@ -34,6 +34,7 @@ u_int32_t clockFlag;
 int clockIndex;
 
 int printQTreelog;
+int useBFPRT;
 
 OptimizationType optimizationType;
 
@@ -161,7 +162,8 @@ void printInternalNode(InternalNode* internalNode);
 BOOL InternalNodeCheckMaxMin(InternalNode * internalNode);
 BOOL InternalNodeCheckKey(InternalNode * internalNode);
 
-void quickSelect(KeyType arr[], int k, int s, int e);
+void quickSelect(KeyType data[], short index[], int k, int s, int e);
+//void quickSelect(KeyType arr[], int k, int s, int e);
 void swap(KeyType arr[], int a, int b);
 
 #endif //QTREE_QTREE_H

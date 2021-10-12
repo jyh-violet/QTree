@@ -138,31 +138,114 @@ inline void swap(KeyType arr[], int a, int b){
     arr[b] = tmp;
 }
 
-inline void quickSelect(KeyType arr[], int k, int s, int e){
+void InsertSortIndex(KeyType data[], short index[],  int l, int r)
+{
+    for(int i = l + 1; i <= r; i++)
+    {
+        if(data[index[i - 1]].searchKey > data[index[i]].searchKey)
+        {
+            int t = index[i];
+            int j = i;
+            while(j > l && data[index[j - 1]].searchKey > data[t].searchKey)
+            {
+                index[j] = index[j - 1];
+                j--;
+            }
+            index[j] = t;
+        }
+    }
+}
+
+int FindMidIndex(KeyType data[], short index[], int l, int r)
+{
+    if(l == r) return l;
+    int i = 0;
+    int n = 0;
+    for(i = l; i < r - 5; i += 5)
+    {
+        InsertSortIndex(data, index, i, i + 4);
+        n = i - l;
+        short temp = index[l + n / 5];
+        index[l + n / 5] = index[i + 2];
+        index[i + 2] = temp;
+    }
+
+    //处理剩余元素
+    int num = r - i + 1;
+    if(num > 0)
+    {
+        InsertSortIndex(data, index, i, i + num - 1);
+        n = i - l;
+        short temp = index[l + n / 5];
+        index[l + n / 5] = index[i + num / 2];
+        index[i + num / 2] = temp;
+    }
+    n /= 5;
+    if(n == l) return l;
+    return FindMidIndex(data, index, l, l + n);
+}
+
+int PartionIndex(KeyType data[], short index[], int l, int r, int p)
+{
+    short temp = index[p];
+    index[p] = index[l];
+    index[l] = temp;
+    int i = l;
+    int j = r;
+    short pivot = index[l];
+    while(i < j)
+    {
+        while(data[index[j]].searchKey >= data[pivot].searchKey && i < j)
+            j--;
+        index[i] = index[j];
+        while(data[index[i]].searchKey <= data[pivot].searchKey && i < j)
+            i++;
+        index[j] = index[i];
+    }
+    index[i] = pivot;
+    return i;
+}
+
+int BFPRTSelect(KeyType data[], short index[], int l, int r, int k)
+{
+    int p = FindMidIndex(data, index, l, r);    //寻找中位数的中位数
+    int i = PartionIndex(data, index, l, r, p);
+
+    int m = i - l + 1;
+    if(m == k) return index[i];
+    if(m > k)  return BFPRTSelect(data, index, l, i - 1, k);
+    return BFPRTSelect(data, index, i + 1, r, k - m);
+}
+
+inline void quickSelect(KeyType data[], short index[], int k, int s, int e){
     if(s > e || k < s || k > e){
         printf("invalid array range\n");
         return;
     }
 
-    int i, j;
-    KeyType pivot = arr[s];
+    short i, j;
+    short pivot = index[s];
     if(s <= e){
         i = s;
         j = e;
         for(;;){
-            while(arr[j].searchKey >= pivot.searchKey && i<j){j--;}
-            while(arr[i].searchKey <= pivot.searchKey && i<j){i++;}
-            if(i<j)
-                swap(arr, i, j);
+            while(data[index[j]].searchKey >= data[pivot].searchKey && i<j){j--;}
+            while(data[index[i]].searchKey <= data[pivot].searchKey && i<j){i++;}
+            if(i<j){
+                short temp = index[i];
+                index[i] = index[j];
+                index[j] = temp;
+            }
             else
                 break;
         }
-        swap(arr, i, s);
-
+        short temp = index[i];
+        index[i] = index[s];
+        index[s] = temp;
         if(k<i)
-            quickSelect(arr, k, s, i-1);
+            quickSelect(data, index, k, s, i-1);
         else if(k>i)
-            quickSelect(arr, k, i+1, e);
+            quickSelect(data, index, k, i+1, e);
     }
 }
 
@@ -207,38 +290,55 @@ Node* LeafNodeSplit_NoSort(LeafNode* leafNode) {
     LeafNode* newHigh = (LeafNode*)malloc(sizeof (LeafNode));
     LeafNodeConstructor(newHigh, leafNode->node.tree);
     LeafNodeAllocId(newHigh);
-
     int median = leafNode->node.allocated >> 1;
-    KeyType copyKey[Border];
-    memcpy(copyKey, leafNode->node.keys, leafNode->node.allocated * sizeof (KeyType));
-    quickSelect(copyKey, median, 0, leafNode->node.allocated - 1);
-    KeyType medianKey =   copyKey[median];
-    int oldSize = leafNode->node.allocated;
-    leafNode->node.allocated = 0;
-    ValueType* medianValue[Border];
-    KeyType medianKeys[Border];
-    int medianNum = 0;
-    for (int i = 0; i < oldSize; ++i) {
-        if(QueryRangeGT(leafNode->node.keys[i], medianKey)){
-            LeafNodeAddLast(newHigh, leafNode->node.keys + i, leafNode->values[i]);
-        } else if (QueryRangeLT(leafNode->node.keys[i], medianKey)){
-            LeafNodeAddLast(leafNode, leafNode->node.keys + i, leafNode->values[i]);
-        } else{
-            medianKeys[medianNum] = leafNode->node.keys[i];
-            medianValue[medianNum ++] = leafNode->values[i];
+
+    if(useBFPRT){
+        short index[Border];
+        for (int i = 0; i < leafNode->node.allocated; ++i) {
+            index[i] = i;
+        }
+        BFPRTSelect(leafNode->node.keys,  index, 0, leafNode->node.allocated - 1, median);
+        int oldSize = leafNode->node.allocated;
+        char flags[Border];
+        memset(flags, 0, Border);
+        for (int i = median; i < oldSize; ++i) {
+            flags[index[i]] = 1;
+        }
+        leafNode->node.allocated = 0;
+        for (int i = 0; i < oldSize; ++i) {
+            if(flags[i]){
+                LeafNodeAddLast(newHigh, leafNode->node.keys + i, leafNode->values[i]);
+            } else{
+                LeafNodeAddLast(leafNode, leafNode->node.keys + i, leafNode->values[i]);
+            }
+
+        }
+    } else{
+//        KeyType copyKey[Border];
+//        memcpy(copyKey, leafNode->node.keys, leafNode->node.allocated * sizeof (KeyType));
+        short index[Border];
+        for (int i = 0; i < leafNode->node.allocated; ++i) {
+            index[i] = i;
+        }
+        quickSelect(leafNode->node.keys, index, median, 0, leafNode->node.allocated - 1);
+        int oldSize = leafNode->node.allocated;
+        char flags[Border];
+        memset(flags, 0, Border);
+        for (int i = median; i < oldSize; ++i) {
+            flags[index[i]] = 1;
+        }
+        leafNode->node.allocated = 0;
+        for (int i = 0; i < oldSize; ++i) {
+            if(flags[i]){
+                LeafNodeAddLast(newHigh, leafNode->node.keys + i, leafNode->values[i]);
+            } else{
+                LeafNodeAddLast(leafNode, leafNode->node.keys + i, leafNode->values[i]);
+            }
+
         }
     }
-    int medianToLow = median - leafNode->node.allocated;
-    if(medianToLow < 0){
-        printf("median cal error\n");
-    }
 
-    for (int i = 0; i < medianToLow; ++i) {
-        LeafNodeAddLast(leafNode, medianKeys + i, medianValue[i]);
-    }
-    for (int i = medianToLow; i < medianNum; ++i) {
-        LeafNodeAddLast(newHigh,medianKeys + i, medianValue[i]);
-    }
+
 
     return (Node*)newHigh;
 }

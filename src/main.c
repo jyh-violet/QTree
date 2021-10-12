@@ -24,8 +24,8 @@ int removePoint = 0;
 double zipfPara = 0.99;
 
 int test() {
-#undef BOrder_65
-#define BOrder_129
+
+    useBFPRT = 1;
     double generateT = 0, putT = 0, removeT = 0, mixT = 0;
 //    TOTAL = 1000;
     TRACE_LEN = 100000;
@@ -83,21 +83,21 @@ int test() {
             QTreeFindAndRemoveRelatedQueries(&qTree, (removeQuery[i].dataRegion.upper + removeQuery[i].dataRegion.lower) / 2, removedQuery);
             removeNum ++;
         }
-//        if(QTreeCheckKey(&qTree) ==FALSE){
-//            printQTree(&qTree);
-//            printf("QTreeCheckKey error: %d, %d\n", i, mixPara[i] < insertRatio? 0 : 1);
-////            exit(-1);
-//        }
-//        if(QTreeCheckMaxMin(&qTree) ==FALSE){
-//            printQTree(&qTree);
-//            printf("QTreeCheckMaxMin error: %d, %d\n", i, mixPara[i] < insertRatio? 0 : 1);
-//            //            exit(-1);
-//        }
-//        if((i + 1) % TRACE_LEN == 0){
-//            time2 = clock();
-//            printf("%d, used %lf s \n", i, (double)(time2 - time1)/CLOCKS_PER_SEC);
-//            time1 = time2;
-//        }
+        if(QTreeCheckKey(&qTree) ==FALSE){
+            printQTree(&qTree);
+            printf("QTreeCheckKey error: %d, %d\n", i, mixPara[i] < insertRatio? 0 : 1);
+//            exit(-1);
+        }
+        if(QTreeCheckMaxMin(&qTree) ==FALSE){
+            printQTree(&qTree);
+            printf("QTreeCheckMaxMin error: %d, %d\n", i, mixPara[i] < insertRatio? 0 : 1);
+            //            exit(-1);
+        }
+        if((i + 1) % TRACE_LEN == 0){
+            time2 = clock();
+            printf("%d, used %lf s \n", i, (double)(time2 - time1)/CLOCKS_PER_SEC);
+            time1 = time2;
+        }
     }
     finish = clock();
     size_t removed = removedQuery->size;
@@ -118,8 +118,26 @@ printf("%d, %d, %d,  %d, %d, %d, %.2lf, %d,  %d,  %.3lf,%.3lf,%.3lf, %d, %d, %ld
     return 0;
 }
 
-int main(){
+void testZipf(){
+    int n = 41;
+    int num[1000];
+    initZipfParameter(n, zipfPara);
+    for (int i = 0; i < n; ++i) {
+        printf("%d, ", zipf());
+        num[i] = zipf();
+    }
+    printf("\n");
+    BFPRT(num, 0 , n -1, n / 2);
+    for (int i = 0; i < n; ++i) {
+        printf("%d, ", num[i] );
+    }
+    printf("\n");
 
+
+}
+
+int main(){
+//    testZipf();
     const char ConfigFile[]= "config.cfg";
 
     config_t cfg;

@@ -53,6 +53,10 @@ void bubbleSort(void* arr[], int len, BOOL (*cmp)(void*, void *));
 char *myItoa(int num, char *str);
 
 
+int BFPRT(int a[], int l, int r, int k);
+int Partion(int a[], int l, int r, int p);
+int FindMid(int a[], int l, int r);
+void InsertSort(int a[], int l, int r);
 
 
 #endif //QTREE_TOOLS_H
