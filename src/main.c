@@ -28,7 +28,7 @@ int test() {
     useBFPRT = 1;
     double generateT = 0, putT = 0, removeT = 0, mixT = 0;
 //    TOTAL = 1000;
-    TRACE_LEN = 100000;
+    TRACE_LEN = 1000;
     srand((unsigned)time(NULL));
     initZipfParameter(TOTAL, zipfPara);
     clock_t   start,   finish, time1, time2;
@@ -95,7 +95,7 @@ int test() {
         }
         if((i + 1) % TRACE_LEN == 0){
             time2 = clock();
-            printf("%d, used %lf s \n", i, (double)(time2 - time1)/CLOCKS_PER_SEC);
+            printf("%d, used %lf s, size:%d \n", i, (double)(time2 - time1)/CLOCKS_PER_SEC, qTree.elements);
             time1 = time2;
         }
     }

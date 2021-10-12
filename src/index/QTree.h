@@ -42,23 +42,28 @@ OptimizationType optimizationType;
 #define ValueType   QueryMeta
 #define batchMissThreshold  5
 #define MaxBatchCount (Border/2 - 1)
+
+typedef struct QueryData{
+    KeyType key;
+    ValueType *value;
+}__attribute__((packed)) QueryData;
+
 typedef struct QTree {
-    Node *root;
     int elements;
     int maxNodeID;
     int stackNodesIndex;
     int stackSlotsIndex;
-    size_t leafSplitCount;
-    size_t internalSplitCount;
-    size_t funcCount;
-    size_t whileCount;
     InternalNode* stackNodes[maxDepth];
     int          stackSlots[maxDepth];
     int     batchCount;
     int     batchMissCount;
     BoundKey batchSearchKey;
-    KeyType batchKey[MaxBatchCount];
-    ValueType* batchValue[MaxBatchCount];
+    QueryData batch[MaxBatchCount];
+    size_t leafSplitCount;
+    size_t internalSplitCount;
+    size_t funcCount;
+    size_t whileCount;
+    Node *root;
 }QTree;
 
 typedef struct Node{
@@ -90,7 +95,7 @@ void QTreeMakeNewRoot(QTree* qTree, Node* splitedNode);
 LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key);
 void QTreePut(QTree* qTree, KeyType * key, ValueType * value);
 void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* removedQuery);
-void QTreePutBatch(QTree* qTree, QueryRange key[], QueryMeta* value[], int bachSize);
+void QTreePutBatch(QTree* qTree, QueryData * batch, int batchCount);
 void QTreeCheckBatch(QTree* qTree, int attribute, Arraylist* removedQuery);
 void QTreePutOne(QTree* qTree, QueryRange* key, QueryMeta* value);
 Node* checkInternalNode(QTree* qTree, InternalNode* nodeInternal,  KeyType* key);
@@ -142,7 +147,7 @@ BOOL LeafNodeCheckMaxMin(LeafNode * leafNode);
 Node* LeafNodeSplit_NoSort(LeafNode* leafNode) ;
 Node* LeafNodeSplit_Sort(LeafNode* leafNode);
 BOOL LeafNodeCheckKey(LeafNode * leafNode);
-BOOL LeafNodeAddBatch(LeafNode* leafNode, int slot, KeyType newKey[], ValueType * newValue[], int batchCount, BoundKey *min, BoundKey* max);
+BOOL LeafNodeAddBatch(LeafNode* leafNode, int slot, QueryData batch[], int batchCount, BoundKey *min, BoundKey* max);
 
 void InternalNodeConstructor(InternalNode* internalNode, QTree* qTree);
 void InternalNodeDestroy(InternalNode* internalNode);

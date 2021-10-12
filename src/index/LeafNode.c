@@ -61,7 +61,7 @@ BOOL LeafNodeAdd(LeafNode* leafNode, int slot, KeyType * newKey, ValueType * new
     }
     return TRUE;
 }
-BOOL LeafNodeAddBatch(LeafNode* leafNode, int slot, KeyType newKey[], ValueType * newValue[], int batchCount, BoundKey *min, BoundKey* max){
+BOOL LeafNodeAddBatch(LeafNode* leafNode, int slot, QueryData batch[], int batchCount, BoundKey *min, BoundKey* max){
     if(leafNode->node.allocated + batchCount > Border){
         printf("LeafNodeAddBatch, batch too large. allocated:%d, batchCount:%d\n", leafNode->node.allocated, batchCount);
     }
@@ -71,13 +71,13 @@ BOOL LeafNodeAddBatch(LeafNode* leafNode, int slot, KeyType newKey[], ValueType 
     }
 
     for (int i = 0; i < batchCount; ++i) {
-        leafNode->node.keys[slot + i] = newKey[i];
-        leafNode->values[slot + i] = newValue[i];
-        if( (newKey[i].upper >  *max)){
-            *max = newKey[i].upper;
+        leafNode->node.keys[slot + i] = batch[i].key;
+        leafNode->values[slot + i] = batch[i].value;
+        if( (batch[i].key.upper >  *max)){
+            *max = batch[i].key.upper;
         }
-        if( (newKey[i].lower <  *min)){
-            *min = newKey[i].lower;
+        if( (batch[i].key.lower <  *min)){
+            *min = batch[i].key.lower;
         }
     }
     if(leafNode->node.allocated == 0 || leafNode->node.maxValue < *max){

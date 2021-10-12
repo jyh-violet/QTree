@@ -245,8 +245,8 @@ void QTreePut(QTree* qTree, QueryRange * key, QueryMeta * value){
     if( qTree->batchCount == 0){
         setSearchKey(NULL, key);
         qTree->batchSearchKey = key->searchKey;
-        qTree->batchKey[0] = *key;
-        qTree->batchValue[0] = value;
+        qTree->batch[0].key = *key;
+        qTree->batch[0].value = value;
         qTree->batchCount ++;
         qTree->batchMissCount = 0;
         return;
@@ -256,11 +256,11 @@ void QTreePut(QTree* qTree, QueryRange * key, QueryMeta * value){
     if( qTree->batchCount > 0 && QueryRangeCover(*key, qTree->batchSearchKey) && qTree->batchCount < MaxBatchCount){
         key->searchKey = qTree->batchSearchKey;
         int innerIndex = qTree->batchCount;
-        qTree->batchKey[innerIndex] = *key;
-        qTree->batchValue[innerIndex] = value;
+        qTree->batch[innerIndex].key = *key;
+        qTree->batch[innerIndex].value = value;
         qTree->batchCount ++;
         if(qTree->batchCount >= MaxBatchCount){
-            QTreePutBatch(qTree, qTree->batchKey, qTree->batchValue, qTree->batchCount);
+            QTreePutBatch(qTree, qTree->batch, qTree->batchCount);
             qTree->batchCount = 0;
         }
         qTree->batchMissCount = 0;
@@ -269,11 +269,11 @@ void QTreePut(QTree* qTree, QueryRange * key, QueryMeta * value){
 
     // replace the  batch or insert the key directly
     if(qTree->batchMissCount > batchMissThreshold){
-        QTreePutBatch(qTree, qTree->batchKey, qTree->batchValue, qTree->batchCount);
+        QTreePutBatch(qTree, qTree->batch, qTree->batchCount);
         setSearchKey(NULL, key);
         qTree->batchSearchKey = key->searchKey;
-        qTree->batchKey[0] = *key;
-        qTree->batchValue[0] = value;
+        qTree->batch[0].key = *key;
+        qTree->batch[0].value = value;
         qTree->batchCount = 1;
         qTree->batchMissCount = 0;
     } else{
@@ -352,17 +352,17 @@ inline void QTreePutOne(QTree* qTree, QueryRange* key, QueryMeta* value){
     //    NodeCheckTree(qTree->root);
 }
 
-inline void QTreePutBatch(QTree* qTree, QueryRange key[], QueryMeta* value[], int batchCount){
-    if(key == NULL || value == NULL){
+inline void QTreePutBatch(QTree* qTree, QueryData * batch, int batchCount){
+    if(batchCount == 0){
         return ;
     }
 
-    LeafNode* nodeLeaf = QTreeFindLeafNode(qTree, &key[0]);
+    LeafNode* nodeLeaf = QTreeFindLeafNode(qTree, &batch[0].key);
     if (nodeLeaf == NULL) {
         printf("QTreeFindLeafNode error!\n");
         exit(-1);
     }
-    BoundKey min = key[0].lower, max = key[0].upper;
+    BoundKey min = batch[0].key.lower, max = batch[0].key.upper;
     Node*   splitedNode ;
     int slot;
     switch (optimizationType) {
@@ -371,12 +371,12 @@ inline void QTreePutBatch(QTree* qTree, QueryRange key[], QueryMeta* value[], in
             
             for(; inserted < batchCount && (!NodeIsFull((Node*)nodeLeaf)); inserted ++ ){
                 // unsorted leaf, insert into the End
-                LeafNodeAddLast(nodeLeaf, key + inserted, value[inserted]);
-                if(key[inserted].lower < min){
-                    min = key[inserted].lower;
+                LeafNodeAddLast(nodeLeaf, &batch[inserted].key, batch[inserted].value);
+                if(batch[inserted].key.lower < min){
+                    min = batch[inserted].key.lower;
                 }
-                if(key[inserted].upper > max){
-                    max = key[inserted].upper;
+                if(batch[inserted].key.upper > max){
+                    max = batch[inserted].key.upper;
                 }
             }
             
@@ -385,19 +385,19 @@ inline void QTreePutBatch(QTree* qTree, QueryRange key[], QueryMeta* value[], in
             if(splitedNode != NULL && inserted < batchCount){ // something remains in the batch
                 LeafNodeResetMinKey((LeafNode* )splitedNode);
                 LeafNode* insertToNode;
-                if(QueryRangeLT(key[inserted], splitedNode->keys[0])){
+                if(QueryRangeLT(batch[inserted].key, (splitedNode->keys[0]))){
                     insertToNode = nodeLeaf;
                 } else{
                     insertToNode = (LeafNode* )splitedNode;
                 }
                 // unable to make the node full
                 for (; inserted < batchCount ; inserted ++) {
-                    LeafNodeAddLast(insertToNode, key + inserted, value[inserted]);
-                    if(key[inserted].lower < min){
-                        min = key[inserted].lower;
+                    LeafNodeAddLast(insertToNode, &batch[inserted].key, batch[inserted].value);
+                    if(batch[inserted].key.lower < min){
+                        min = batch[inserted].key.lower;
                     }
-                    if(key[inserted].upper > max){
-                        max = key[inserted].upper;
+                    if(batch[inserted].key.upper > max){
+                        max = batch[inserted].key.upper;
                     }
                 }
             }
@@ -405,22 +405,22 @@ inline void QTreePutBatch(QTree* qTree, QueryRange key[], QueryMeta* value[], in
         }
         case Batch:{
             // Find in leaf node for key
-            slot = NodeFindSlotByKey((Node*)nodeLeaf, &key[0]);
+            slot = NodeFindSlotByKey((Node*)nodeLeaf, &batch[0].key);
             slot = (slot >= 0)?(slot + 1):((-slot) - 1);
             int insertBatchCount = nodeLeaf->node.allocated + batchCount <= Border? batchCount : (Border - nodeLeaf->node.allocated);
-            LeafNodeAddBatch(nodeLeaf, slot, key, value, insertBatchCount, &min, &max);
+            LeafNodeAddBatch(nodeLeaf, slot, batch, insertBatchCount, &min, &max);
             splitedNode = (NodeIsFull((Node*)nodeLeaf) ? LeafNodeSplit(nodeLeaf) : NULL);
             if(splitedNode != NULL && insertBatchCount < batchCount){
                 LeafNode* insertToNode;
-                if(QueryRangeLT(key[insertBatchCount], splitedNode->keys[0])){
+                if(QueryRangeLT(batch[insertBatchCount].key, splitedNode->keys[0])){
                     insertToNode = nodeLeaf;
                 } else{
                     insertToNode = (LeafNode* )splitedNode;
                 }
-                slot = NodeFindSlotByKey((Node*)insertToNode, &key[0]);
+                slot = NodeFindSlotByKey((Node*)insertToNode, &batch[0].key);
                 slot = (slot >= 0)?(slot + 1):((-slot) - 1);
-                BoundKey minTemp = key[insertBatchCount].lower, maxTemp = key[insertBatchCount].upper;
-                LeafNodeAddBatch(insertToNode, slot, key + insertBatchCount, value + insertBatchCount, batchCount - insertBatchCount, &minTemp, &maxTemp);
+                BoundKey minTemp = batch[insertBatchCount].key.lower, maxTemp = batch[insertBatchCount].key.upper;
+                LeafNodeAddBatch(insertToNode, slot, batch + insertBatchCount, batchCount - insertBatchCount, &minTemp, &maxTemp);
                 if(min > minTemp){
                     min = minTemp;
                 }
@@ -477,11 +477,10 @@ inline void QTreePutBatch(QTree* qTree, QueryRange key[], QueryMeta* value[], in
 inline void QTreeCheckBatch(QTree* qTree, int attribute, Arraylist* removedQuery){
     int newCount = 0;
     for (int j = 0; j < qTree->batchCount; ++j) {
-        if(QueryRangeCover(qTree->batchKey[j], attribute)){
-            ArraylistAdd(removedQuery, qTree->batchValue[j]);
+        if(QueryRangeCover(qTree->batch[j].key, attribute)){
+            ArraylistAdd(removedQuery, qTree->batch[j].value);
         } else{
-            qTree->batchKey[newCount] = qTree->batchKey[j];
-            qTree->batchValue[newCount ++] =  qTree->batchValue[j];
+            qTree->batch[newCount ++] = qTree->batch[j];
         }
     }
     qTree->batchCount = newCount;
