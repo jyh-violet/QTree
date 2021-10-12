@@ -21,6 +21,7 @@ u_int64_t checkLeaf = 0;
 u_int64_t checkQuery = 0;
 u_int64_t checkInternal = 0;
 int removePoint = 0;
+double zipfPara = 0.99;
 
 int test() {
 #undef BOrder_65
@@ -29,6 +30,7 @@ int test() {
 //    TOTAL = 1000;
     TRACE_LEN = 100000;
     srand((unsigned)time(NULL));
+    initZipfParameter(TOTAL, zipfPara);
     clock_t   start,   finish, time1, time2;
     QTree qTree;
     QTreeConstructor(&qTree, 2);

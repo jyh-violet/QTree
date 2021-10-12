@@ -43,9 +43,16 @@ typedef enum BOOL{
 
 
 
+void initZipfParameter(int n, double zipfianpara);
+int zipf();
+double zeta(long n, double thetaVal) ;
+double zetastatic(long n, double theta) ;
 
-int zipf(double alpha, int n);
 void printArray(int* array, int num);
 void bubbleSort(void* arr[], int len, BOOL (*cmp)(void*, void *));
 char *myItoa(int num, char *str);
+
+
+
+
 #endif //QTREE_TOOLS_H

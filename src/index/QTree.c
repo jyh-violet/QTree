@@ -546,10 +546,6 @@ inline void checkLeafNode(QTree* qTree, LeafNode* leafNode, BoundKey* removedMax
 
         LeafNodeResetMinValue(leafNode);
     }
-    if(NodeCheckMaxMin(leafNode) ==FALSE){
-        printNode(leafNode);
-        //            exit(-1);
-    }
 }
 
 inline Node* getAnotherNode(QTree* qTree, KeyType* key, BoundKey* removedMax, BoundKey* removedMin, Arraylist* removedQuery){

@@ -7,6 +7,7 @@
 #include "Tools.h"
 #include "common.h"
 #define N 999
+/*
 int zipf(double alpha, int n)
 {
     static int first = 1;      // Static first time flag
@@ -56,6 +57,91 @@ int zipf(double alpha, int n)
 
     return(zipf_value);
 }
+ */
+
+/**
+   * Number of items.
+   */
+ long items;
+
+/**
+ * Min item to generate.
+ */
+ long base;
+
+/**
+ * The zipfian constant to use.
+ */
+double zipfianconstant;
+
+/**
+ * Computed parameters for generating the distribution.
+ */
+ double alpha, zetan, eta, theta, zeta2theta;
+
+/**
+ * The number of items used to compute zetan the last time.
+ */
+ long countforzeta;
+
+ void initZipfParameter(int n, double zipfianpara){
+     items = n;
+     base = 0;
+     zipfianconstant = zipfianpara;
+     theta = zipfianconstant;
+     zeta2theta = zeta(2, theta);
+     alpha = 1.0 / (1.0 - theta);
+     zetan = zetastatic(n, zipfianpara);
+     countforzeta = items;
+     eta = (1 - pow(2.0 / items, 1 - theta)) / (1 - zeta2theta / zetan);
+ }
+
+/**
+ * Compute the zeta constant needed for the distribution. Do this from scratch for a distribution with n items,
+ * using the zipfian constant theta. This is a static version of the function which will not remember n.
+ * @param n The number of items to compute zeta over.
+ * @param theta The zipfian constant.
+ */
+ double zetastatic(long n, double theta) {
+    double sum = 0;
+    for (long i = 0; i < n; i++) {
+
+        sum += 1 / (pow(i + 1, theta));
+    }
+
+    return sum;
+}
+/**
+ * Compute the zeta constant needed for the distribution. Do this from scratch for a distribution with n items,
+ * using the zipfian constant thetaVal. Remember the value of n, so if we change the itemcount, we can recompute zeta.
+ *
+ * @param n The number of items to compute zeta over.
+ * @param thetaVal The zipfian constant.
+ */
+double zeta(long n, double thetaVal) {
+    return zetastatic(n, thetaVal);
+}
+
+
+
+
+// from ycsb
+int zipf(){
+    double u = ((double )rand()) / ((double )RAND_MAX + 1);
+    double uz = u * zetan;
+
+    if (uz < 1.0) {
+        return base;
+    }
+
+    if (uz < 1.0 + pow(0.5, theta)) {
+        return base + 1;
+    }
+
+    int ret =  (int) ((items) * pow(eta * u - eta + 1, alpha));
+    return ret;
+}
+
 
 void printArray(int* array, int num){
 

@@ -40,7 +40,7 @@ void QueryRangeConstructor(QueryRange *queryRange){
 
             break;
         case Zipf:
-            randNum = zipf(0.99, maxValue);
+            randNum = zipf();
             diff = (int) RAND_RANGE(span);
             switch (dataPointType) {
                 case RemovePoint:
@@ -62,7 +62,7 @@ void QueryRangeConstructor(QueryRange *queryRange){
             queryRange->upper = rangeCount ++ ;
             break;
         case Remove:
-            randNum = zipf(0.99, maxValue);
+            randNum = zipf();
             queryRange->lower =  removePoint  + randNum + span ;
             queryRange->upper =  removePoint  + randNum + span;
             break;
