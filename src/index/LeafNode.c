@@ -22,8 +22,7 @@ void LeafNodeMerge(LeafNode* leafNode, InternalNode* nodeParent, int slot,
     int sizeFROM = nodeFROM->node.allocated;
     if(sizeFROM > 0){
         // copy keys from nodeFROM to nodeTO
-        memcpy(nodeTO->node.keys + sizeTO , nodeFROM->node.keys, sizeFROM * sizeof(KeyType ));
-        memcpy(nodeTO->values + sizeTO , nodeFROM->values, (sizeFROM) * sizeof(ValueType *));
+        memcpy(nodeTO->data + sizeTO , nodeFROM->data, sizeFROM * sizeof(QueryData ));
 
         nodeTO->node.allocated += sizeFROM; // keys of FROM and key of nodeParent
         if(sizeTO == 0 || (sizeFROM > 0 && nodeTO->node.maxValue < nodeFROM->node.maxValue)){
@@ -47,12 +46,11 @@ void * LeafNodRemove(LeafNode* leafNode, int slot) {
 
 BOOL LeafNodeAdd(LeafNode* leafNode, int slot, KeyType * newKey, ValueType * newValue){
     if (slot < leafNode->node.allocated) {
-        memcpy(leafNode->node.keys + slot + 1, leafNode->node.keys + slot, (leafNode->node.allocated - slot) * sizeof(KeyType ));
-        memcpy(leafNode->values + slot + 1, leafNode->values + slot, (leafNode->node.allocated - slot) * sizeof(ValueType *));
+        memcpy(leafNode->data + slot + 1, leafNode->data + slot, (leafNode->node.allocated - slot) * sizeof(QueryData ));
     }
     leafNode->node.allocated++;
-    leafNode->node.keys[slot] = *newKey;
-    leafNode->values[slot] = newValue;
+    leafNode->data[slot].key = *newKey;
+    leafNode->data[slot].value = newValue;
     if(leafNode->node.allocated == 1 || (newKey->upper >  (leafNode->node.maxValue))){
         leafNode->node.maxValue = newKey->upper;
     }
@@ -66,13 +64,11 @@ BOOL LeafNodeAddBatch(LeafNode* leafNode, int slot, QueryData batch[], int batch
         printf("LeafNodeAddBatch, batch too large. allocated:%d, batchCount:%d\n", leafNode->node.allocated, batchCount);
     }
     if (slot < leafNode->node.allocated) {
-        memcpy(leafNode->node.keys + slot + batchCount, leafNode->node.keys + slot, (leafNode->node.allocated - slot) * sizeof(KeyType ));
-        memcpy(leafNode->values + slot + batchCount, leafNode->values + slot, (leafNode->node.allocated - slot) * sizeof(ValueType *));
+        memcpy(leafNode->data + slot + batchCount, leafNode->data + slot, (leafNode->node.allocated - slot) * sizeof(QueryData ));
     }
+    memcpy(leafNode->data + slot, batch, batchCount * sizeof (QueryData));
 
     for (int i = 0; i < batchCount; ++i) {
-        leafNode->node.keys[slot + i] = batch[i].key;
-        leafNode->values[slot + i] = batch[i].value;
         if( (batch[i].key.upper >  *max)){
             *max = batch[i].key.upper;
         }
@@ -91,8 +87,8 @@ BOOL LeafNodeAddBatch(LeafNode* leafNode, int slot, QueryData batch[], int batch
 }
 
 BOOL LeafNodeAddLast(LeafNode* leafNode, KeyType * newKey, ValueType * newValue){
-    leafNode->node.keys[leafNode->node.allocated] = *newKey;
-    leafNode->values[leafNode->node.allocated] = newValue;
+    leafNode->data[leafNode->node.allocated].key = *newKey;
+    leafNode->data[leafNode->node.allocated].value = newValue;
     leafNode->node.allocated++;
     if(leafNode->node.allocated == 1 || (newKey->upper >  (leafNode->node.maxValue))){
         leafNode->node.maxValue = newKey->upper;
@@ -111,10 +107,10 @@ inline void LeafNodeResetMaxValue(LeafNode* leafNode) {
     if (leafNode->node.allocated == 0) {
         return;
     }
-    leafNode->node.maxValue = leafNode->node.keys[0].upper;
+    leafNode->node.maxValue = leafNode->data[0].key.upper;
     for (int i = 1; i < leafNode->node.allocated; i++) {
-        if ((leafNode->node.keys[i].upper) > (leafNode->node.maxValue)) {
-            leafNode->node.maxValue = leafNode->node.keys[i].upper;
+        if ((leafNode->data[i].key.upper) > (leafNode->node.maxValue)) {
+            leafNode->node.maxValue = leafNode->data[i].key.upper;
         }
     }
 }
@@ -124,10 +120,10 @@ inline void LeafNodeResetMinValue(LeafNode* leafNode) {
     if (leafNode->node.allocated == 0) {
         return;
     }
-    leafNode->node.minValue = leafNode->node.keys[0].lower;
+    leafNode->node.minValue = leafNode->data[0].key.lower;
     for (int i = 1; i < leafNode->node.allocated; i++) {
-        if (((leafNode->node.minValue)> leafNode->node.keys[i].lower)) {
-            leafNode->node.minValue = leafNode->node.keys[i].lower;
+        if (((leafNode->node.minValue)> leafNode->data[i].key.lower)) {
+            leafNode->node.minValue = leafNode->data[i].key.lower;
         }
     }
 }
@@ -138,114 +134,114 @@ inline void swap(KeyType arr[], int a, int b){
     arr[b] = tmp;
 }
 
-void InsertSortIndex(KeyType data[], short index[],  int l, int r)
+void InsertSortIndex(QueryData data[], int l, int r)
 {
     for(int i = l + 1; i <= r; i++)
     {
-        if(data[index[i - 1]].searchKey > data[index[i]].searchKey)
+        if(data[i - 1].key.searchKey > data[i].key.searchKey)
         {
-            int t = index[i];
+            QueryData t = data[i];
             int j = i;
-            while(j > l && data[index[j - 1]].searchKey > data[t].searchKey)
+            while(j > l && data[j - 1].key.searchKey > t.key.searchKey)
             {
-                index[j] = index[j - 1];
+                data[j] = data[j - 1];
                 j--;
             }
-            index[j] = t;
+            data[j] = t;
         }
     }
 }
 
-int FindMidIndex(KeyType data[], short index[], int l, int r)
+int FindMidIndex(QueryData data[], int l, int r)
 {
     if(l == r) return l;
     int i = 0;
     int n = 0;
     for(i = l; i < r - 5; i += 5)
     {
-        InsertSortIndex(data, index, i, i + 4);
+        InsertSortIndex(data, i, i + 4);
         n = i - l;
-        short temp = index[l + n / 5];
-        index[l + n / 5] = index[i + 2];
-        index[i + 2] = temp;
+        QueryData temp = data[l + n / 5];
+        data[l + n / 5] = data[i + 2];
+        data[i + 2] = temp;
     }
 
     //处理剩余元素
     int num = r - i + 1;
     if(num > 0)
     {
-        InsertSortIndex(data, index, i, i + num - 1);
+        InsertSortIndex(data, i, i + num - 1);
         n = i - l;
-        short temp = index[l + n / 5];
-        index[l + n / 5] = index[i + num / 2];
-        index[i + num / 2] = temp;
+        QueryData temp = data[l + n / 5];
+        data[l + n / 5] = data[i + num / 2];
+        data[i + num / 2] = temp;
     }
     n /= 5;
     if(n == l) return l;
-    return FindMidIndex(data, index, l, l + n);
+    return FindMidIndex(data, l, l + n);
 }
 
-int PartionIndex(KeyType data[], short index[], int l, int r, int p)
+int PartionIndex(QueryData data[], int l, int r, int p)
 {
-    short temp = index[p];
-    index[p] = index[l];
-    index[l] = temp;
+    QueryData temp = data[p];
+    data[p] = data[l];
+    data[l] = temp;
     int i = l;
     int j = r;
-    short pivot = index[l];
+    QueryData pivot = data[l];
     while(i < j)
     {
-        while(data[index[j]].searchKey >= data[pivot].searchKey && i < j)
+        while(data[j].key.searchKey >= pivot.key.searchKey && i < j)
             j--;
-        index[i] = index[j];
-        while(data[index[i]].searchKey <= data[pivot].searchKey && i < j)
+        data[i] = data[j];
+        while(data[i].key.searchKey <= pivot.key.searchKey && i < j)
             i++;
-        index[j] = index[i];
+        data[j] = data[i];
     }
-    index[i] = pivot;
+    data[i] = pivot;
     return i;
 }
 
-int BFPRTSelect(KeyType data[], short index[], int l, int r, int k)
+int BFPRTSelect(QueryData data[], int l, int r, int k)
 {
-    int p = FindMidIndex(data, index, l, r);    //寻找中位数的中位数
-    int i = PartionIndex(data, index, l, r, p);
+    int p = FindMidIndex(data,  l, r);    //寻找中位数的中位数
+    int i = PartionIndex(data,  l, r, p);
 
     int m = i - l + 1;
-    if(m == k) return index[i];
-    if(m > k)  return BFPRTSelect(data, index, l, i - 1, k);
-    return BFPRTSelect(data, index, i + 1, r, k - m);
+    if(m == k) return i;
+    if(m > k)  return BFPRTSelect(data, l, i - 1, k);
+    return BFPRTSelect(data, i + 1, r, k - m);
 }
 
-inline void quickSelect(KeyType data[], short index[], int k, int s, int e){
+inline void quickSelect(QueryData data[], int k, int s, int e){
     if(s > e || k < s || k > e){
         printf("invalid array range\n");
         return;
     }
 
     short i, j;
-    short pivot = index[s];
+    QueryData pivot = data[s];
     if(s <= e){
         i = s;
         j = e;
         for(;;){
-            while(data[index[j]].searchKey >= data[pivot].searchKey && i<j){j--;}
-            while(data[index[i]].searchKey <= data[pivot].searchKey && i<j){i++;}
+            while(data[j].key.searchKey >= pivot.key.searchKey && i<j){j--;}
+            while(data[i].key.searchKey <= pivot.key.searchKey && i<j){i++;}
             if(i<j){
-                short temp = index[i];
-                index[i] = index[j];
-                index[j] = temp;
-            }
-            else
+                QueryData temp = data[i];
+                data[i] = data[j];
+                data[j] = temp;
+            }else{
                 break;
+            }
         }
-        short temp = index[i];
-        index[i] = index[s];
-        index[s] = temp;
+        QueryData temp = data[i];
+        data[i] = data[s];
+        data[s] = temp;
         if(k<i)
-            quickSelect(data, index, k, s, i-1);
+            quickSelect(data, k, s, i-1);
         else if(k>i)
-            quickSelect(data, index, k, i+1, e);
+            quickSelect(data, k, i+1, e);
     }
 }
 
@@ -261,12 +257,9 @@ Node* LeafNodeSplit_Sort(LeafNode* leafNode) {
     int j = leafNode->node.allocated >> 1; // dividir por dos (libro)
     int newsize = leafNode->node.allocated - j;
     // if (log.isDebugEnabled()) log.debug("split j=" + j);
-    memcpy(newHigh->node.keys, leafNode->node.keys + j,  newsize * sizeof (KeyType ));
+    memcpy(newHigh->data, leafNode->data + j,  newsize * sizeof (QueryData ));
 
-    memcpy(newHigh->values, leafNode->values + j,  newsize * sizeof (ValueType *));
-
-    memset(leafNode->node.keys + j, 0, sizeof (KeyType) * newsize);
-    memset(leafNode->values + j, 0, sizeof (ValueType*) * newsize);
+    memset(leafNode->data + j, 0, sizeof (QueryData) * newsize);
     //    for (int i = j; i < j + newsize; i++) {
     //        leafNode->node.keys[i] = NULL;
     //        // clear bound id of the influenced query
@@ -291,53 +284,27 @@ Node* LeafNodeSplit_NoSort(LeafNode* leafNode) {
     LeafNodeConstructor(newHigh, leafNode->node.tree);
     LeafNodeAllocId(newHigh);
     int median = leafNode->node.allocated >> 1;
-
+    int oldSize = leafNode->node.allocated;
     if(useBFPRT){
-        short index[Border];
-        for (int i = 0; i < leafNode->node.allocated; ++i) {
-            index[i] = i;
-        }
-        BFPRTSelect(leafNode->node.keys,  index, 0, leafNode->node.allocated - 1, median);
-        int oldSize = leafNode->node.allocated;
-        char flags[Border];
-        memset(flags, 0, Border);
-        for (int i = median; i < oldSize; ++i) {
-            flags[index[i]] = 1;
-        }
-        leafNode->node.allocated = 0;
-        for (int i = 0; i < oldSize; ++i) {
-            if(flags[i]){
-                LeafNodeAddLast(newHigh, leafNode->node.keys + i, leafNode->values[i]);
-            } else{
-                LeafNodeAddLast(leafNode, leafNode->node.keys + i, leafNode->values[i]);
-            }
-
-        }
+        BFPRTSelect(leafNode->data, 0, leafNode->node.allocated - 1, median);
     } else{
-//        KeyType copyKey[Border];
-//        memcpy(copyKey, leafNode->node.keys, leafNode->node.allocated * sizeof (KeyType));
-        short index[Border];
-        for (int i = 0; i < leafNode->node.allocated; ++i) {
-            index[i] = i;
-        }
-        quickSelect(leafNode->node.keys, index, median, 0, leafNode->node.allocated - 1);
-        int oldSize = leafNode->node.allocated;
-        char flags[Border];
-        memset(flags, 0, Border);
-        for (int i = median; i < oldSize; ++i) {
-            flags[index[i]] = 1;
-        }
-        leafNode->node.allocated = 0;
-        for (int i = 0; i < oldSize; ++i) {
-            if(flags[i]){
-                LeafNodeAddLast(newHigh, leafNode->node.keys + i, leafNode->values[i]);
-            } else{
-                LeafNodeAddLast(leafNode, leafNode->node.keys + i, leafNode->values[i]);
-            }
-
-        }
+        quickSelect(leafNode->data, median, 0, leafNode->node.allocated - 1);
     }
 
+    memcpy(newHigh->data, leafNode->data + median,  (oldSize - median) * sizeof (QueryData ));
+
+    memset(leafNode->data + median, 0, sizeof (QueryData) * (oldSize - median));
+    //    for (int i = j; i < j + newsize; i++) {
+    //        leafNode->node.keys[i] = NULL;
+    //        // clear bound id of the influenced query
+    //        leafNode->values[i] = NULL;
+    //    }
+    newHigh->node.allocated = (oldSize - median);
+    leafNode->node.allocated = median;
+    LeafNodeResetMaxValue(leafNode);
+    LeafNodeResetMaxValue(newHigh);
+    LeafNodeResetMinValue(leafNode);
+    LeafNodeResetMinValue(newHigh);
 
 
     return (Node*)newHigh;
@@ -361,21 +328,20 @@ Node*  LeafNodeSplit(LeafNode* leafNode) {
 inline void LeafNodeResetMinKey(LeafNode* leafNode){
     int minIndex = 0;
     for(int i = 1; i < leafNode->node.allocated; i ++){
-        if(QueryRangeLT(leafNode->node.keys[i], leafNode->node.keys[minIndex])){
+        if(QueryRangeLT(leafNode->data[i].key, leafNode->data[minIndex].key)){
             minIndex = i;
         }
     }
-    swap(leafNode->node.keys, 0, minIndex);
-    ValueType* temp = leafNode->values[0];
-    leafNode->values[0] = leafNode->values[minIndex];
-    leafNode->values[minIndex] = temp;
+    QueryData  temp = leafNode->data[0];
+    leafNode->data[0] = leafNode->data[minIndex];
+    leafNode->data[minIndex] = temp;
 }
 
 KeyType  LeafNodeSplitShiftKeysLeft(LeafNode* leafNode) {
     if(optimizationType == NoSort || optimizationType == BatchAndNoSort){
         LeafNodeResetMinKey(leafNode);
     }
-    return leafNode->node.keys[0];
+    return leafNode->data[0].key;
 }
 
 int LeafNodeGetId(LeafNode* leafNode) {
@@ -388,7 +354,7 @@ int LeafNodeGetHeight(LeafNode* leafNode) {
 
 void LeafNodeResetId(LeafNode* leafNode){
     for (int i = 0; i < leafNode->node.allocated ; ++i) {
-        myItoa(Qid, getQueryId(leafNode->values[i]));
+        myItoa(Qid, getQueryId(leafNode->data[i].value));
         Qid ++;
     }
 }
@@ -398,8 +364,8 @@ void printLeafNode(LeafNode* leafNode){
     printf("[L%d](%d)(%d,%d){", leafNode->node.id, leafNode->node.allocated,
            ((leafNode->node.minValue)), ((leafNode->node.maxValue)));
     for (int i = 0; i < leafNode->node.allocated; i++) {
-        QueryRange * k = &leafNode->node.keys[i];
-        QueryMeta* v = leafNode->values[i];
+        QueryRange * k = &leafNode->data[i].key;
+        QueryMeta* v = leafNode->data[i].value;
 //        printQueryRange(k);
         printf("%d:", k->searchKey);
         printQueryRange(k);
@@ -414,10 +380,10 @@ BOOL LeafNodeCheckMaxMin(LeafNode * leafNode){
     }
     int findMin = FALSE, findMax = FALSE;
     for(int i = 0; i < leafNode->node.allocated; i ++){
-        if(leafNode->node.keys[i].lower == leafNode->node.minValue){
+        if(leafNode->data[i].key.lower == leafNode->node.minValue){
             findMin = TRUE;
         }
-        if(leafNode->node.keys[i].upper == leafNode->node.maxValue){
+        if(leafNode->data[i].key.upper == leafNode->node.maxValue){
             findMax = TRUE;
         }
     }
@@ -430,9 +396,33 @@ BOOL LeafNodeCheckMaxMin(LeafNode * leafNode){
 
 BOOL LeafNodeCheckKey(LeafNode * leafNode){
     for (int i = 0; i < leafNode->node.allocated; ++i) {
-        if(leafNode->node.keys[i].upper != leafNode->values[i]->dataRegion.upper || leafNode->node.keys[i].lower != leafNode->values[i]->dataRegion.lower){
+        if(leafNode->data[i].key.upper != leafNode->data[i].value->dataRegion.upper || leafNode->data[i].key.lower != leafNode->data[i].value->dataRegion.lower){
             return FALSE;
         }
     }
     return TRUE;
+}
+
+
+int LeafNodeFindSlotByKey( LeafNode * node, KeyType* searchKey) {
+    // return Arrays.binarySearch(keys, 0, allocated, searchKey);
+    if(node->node.allocated == 0){
+        return -1;
+    }
+    int low = 0;
+    int high = node->node.allocated - 1;
+
+    while (low <= high) {
+        int mid = (low + high) >> 1;
+        KeyType midVal = (node->data[mid].key);
+
+        if (QueryRangeLT(midVal, *searchKey)) {
+            low = mid + 1;
+        } else if (QueryRangeGT(midVal, *searchKey)) {
+            high = mid - 1;
+        } else {
+            return mid; // key found
+        }
+    }
+    return -(low + 1);  // key not found.
 }

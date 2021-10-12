@@ -22,11 +22,11 @@ void InternalNodeDestroy(InternalNode* internalNode){
 
 BOOL InternalNodeAdd(InternalNode* internalNode, int slot, KeyType * newKey, Node* child){
     if (slot < internalNode->node.allocated) {
-        memcpy(internalNode->node.keys + slot + 1, internalNode->node.keys + slot, (internalNode->node.allocated - slot) * sizeof(KeyType));
+        memcpy(internalNode->keys + slot + 1, internalNode->keys + slot, (internalNode->node.allocated - slot) * sizeof(KeyType));
         memcpy(internalNode->childs + slot + 2, internalNode->childs + slot + 1, (internalNode->node.allocated - slot) * sizeof(Node*));
     }
     internalNode->node.allocated++;
-    internalNode->node.keys[slot] = *newKey;
+    internalNode->keys[slot] = *newKey;
     internalNode->childs[slot + 1] = child;
     return TRUE;
 }
@@ -72,11 +72,11 @@ Node* InternalNodeSplit(InternalNode* internalNode) {
     int newsize = internalNode->node.allocated - j;
 
     // if (log.isDebugEnabled()) log.debug("split j=" + j);
-    memcpy(newHigh->node.keys, internalNode->node.keys + j,  newsize * sizeof (KeyType ));
+    memcpy(newHigh->keys, internalNode->keys + j,  newsize * sizeof (KeyType ));
 
     memcpy(newHigh->childs, internalNode->childs + (j+1),  newsize * sizeof (Node*));
 
-    memset(internalNode->node.keys + j, 0, newsize * sizeof (KeyType ));
+    memset(internalNode->keys + j, 0, newsize * sizeof (KeyType ));
     memset(internalNode->childs + j + 1, 0, newsize * sizeof (Node *));
 //    for (int i = j; i < j + newsize; i++) {
 //        internalNode->node.keys[i] = NULL;
@@ -96,8 +96,8 @@ Node* InternalNodeSplit(InternalNode* internalNode) {
 
 
 KeyType InternalNodeSplitShiftKeysLeft(InternalNode* internalNode) {
-    KeyType removed = internalNode->node.keys[0];
-    memcpy(internalNode->node.keys, internalNode->node.keys + 1, (internalNode->node.allocated - 1) * sizeof(KeyType ));
+    KeyType removed = internalNode->keys[0];
+    memcpy(internalNode->keys, internalNode->keys + 1, (internalNode->node.allocated - 1) * sizeof(KeyType ));
     internalNode->node.allocated--;
 //    internalNode->node.keys[internalNode->node.allocated] = NULL;
     internalNode->childs[internalNode->node.allocated + 1] = NULL;
@@ -152,11 +152,11 @@ void InternalNodeRemove(InternalNode* internalNode, int slot) {
 
     if(slot == -1){
         if(internalNode->node.allocated > 0){
-            memcpy(internalNode->node.keys, internalNode->node.keys + 1, (internalNode->node.allocated - 1) * sizeof (KeyType ));
+            memcpy(internalNode->keys, internalNode->keys + 1, (internalNode->node.allocated - 1) * sizeof (KeyType ));
             memcpy(internalNode->childs, internalNode->childs + 1, (internalNode->node.allocated) * sizeof (Node*));
         }
     }else if (slot < internalNode->node.allocated) {
-        memcpy(internalNode->node.keys + slot, internalNode->node.keys + slot + 1, (internalNode->node.allocated - slot - 1) * sizeof (KeyType ));
+        memcpy(internalNode->keys + slot, internalNode->keys + slot + 1, (internalNode->node.allocated - slot - 1) * sizeof (KeyType ));
         memcpy(internalNode->childs + slot + 1, internalNode->childs + slot + 2, (internalNode->node.allocated - slot - 1) * sizeof (Node*));
     }
     internalNode->node.allocated--;
@@ -171,10 +171,10 @@ void InternalNodeMerge(Node* internalNode, InternalNode* nodeParent, int slot, N
     int sizeFROM = nodeFROM->node.allocated;
     if(sizeFROM >= 0){
         // copy keys from nodeFROM to nodeTO
-        memcpy(nodeTO->node.keys + sizeTO + 1, nodeFROM->node.keys, sizeFROM * sizeof(KeyType));
+        memcpy(nodeTO->keys + sizeTO + 1, nodeFROM->keys, sizeFROM * sizeof(KeyType));
         memcpy(nodeTO->childs + sizeTO + 1, nodeFROM->childs, (sizeFROM + 1) * sizeof(Node*));
         // add key to nodeTO
-        nodeTO->node.keys[sizeTO] = nodeParent->node.keys[slot];
+        nodeTO->keys[sizeTO] = nodeParent->keys[slot];
         nodeTO->node.allocated += sizeFROM + 1; // keys of FROM and key of nodeParent
         if(sizeTO < 0 || (nodeTO->node.maxValue < nodeFROM->node.maxValue)){
             nodeTO->node.maxValue = nodeFROM->node.maxValue;
@@ -196,7 +196,7 @@ void printInternalNode(InternalNode* internalNode){
     printf("[I%d](%d)(%d,%d){", internalNode->node.id, internalNode->node.allocated,
            (internalNode->node.minValue),  ((internalNode->node.maxValue)));
     for (int i = 0; i < internalNode->node.allocated; i++) {
-        QueryRange * k = &internalNode->node.keys[i];
+        QueryRange * k = &internalNode->keys[i];
         if (i == 0) { // left
             printf("C%d:Node%d<", i, internalNode->childs[i]->id);
         } else {
@@ -239,4 +239,27 @@ BOOL InternalNodeCheckKey(InternalNode * internalNode){
         }
     }
     return TRUE;
+}
+
+int InternalNodeFindSlotByKey( InternalNode* node, KeyType* searchKey) {
+    // return Arrays.binarySearch(keys, 0, allocated, searchKey);
+    if(node->node.allocated == 0){
+        return -1;
+    }
+    int low = 0;
+    int high = node->node.allocated - 1;
+
+    while (low <= high) {
+        int mid = (low + high) >> 1;
+        KeyType midVal = (node->keys[mid]);
+
+        if (QueryRangeLT(midVal, *searchKey)) {
+            low = mid + 1;
+        } else if (QueryRangeGT(midVal, *searchKey)) {
+            high = mid - 1;
+        } else {
+            return mid; // key found
+        }
+    }
+    return -(low + 1);  // key not found.
 }

@@ -25,7 +25,7 @@ double zipfPara = 0.99;
 
 int test() {
 
-    useBFPRT = 1;
+    useBFPRT = 0;
     double generateT = 0, putT = 0, removeT = 0, mixT = 0;
 //    TOTAL = 1000;
     TRACE_LEN = 1000;
@@ -83,21 +83,21 @@ int test() {
             QTreeFindAndRemoveRelatedQueries(&qTree, (removeQuery[i].dataRegion.upper + removeQuery[i].dataRegion.lower) / 2, removedQuery);
             removeNum ++;
         }
-        if(QTreeCheckKey(&qTree) ==FALSE){
-            printQTree(&qTree);
-            printf("QTreeCheckKey error: %d, %d\n", i, mixPara[i] < insertRatio? 0 : 1);
-//            exit(-1);
-        }
-        if(QTreeCheckMaxMin(&qTree) ==FALSE){
-            printQTree(&qTree);
-            printf("QTreeCheckMaxMin error: %d, %d\n", i, mixPara[i] < insertRatio? 0 : 1);
-            //            exit(-1);
-        }
-        if((i + 1) % TRACE_LEN == 0){
-            time2 = clock();
-            printf("%d, used %lf s, size:%d \n", i, (double)(time2 - time1)/CLOCKS_PER_SEC, qTree.elements);
-            time1 = time2;
-        }
+//        if(QTreeCheckKey(&qTree) ==FALSE){
+//            printQTree(&qTree);
+//            printf("QTreeCheckKey error: %d, %d\n", i, mixPara[i] < insertRatio? 0 : 1);
+////            exit(-1);
+//        }
+//        if(QTreeCheckMaxMin(&qTree) ==FALSE){
+//            printQTree(&qTree);
+//            printf("QTreeCheckMaxMin error: %d, %d\n", i, mixPara[i] < insertRatio? 0 : 1);
+//            //            exit(-1);
+//        }
+//        if((i + 1) % TRACE_LEN == 0){
+//            time2 = clock();
+//            printf("%d, used %lf s, size:%d \n", i, (double)(time2 - time1)/CLOCKS_PER_SEC, qTree.elements);
+//            time1 = time2;
+//        }
     }
     finish = clock();
     size_t removed = removedQuery->size;
@@ -109,10 +109,10 @@ int test() {
     mixT = (double)(finish - start)/CLOCKS_PER_SEC;
 //    printf("remove end! use %lfs\n", (double)(finish - start)/CLOCKS_PER_SEC);
 //    printf( "get and remove end!\n remain:%d\n",  qTree.elements);
-printf("%d, %d, %d,  %d, %d, %d, %.2lf, %d,  %d,  %.3lf,%.3lf,%.3lf, %d, %d, %ld, %ld, %ld,  %ld, %ld, %ld, %ld, %ld, %d, %d, %d\n",
+printf("%d, %d, %d,  %d, %d, %d, %.2lf, %d,  %d,  %.3lf,%.3lf,%.3lf, %d, %d, %ld, %ld, %ld,  %ld, %ld, %ld, %ld, %ld, %d, %d, %d, %d, \n",
        Border, checkQueryMeta, optimizationType, dataPointType, dataRegionTypeOld, searchKeyType, insertRatio, removePoint, TOTAL,
            generateT, putT, mixT, insertNum, removeNum, removed, checkQuery, checkLeaf, checkInternal,
-           qTree.leafSplitCount, qTree.internalSplitCount, qTree.whileCount, qTree.funcCount, RemovedQueueSize, batchMissThreshold, MaxBatchCount);
+           qTree.leafSplitCount, qTree.internalSplitCount, qTree.whileCount, qTree.funcCount, RemovedQueueSize, batchMissThreshold, MaxBatchCount, setKeyCount);
     free(queries) ;
     free(removeQuery);
     return 0;

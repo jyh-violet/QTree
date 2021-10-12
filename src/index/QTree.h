@@ -19,6 +19,7 @@
 #define NodeIsLeaf(node)  (((Node*)node)->id >= 0)
 
 int checkQueryMeta;
+int setKeyCount;
 
 extern int maxValue;
 extern int removePoint;
@@ -72,17 +73,17 @@ typedef struct Node{
     BoundKey maxValue ;
     BoundKey minValue;
     QTree* tree;
-    KeyType  keys[Border];  // array of key
 }Node;
 
 
 struct LeafNode {
     Node  node;
-    ValueType* values[Border];
+    QueryData data[Border];
 };
 
  struct InternalNode {
     Node node;
+    KeyType  keys[Border];  // array of key
     Node* childs[Border + 1];
 };
 
@@ -113,7 +114,6 @@ void NodeDestroy(Node* node);
 BOOL NodeIsUnderFlow(Node* node);
 BOOL NodeCanMerge( Node* node, Node* other) ;
 BOOL NodeIsFull(Node* node);
-int NodeFindSlotByKey( Node* node, KeyType* searchKey);
 void setSearchKey(Node* node, KeyType * key);
 void printNode(Node* node);
 Node* NodeSplit(Node* node);
@@ -148,6 +148,8 @@ Node* LeafNodeSplit_NoSort(LeafNode* leafNode) ;
 Node* LeafNodeSplit_Sort(LeafNode* leafNode);
 BOOL LeafNodeCheckKey(LeafNode * leafNode);
 BOOL LeafNodeAddBatch(LeafNode* leafNode, int slot, QueryData batch[], int batchCount, BoundKey *min, BoundKey* max);
+int LeafNodeFindSlotByKey( LeafNode * node, KeyType* searchKey) ;
+
 
 void InternalNodeConstructor(InternalNode* internalNode, QTree* qTree);
 void InternalNodeDestroy(InternalNode* internalNode);
@@ -166,8 +168,10 @@ void InternalNodeMerge(Node* node, InternalNode* nodeParent, int slot, Node* nod
 void printInternalNode(InternalNode* internalNode);
 BOOL InternalNodeCheckMaxMin(InternalNode * internalNode);
 BOOL InternalNodeCheckKey(InternalNode * internalNode);
+int InternalNodeFindSlotByKey( InternalNode * node, KeyType* searchKey) ;
 
-void quickSelect(KeyType data[], short index[], int k, int s, int e);
+
+void quickSelect(QueryData data[], int k, int s, int e);
 //void quickSelect(KeyType arr[], int k, int s, int e);
 void swap(KeyType arr[], int a, int b);
 
