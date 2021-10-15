@@ -28,7 +28,7 @@ add_library(index src/index/Node.c src/index/QTree.h src/index/QTree.c src/index
 target_link_libraries(index PUBLIC query)
 
 add_library(main  src/main.c)
-target_link_libraries(main PUBLIC index -lpthread)
+target_link_libraries(main PUBLIC index -lpthread -lpapi)
 
 #6.add executable file，添加要编译的可执行文件
 ADD_EXECUTABLE(${PROJECT_NAME}  ${TEST_MATH})
@@ -41,6 +41,6 @@ set_target_properties(qtree PROPERTIES output_name "qtree")
 
 #7.add link library，添加可执行文件所需要的库，比如我们用到了libm.so（命名规则：lib+name+.so），就添加该库的名称
 #TARGET_LINK_LIBRARIES(${PROJECT_NAME} m)
-target_link_libraries(${PROJECT_NAME}  PUBLIC main  -lconfig -lm)
+target_link_libraries(${PROJECT_NAME}  PUBLIC main  -lconfig -lm )
 
 #add_executable(QTree main.cpp src/query/QueryTemplate.cpp include/query/QueryTemplate.h src/query/QueryMeta.cpp include/query/QueryMeta.h include/common.h include/query/Tools.h include/holder/RangeHolder.h include/index/QTree.h include/index/Node.h include/index/LeafNode.h include/index/InternalNode.h src/query/QueryRange.cpp include/query/QueryRange.h)

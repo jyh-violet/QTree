@@ -4,6 +4,7 @@
 #include <libconfig.h>
 #include <time.h>
 #include <Tool/ArrayList.h>
+#include <papi.h>
 
 
 DataRegionType dataRegionType = Zipf;
@@ -24,6 +25,7 @@ int removePoint = 0;
 double zipfPara = 0.99;
 
 int test() {
+    int retval, status = 0, EventSet = PAPI_NULL;
 
     useBFPRT = 0;
     double generateT = 0, putT = 0, removeT = 0, mixT = 0;
@@ -68,10 +70,37 @@ int test() {
 //    num += qTree.batchCount;
 //    printf("%d\n", num);
 //    printQTree(&qTree);
-
-
-     QTreeResetStatistics(&qTree);
+    QTreeResetStatistics(&qTree);
     Arraylist* removedQuery = ArraylistCreate(TOTAL * 2);
+
+    retval = PAPI_library_init(PAPI_VER_CURRENT);
+
+    if (retval != PAPI_VER_CURRENT) {
+       fprintf(stderr, "PAPI library init error:%d\n", retval);
+       exit(1);
+    }
+    /* Create the EventSet */
+    if ((retval = PAPI_create_eventset(&EventSet)) != PAPI_OK){
+        fprintf(stderr, "PAPI_create_eventset error:%d\n", retval);
+        exit(1);
+    }
+    /* Add Total Instructions Executed to our EventSet */
+    if ((retval = PAPI_add_event(EventSet, PAPI_TOT_INS))!= PAPI_OK ){
+        fprintf(stderr, "PAPI_add_event error:%d\n", retval);
+        exit(1);
+    }
+    /* Start counting */
+    if ((retval = PAPI_state(EventSet, &status) )!= PAPI_OK){
+        fprintf(stderr, "PAPI_state error:%d\n", retval);
+        exit(1);
+    }
+    printf("State is now %d\n", status);
+
+    if ((retval = PAPI_start(EventSet)) != PAPI_OK){
+        fprintf(stderr, "PAPI_start error:%d\n", retval);
+        exit(1);
+    }
+
     time1 = start = clock();
     int insertNum = 0, removeNum = 0;
     for (int i = 0; i < TOTAL; ++i) {
@@ -100,6 +129,14 @@ int test() {
 //        }
     }
     finish = clock();
+
+    if ((retval = PAPI_state(EventSet, &status)) != PAPI_OK){
+        fprintf(stderr, "PAPI_start error:%d\n", retval);
+        exit(1);
+    }
+    printf("State is now %d\n", status);
+
+
     size_t removed = removedQuery->size;
 //    printf( "get and remove end!\n remain:%d\n",  qTree.elements);
     ArraylistDeallocate(removedQuery);
