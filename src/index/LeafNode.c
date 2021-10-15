@@ -274,6 +274,14 @@ Node* LeafNodeSplit_Sort(LeafNode* leafNode) {
     return (Node*)newHigh;
 }
 
+BOOL LeafNodeCheckMinKey(LeafNode* leafNode){
+    for(int i = 1; i < leafNode->node.allocated; i ++){
+        if(QueryRangeLT(leafNode->data[i].key, leafNode->data[0].key)){
+            return FALSE;
+        }
+    }
+    return TRUE;
+}
 
 Node* LeafNodeSplit_NoSort(LeafNode* leafNode) {
     if(leafNode->node.tree == NULL){
@@ -290,7 +298,6 @@ Node* LeafNodeSplit_NoSort(LeafNode* leafNode) {
     } else{
         quickSelect(leafNode->data, median, 0, leafNode->node.allocated - 1);
     }
-
     memcpy(newHigh->data, leafNode->data + median,  (oldSize - median) * sizeof (QueryData ));
 
     memset(leafNode->data + median, 0, sizeof (QueryData) * (oldSize - median));
@@ -306,6 +313,9 @@ Node* LeafNodeSplit_NoSort(LeafNode* leafNode) {
     LeafNodeResetMinValue(leafNode);
     LeafNodeResetMinValue(newHigh);
 
+//    if(!LeafNodeCheckMinKey(newHigh)){
+//        printf("ERROR: LeafNodeSplit_NoSort");
+//    }
 
     return (Node*)newHigh;
 }
@@ -338,9 +348,9 @@ inline void LeafNodeResetMinKey(LeafNode* leafNode){
 }
 
 KeyType  LeafNodeSplitShiftKeysLeft(LeafNode* leafNode) {
-    if(optimizationType == NoSort || optimizationType == BatchAndNoSort){
-        LeafNodeResetMinKey(leafNode);
-    }
+//    if(optimizationType == NoSort || optimizationType == BatchAndNoSort){
+//        LeafNodeResetMinKey(leafNode);
+//    }
     return leafNode->data[0].key;
 }
 

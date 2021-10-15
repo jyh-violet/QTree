@@ -384,7 +384,7 @@ inline void QTreePutBatch(QTree* qTree, QueryData * batch, int batchCount){
             splitedNode = (NodeIsFull((Node*)nodeLeaf) ? LeafNodeSplit(nodeLeaf) : NULL);
 
             if(splitedNode != NULL && inserted < batchCount){ // something remains in the batch
-                LeafNodeResetMinKey((LeafNode* )splitedNode);
+//                LeafNodeResetMinKey((LeafNode* )splitedNode);
                 LeafNode* insertToNode;
                 if(QueryRangeLT(batch[inserted].key, (((LeafNode* )splitedNode)->data[0].key))){
                     insertToNode = nodeLeaf;
