@@ -85,7 +85,7 @@ int test() {
         exit(1);
     }
     /* Add Total Instructions Executed to our EventSet */
-    if ((retval = PAPI_add_event(EventSet, PAPI_TOT_INS))!= PAPI_OK ){
+    if ((retval = PAPI_add_event(EventSet, PAPI_TOT_INS ))!= PAPI_OK ){
         fprintf(stderr, "PAPI_add_event error:%d\n", retval);
         exit(1);
     }
@@ -131,7 +131,7 @@ int test() {
     finish = clock();
 
     if ((retval = PAPI_state(EventSet, &status)) != PAPI_OK){
-        fprintf(stderr, "PAPI_start error:%d\n", retval);
+        fprintf(stderr, "PAPI_state error:%d\n", retval);
         exit(1);
     }
     printf("State is now %d\n", status);
