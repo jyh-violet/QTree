@@ -41,7 +41,11 @@ typedef enum BOOL{
 }BOOL;
 
 
-
+void handle_error (int retval);
+void PAPI_init();
+void PAPI_startCache();
+void PAPI_readCache();
+void PAPI_end();
 
 void initZipfParameter(int n, double zipfianpara);
 int zipf();

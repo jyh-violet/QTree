@@ -4,6 +4,7 @@
 
 #include <math.h>
 #include <stdio.h>
+#include <papi.h>
 #include "Tools.h"
 #include "common.h"
 #define N 999
@@ -250,4 +251,95 @@ int BFPRT(int a[], int l, int r, int k)
     if(m == k) return a[i];
     if(m > k)  return BFPRT(a, l, i - 1, k);
     return BFPRT(a, i + 1, r, k - m);
+}
+
+//////////////////////--PAPI--///////////////
+void handle_error (int retval){
+    printf("PAPI error %d: %s\n", retval, PAPI_strerror(retval));
+    exit(1);
+}
+int PAPI_events[]={
+        PAPI_L1_DCM,
+        PAPI_L2_DCM,
+        PAPI_L1_DCH,
+        PAPI_L2_DCH,
+        PAPI_L2_TCH,
+        PAPI_L3_TCH
+};
+int EventSet = PAPI_NULL, eventsNum=6;
+long_long papiValues[6];
+void PAPI_init(){
+    int retval;
+
+    retval = PAPI_library_init(PAPI_VER_CURRENT);
+
+    if (retval != PAPI_VER_CURRENT) {
+        handle_error(retval);
+    }
+    /* Create the EventSet */
+    if ((retval = PAPI_create_eventset(&EventSet)) != PAPI_OK){
+        handle_error(retval);
+    }
+
+    /* Add Total Instructions Executed to our EventSet */
+    if ((retval = PAPI_add_event(EventSet, PAPI_events[0]))!= PAPI_OK ){
+        handle_error(retval);
+    }
+    /* Add Total Instructions Executed to our EventSet */
+    if ((retval = PAPI_add_event(EventSet, PAPI_events[1]))!= PAPI_OK ){
+        handle_error(retval);
+    }
+//    /* Add Total Instructions Executed to our EventSet */
+//    if ((retval = PAPI_add_event(EventSet, PAPI_events[2]))!= PAPI_OK ){
+//        handle_error(retval);
+//    }
+//    /* Add Total Instructions Executed to our EventSet */
+//    if ((retval = PAPI_add_event(EventSet, PAPI_events[3]))!= PAPI_OK ){
+//        handle_error(retval);
+//    }
+//    /* Add Total Instructions Executed to our EventSet */
+//    if ((retval = PAPI_add_event(EventSet, PAPI_events[4]))!= PAPI_OK ){
+//        handle_error(retval);
+//    }
+//    /* Add Total Instructions Executed to our EventSet */
+//    if ((retval = PAPI_add_event(EventSet, PAPI_events[5]))!= PAPI_OK ){
+//        handle_error(retval);
+//    }
+
+}
+
+void PAPI_startCache(){
+    int retval;
+    /* Start counting */
+    if ((retval = PAPI_start(EventSet)) != PAPI_OK){
+        handle_error(retval);
+    }
+}
+
+void PAPI_readCache(){
+    int retval;
+    /* Read the counting events in the Event Set */
+    if ((retval = PAPI_read(EventSet, papiValues)) != PAPI_OK){
+        handle_error(retval);
+    }
+    /* Reset the counting events in the Event Set */
+    if ((retval = PAPI_reset(EventSet)) != PAPI_OK){
+        handle_error(retval);
+    }
+
+    printf("L1 data cache misses : %lld\n", papiValues[0]);
+    printf("L2 data cache misses : %lld\n", papiValues[1]);
+//    printf("L1 D Cache Hit : %lld", papiValues[2]);
+//    printf("L2 D Cache Hit : %lld", papiValues[3]);
+//    printf("L2 total cache hits : %lld", papiValues[4]);
+//    printf("L3 total cache hits : %lld", papiValues[5]);
+
+}
+
+void PAPI_end(){
+    int retval;
+    /* Stop the counting of events in the Event Set */
+    if ((retval = PAPI_stop(EventSet, papiValues)) != PAPI_OK)
+        handle_error(1);
+
 }
