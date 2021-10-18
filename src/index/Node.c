@@ -10,12 +10,16 @@ void NodeConstructor(Node* node, QTree *tree){
     node-> id = 0;
     node-> allocated = 0;
     node->tree = tree;
+    pthread_spin_init(&node->lock, PTHREAD_PROCESS_SHARED);
+
+    node->read = 0;
 
 //    node->keys = malloc(sizeof(KeyType *) * tree->Border);
 //    memset(node->keys,0, sizeof(KeyType *) * Border);
 }
 void NodeDestroy(Node* node){
 //    free(node->keys);
+    pthread_spin_destroy(&node->lock);
     if(NodeIsLeaf(node)){
         LeafNodeDestroy((LeafNode*)node);
     } else{

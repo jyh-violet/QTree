@@ -77,7 +77,23 @@ typedef struct QTree {
     Node *root;
 }QTree;
 
+#define addReadLock(node)   {pthread_spin_lock(&((Node*)node)->lock); \
+((Node*)node)->read ++; \
+pthread_spin_unlock(&((Node*)node)->lock); }
+
+#define addWriteLock(node)   {pthread_spin_lock(&((Node*)node)->lock); \
+while(((Node*)node)->read > 0){}}
+
+#define rmReadLock(node)    ((Node*)node)->read --;
+
+#define rmWriteLock(node)  pthread_spin_unlock(&((Node*)node)->lock);
+
+#define upgradeLock(node)  { pthread_spin_lock(&((Node*)node)->lock); \
+((Node*)node)->read --;}
+
 typedef struct Node{
+    pthread_spinlock_t lock; // work as write lock
+    _Atomic int read; // work as the read lock
     int id ;
     int allocated ;
     BoundKey maxValue ;
