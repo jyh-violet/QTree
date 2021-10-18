@@ -44,6 +44,16 @@ OptimizationType optimizationType;
 #define batchMissThreshold  5
 #define MaxBatchCount (Border/2 - 1)
 
+typedef struct NodesStack{
+    InternalNode*   stackNodes[maxDepth];
+    int             stackNodesIndex;
+}NodesStack;
+
+typedef struct IntStack{
+    int          stackSlots[maxDepth];
+    int          stackSlotsIndex;
+}IntStack;
+
 typedef struct QueryData{
     KeyType key;
     ValueType *value;
@@ -52,10 +62,10 @@ typedef struct QueryData{
 typedef struct QTree {
     int elements;
     int maxNodeID;
-    int stackNodesIndex;
-    int stackSlotsIndex;
-    InternalNode* stackNodes[maxDepth];
-    int          stackSlots[maxDepth];
+//    int stackNodesIndex;
+//    int stackSlotsIndex;
+//    InternalNode* stackNodes[maxDepth];
+//    int          stackSlots[maxDepth];
     int     batchCount;
     int     batchMissCount;
     BoundKey batchSearchKey;
@@ -93,15 +103,15 @@ void QTreeDestroy(QTree* qTree);
 void printQTree( QTree* qTree);
 int  QTreeAllocNode(QTree* qTree, BOOL isLeaf);
 void QTreeMakeNewRoot(QTree* qTree, Node* splitedNode);
-LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key);
+LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key, NodesStack* nodesStack, IntStack* slotStack);
 void QTreePut(QTree* qTree, KeyType * key, ValueType * value);
 void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* removedQuery);
 void QTreePutBatch(QTree* qTree, QueryData * batch, int batchCount);
 void QTreeCheckBatch(QTree* qTree, int attribute, Arraylist* removedQuery);
 void QTreePutOne(QTree* qTree, QueryRange* key, QueryMeta* value);
-Node* checkInternalNode(QTree* qTree, InternalNode* nodeInternal,  KeyType* key);
+Node* checkInternalNode(QTree* qTree, InternalNode* nodeInternal,  KeyType* key, NodesStack *nodesStack, IntStack* slotStack);
 void checkLeafNode(QTree* qTree, LeafNode* leafNode, BoundKey* removedMax, BoundKey* removedMin, BoundKey attribute, Arraylist* removedQuery);
-Node* getAnotherNode(QTree* qTree, KeyType* key, BoundKey *removedMax, BoundKey *removedMin, Arraylist* removedQuery);
+Node* getAnotherNode(QTree* qTree, KeyType* key, BoundKey *removedMax, BoundKey *removedMin, Arraylist* removedQuery, NodesStack *nodesStack, IntStack* slotStack);
 BOOL QTreeCheckMaxMin(QTree* qTree);
 void printQTreeStatistics(QTree * qTree);
 BOOL CheckLeafNodeCover(LeafNode * leafNode, int i,  BoundKey attribute);

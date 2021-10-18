@@ -73,8 +73,8 @@ int test() {
     QTreeResetStatistics(&qTree);
     Arraylist* removedQuery = ArraylistCreate(TOTAL * 2);
 
-    PAPI_init();
-    PAPI_startCache();
+//    PAPI_init();
+//    PAPI_startCache();
 
     time1 = start = clock();
     int insertNum = 0, removeNum = 0;
@@ -87,30 +87,28 @@ int test() {
             QTreeFindAndRemoveRelatedQueries(&qTree, (removeQuery[i].dataRegion.upper + removeQuery[i].dataRegion.lower) / 2, removedQuery);
             removeNum ++;
         }
-//        if(QTreeCheckKey(&qTree) ==FALSE){
-//            printQTree(&qTree);
-//            printf("QTreeCheckKey error: %d, %d\n", i, mixPara[i] < insertRatio? 0 : 1);
-////            exit(-1);
-//        }
-//        if(QTreeCheckMaxMin(&qTree) ==FALSE){
-//            printQTree(&qTree);
-//            printf("QTreeCheckMaxMin error: %d, %d\n", i, mixPara[i] < insertRatio? 0 : 1);
-//            //            exit(-1);
-//        }
-//        if((i + 1) % TRACE_LEN == 0){
-//            time2 = clock();
-//            printf("%d, used %lf s, size:%d \n", i, (double)(time2 - time1)/CLOCKS_PER_SEC, qTree.elements);
-//            time1 = time2;
-//        }
+        if(QTreeCheckKey(&qTree) ==FALSE){
+            printQTree(&qTree);
+            printf("QTreeCheckKey error: %d, %d\n", i, mixPara[i] < insertRatio? 0 : 1);
+//            exit(-1);
+        }
+        if(QTreeCheckMaxMin(&qTree) ==FALSE){
+            printQTree(&qTree);
+            printf("QTreeCheckMaxMin error: %d, %d\n", i, mixPara[i] < insertRatio? 0 : 1);
+            //            exit(-1);
+        }
+        if((i + 1) % TRACE_LEN == 0){
+            time2 = clock();
+            printf("%d, used %lf s, size:%d \n", i, (double)(time2 - time1)/CLOCKS_PER_SEC, qTree.elements);
+            time1 = time2;
+        }
     }
     finish = clock();
-    PAPI_readCache();
-    PAPI_end();
+//    PAPI_readCache();
+//    PAPI_end();
 
     size_t removed = removedQuery->size;
-//    printf( "get and remove end!\n remain:%d\n",  qTree.elements);
     ArraylistDeallocate(removedQuery);
-//    printQTree(&qTree);
     QTreeDestroy(&qTree);
 
     mixT = (double)(finish - start)/CLOCKS_PER_SEC;
