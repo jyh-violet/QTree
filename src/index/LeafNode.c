@@ -32,8 +32,8 @@ void LeafNodeMerge(LeafNode* leafNode, InternalNode* nodeParent, int slot,
             nodeTO->node.minValue = nodeFROM->node.minValue;
         }
     }
-
-
+    nodeTO->node.right = nodeFROMx->right;
+    nodeTO->node.nextNodeMin = nodeFROMx->nextNodeMin;
     // remove key from nodeParent
     InternalNodeRemove(nodeParent, slot);
     // Free nodeFROM
@@ -271,6 +271,10 @@ Node* LeafNodeSplit_Sort(LeafNode* leafNode) {
     LeafNodeResetMaxValue(newHigh);
     LeafNodeResetMinValue(leafNode);
     LeafNodeResetMinValue(newHigh);
+    newHigh->node.right = leafNode->node.right;
+    leafNode->node.right = newHigh;
+    newHigh->node.nextNodeMin = leafNode->node.nextNodeMin;
+    leafNode->node.nextNodeMin = newHigh->data[0].key.searchKey;
     return (Node*)newHigh;
 }
 
@@ -312,7 +316,10 @@ Node* LeafNodeSplit_NoSort(LeafNode* leafNode) {
     LeafNodeResetMaxValue(newHigh);
     LeafNodeResetMinValue(leafNode);
     LeafNodeResetMinValue(newHigh);
-
+    newHigh->node.right = leafNode->node.right;
+    leafNode->node.right = newHigh;
+    newHigh->node.nextNodeMin = leafNode->node.nextNodeMin;
+    leafNode->node.nextNodeMin = newHigh->data[0].key.searchKey;
 //    if(!LeafNodeCheckMinKey(newHigh)){
 //        printf("ERROR: LeafNodeSplit_NoSort");
 //    }
@@ -371,8 +378,9 @@ void LeafNodeResetId(LeafNode* leafNode){
 
 
 void printLeafNode(LeafNode* leafNode){
-    printf("[L%d](%d)(%d,%d){", leafNode->node.id, leafNode->node.allocated,
-           ((leafNode->node.minValue)), ((leafNode->node.maxValue)));
+    printf("[L%d](%d: L%d)(%d)(%d,%d){", leafNode->node.id,
+           leafNode->node.nextNodeMin, leafNode->node.right== NULL? 0 :leafNode->node.right->id,
+           leafNode->node.allocated, ((leafNode->node.minValue)), ((leafNode->node.maxValue)));
     for (int i = 0; i < leafNode->node.allocated; i++) {
         QueryRange * k = &leafNode->data[i].key;
         QueryMeta* v = leafNode->data[i].value;

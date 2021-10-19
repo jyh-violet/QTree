@@ -98,6 +98,8 @@ typedef struct Node{
     int allocated ;
     BoundKey maxValue ;
     BoundKey minValue;
+    BoundKey nextNodeMin;
+    Node *right;
     QTree* tree;
 }Node;
 

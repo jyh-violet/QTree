@@ -91,6 +91,11 @@ Node* InternalNodeSplit(InternalNode* internalNode) {
     InternalNodeResetMaxValue(newHigh);
     InternalNodeResetMinValue(newHigh);
     newHigh->node.allocated ++;
+
+    newHigh->node.right = internalNode->node.right;
+    internalNode->node.right = newHigh;
+    newHigh->node.nextNodeMin = internalNode->node.nextNodeMin;
+    internalNode->node.nextNodeMin = newHigh->keys[0].searchKey;
     return (Node*)newHigh;
 }
 
@@ -183,9 +188,10 @@ void InternalNodeMerge(Node* internalNode, InternalNode* nodeParent, int slot, N
             nodeTO->node.minValue = nodeFROM->node.minValue;
         }
     }
-
+    nodeTO->node.right = nodeFROMx->right;
     // remove key from nodeParent
     InternalNodeRemove(nodeParent, slot);
+    nodeTO->node.nextNodeMin = nodeFROMx->nextNodeMin;
     // Free nodeFROM
     free((Node*)nodeFROM);
 }
@@ -193,8 +199,9 @@ void InternalNodeMerge(Node* internalNode, InternalNode* nodeParent, int slot, N
 
 
 void printInternalNode(InternalNode* internalNode){
-    printf("[I%d](%d)(%d,%d){", internalNode->node.id, internalNode->node.allocated,
-           (internalNode->node.minValue),  ((internalNode->node.maxValue)));
+    printf("[I%d](%d:I%d)(%d)(%d,%d){", internalNode->node.id,
+           internalNode->node.nextNodeMin, internalNode->node.right== NULL? 0 :internalNode->node.right->id,
+           internalNode->node.allocated, (internalNode->node.minValue),  ((internalNode->node.maxValue)));
     for (int i = 0; i < internalNode->node.allocated; i++) {
         QueryRange * k = &internalNode->keys[i];
         if (i == 0) { // left

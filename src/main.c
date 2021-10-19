@@ -23,9 +23,8 @@ u_int64_t checkQuery = 0;
 u_int64_t checkInternal = 0;
 int removePoint = 0;
 double zipfPara = 0.99;
-
+BOOL qtreeCheck = FALSE;
 int test() {
-
 
     useBFPRT = 0;
     double generateT = 0, putT = 0, removeT = 0, mixT = 0;
@@ -87,23 +86,26 @@ int test() {
             QTreeFindAndRemoveRelatedQueries(&qTree, (removeQuery[i].dataRegion.upper + removeQuery[i].dataRegion.lower) / 2, removedQuery);
             removeNum ++;
         }
-        if(QTreeCheckKey(&qTree) ==FALSE){
-            printQTree(&qTree);
-            printf("QTreeCheckKey error: %d, %d\n", i, mixPara[i] < insertRatio? 0 : 1);
-//            exit(-1);
-        }
-        if(QTreeCheckMaxMin(&qTree) ==FALSE){
-            printQTree(&qTree);
-            printf("QTreeCheckMaxMin error: %d, %d\n", i, mixPara[i] < insertRatio? 0 : 1);
-            //            exit(-1);
-        }
-        if((i + 1) % TRACE_LEN == 0){
-            time2 = clock();
-            printf("%d, used %lf s, size:%d \n", i, (double)(time2 - time1)/CLOCKS_PER_SEC, qTree.elements);
-            time1 = time2;
+        if(qtreeCheck){
+            if(QTreeCheckKey(&qTree) ==FALSE){
+                printQTree(&qTree);
+                printf("QTreeCheckKey error: %d, %d\n", i, mixPara[i] < insertRatio? 0 : 1);
+                //            exit(-1);
+            }
+            if(QTreeCheckMaxMin(&qTree) ==FALSE){
+                printQTree(&qTree);
+                printf("QTreeCheckMaxMin error: %d, %d\n", i, mixPara[i] < insertRatio? 0 : 1);
+                //            exit(-1);
+            }
+            if((i + 1) % TRACE_LEN == 0){
+                time2 = clock();
+                printf("%d, used %lf s, size:%d \n", i, (double)(time2 - time1)/CLOCKS_PER_SEC, qTree.elements);
+                time1 = time2;
+            }
         }
     }
     finish = clock();
+//    printQTree(&qTree);
 //    PAPI_readCache();
 //    PAPI_end();
 
