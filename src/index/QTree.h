@@ -88,8 +88,11 @@ while(((Node*)node)->read > 0){}}
 
 #define rmWriteLock(node)  pthread_spin_unlock(&((Node*)node)->lock);
 
-#define upgradeLock(node)  { pthread_spin_lock(&((Node*)node)->lock); \
-((Node*)node)->read --;}
+#define addSplitLock(internalNode)  pthread_spin_lock(&((InternalNode*)internalNode)->splitLock);
+
+#define rmSplitLock(internalNode)   pthread_spin_unlock(&((InternalNode*)internalNode)->splitLock);
+
+#define NodeIsValid(node)  (((Node*)node)->allocated >= 0)
 
 typedef struct Node{
     pthread_spinlock_t lock; // work as write lock
@@ -109,7 +112,8 @@ struct LeafNode {
     QueryData data[Border];
 };
 
- struct InternalNode {
+struct InternalNode {
+    pthread_spinlock_t splitLock;
     Node node;
     KeyType  keys[Border];  // array of key
     Node* childs[Border + 1];

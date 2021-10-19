@@ -256,25 +256,14 @@ Node* LeafNodeSplit_Sort(LeafNode* leafNode) {
 
     int j = leafNode->node.allocated >> 1; // dividir por dos (libro)
     int newsize = leafNode->node.allocated - j;
-    // if (log.isDebugEnabled()) log.debug("split j=" + j);
+
     memcpy(newHigh->data, leafNode->data + j,  newsize * sizeof (QueryData ));
 
     memset(leafNode->data + j, 0, sizeof (QueryData) * newsize);
-    //    for (int i = j; i < j + newsize; i++) {
-    //        leafNode->node.keys[i] = NULL;
-    //        // clear bound id of the influenced query
-    //        leafNode->values[i] = NULL;
-    //    }
+
     newHigh->node.allocated = newsize;
     leafNode->node.allocated -= newsize;
-    LeafNodeResetMaxValue(leafNode);
-    LeafNodeResetMaxValue(newHigh);
-    LeafNodeResetMinValue(leafNode);
-    LeafNodeResetMinValue(newHigh);
-    newHigh->node.right = leafNode->node.right;
-    leafNode->node.right = newHigh;
-    newHigh->node.nextNodeMin = leafNode->node.nextNodeMin;
-    leafNode->node.nextNodeMin = newHigh->data[0].key.searchKey;
+
     return (Node*)newHigh;
 }
 
@@ -305,13 +294,30 @@ Node* LeafNodeSplit_NoSort(LeafNode* leafNode) {
     memcpy(newHigh->data, leafNode->data + median,  (oldSize - median) * sizeof (QueryData ));
 
     memset(leafNode->data + median, 0, sizeof (QueryData) * (oldSize - median));
-    //    for (int i = j; i < j + newsize; i++) {
-    //        leafNode->node.keys[i] = NULL;
-    //        // clear bound id of the influenced query
-    //        leafNode->values[i] = NULL;
-    //    }
+
     newHigh->node.allocated = (oldSize - median);
     leafNode->node.allocated = median;
+
+
+    return (Node*)newHigh;
+}
+
+Node*  LeafNodeSplit(LeafNode* leafNode) {
+    LeafNode* newHigh;
+    switch (optimizationType) {
+        case None:
+        case Batch:
+            newHigh = (LeafNode* )LeafNodeSplit_Sort(leafNode);
+            break;
+        case NoSort:
+        case BatchAndNoSort:
+            newHigh = (LeafNode* )LeafNodeSplit_NoSort(leafNode);
+            break;
+        default:
+            printf("LeafNodeSplit unsupported optimizationType:%d\n", optimizationType);
+            return NULL;
+
+    }
     LeafNodeResetMaxValue(leafNode);
     LeafNodeResetMaxValue(newHigh);
     LeafNodeResetMinValue(leafNode);
@@ -320,26 +326,7 @@ Node* LeafNodeSplit_NoSort(LeafNode* leafNode) {
     leafNode->node.right = newHigh;
     newHigh->node.nextNodeMin = leafNode->node.nextNodeMin;
     leafNode->node.nextNodeMin = newHigh->data[0].key.searchKey;
-//    if(!LeafNodeCheckMinKey(newHigh)){
-//        printf("ERROR: LeafNodeSplit_NoSort");
-//    }
-
     return (Node*)newHigh;
-}
-
-Node*  LeafNodeSplit(LeafNode* leafNode) {
-    switch (optimizationType) {
-        case None:
-        case Batch:
-            return LeafNodeSplit_Sort(leafNode);
-        case NoSort:
-        case BatchAndNoSort:
-            return LeafNodeSplit_NoSort(leafNode);
-        default:
-            printf("LeafNodeSplit unsupported optimizationType:%d\n", optimizationType);
-            return NULL;
-
-    }
 }
 
 inline void LeafNodeResetMinKey(LeafNode* leafNode){

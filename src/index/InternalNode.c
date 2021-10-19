@@ -3,11 +3,13 @@
 //
 #include <string.h>
 #include <query/QueryRange.h>
+#include <pthread.h>
 #include "QTree.h"
 
 void InternalNodeConstructor(InternalNode* internalNode, QTree* qTree){
     memset(internalNode,0, sizeof(InternalNode));
     NodeConstructor((Node*)internalNode, qTree);
+    pthread_spin_init(&internalNode->splitLock, PTHREAD_PROCESS_SHARED);
 //    internalNode->childs = malloc(sizeof (Node*) * qTree->Border + 1);
 
 }
@@ -15,6 +17,7 @@ void InternalNodeDestroy(InternalNode* internalNode){
     for(int i = 0; i <= internalNode->node.allocated; i++){
         NodeDestroy(internalNode->childs[i]);
     }
+    pthread_spin_destroy(&internalNode->splitLock);
     free(internalNode);
 //    free(internalNode->childs);
 }
