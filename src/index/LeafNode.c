@@ -48,15 +48,17 @@ BOOL LeafNodeAdd(LeafNode* leafNode, int slot, KeyType * newKey, ValueType * new
     if (slot < leafNode->node.allocated) {
         memcpy(leafNode->data + slot + 1, leafNode->data + slot, (leafNode->node.allocated - slot) * sizeof(QueryData ));
     }
-    leafNode->node.allocated++;
+
     leafNode->data[slot].key = *newKey;
     leafNode->data[slot].value = newValue;
-    if(leafNode->node.allocated == 1 || (newKey->upper >  (leafNode->node.maxValue))){
+    if(leafNode->node.allocated == 0 || (newKey->upper >  (leafNode->node.maxValue))){
         leafNode->node.maxValue = newKey->upper;
     }
-    if(leafNode->node.allocated == 1 || ((leafNode->node.minValue) >  newKey->lower)){
+    if(leafNode->node.allocated == 0 || ((leafNode->node.minValue) >  newKey->lower)){
         leafNode->node.minValue = newKey->lower;
     }
+    int allocated = ++leafNode->node.allocated;
+    vmlog("LeafNodeAdd, node:%d, allocated:%d", leafNode->node.id, allocated);
     return TRUE;
 }
 BOOL LeafNodeAddBatch(LeafNode* leafNode, int slot, QueryData batch[], int batchCount, BoundKey *min, BoundKey* max){
@@ -68,21 +70,23 @@ BOOL LeafNodeAddBatch(LeafNode* leafNode, int slot, QueryData batch[], int batch
     }
     memcpy(leafNode->data + slot, batch, batchCount * sizeof (QueryData));
 
-    for (int i = 0; i < batchCount; ++i) {
-        if( (batch[i].key.upper >  *max)){
-            *max = batch[i].key.upper;
+    BoundKey localMin = batch[0].key.lower, localMax = batch[0].key.upper;
+    for (int i = 1; i < batchCount; ++i) {
+        if( (batch[i].key.upper >  localMax)){
+            localMax = batch[i].key.upper;
         }
-        if( (batch[i].key.lower <  *min)){
-            *min = batch[i].key.lower;
+        if( (batch[i].key.lower <  localMin)){
+            localMin = batch[i].key.lower;
         }
     }
     if(leafNode->node.allocated == 0 || leafNode->node.maxValue < *max){
-        leafNode->node.maxValue = *max;
+        leafNode->node.maxValue = localMax;
     }
     if(leafNode->node.allocated == 0 || leafNode->node.minValue > *min){
-        leafNode->node.minValue = *min;
+        leafNode->node.minValue = localMin;
     }
     leafNode->node.allocated += batchCount;
+    vmlog("LeafNodeAddBatch, node:%d, allocated:%d", leafNode->node.id, leafNode->node.allocated);
     return TRUE;
 }
 
@@ -90,6 +94,7 @@ BOOL LeafNodeAddLast(LeafNode* leafNode, KeyType * newKey, ValueType * newValue)
     leafNode->data[leafNode->node.allocated].key = *newKey;
     leafNode->data[leafNode->node.allocated].value = newValue;
     leafNode->node.allocated++;
+    vmlog("LeafNodeAddBatch, node:%d, allocated:%d", leafNode->node.id, leafNode->node.allocated);
     if(leafNode->node.allocated == 1 || (newKey->upper >  (leafNode->node.maxValue))){
         leafNode->node.maxValue = newKey->upper;
     }
@@ -253,6 +258,7 @@ Node* LeafNodeSplit_Sort(LeafNode* leafNode) {
     LeafNode* newHigh = (LeafNode*)malloc(sizeof (LeafNode));
     LeafNodeConstructor(newHigh, leafNode->node.tree);
     LeafNodeAllocId(newHigh);
+    NodeAddWriteLock(newHigh);
 
     int j = leafNode->node.allocated >> 1; // dividir por dos (libro)
     int newsize = leafNode->node.allocated - j;
@@ -284,6 +290,7 @@ Node* LeafNodeSplit_NoSort(LeafNode* leafNode) {
     LeafNode* newHigh = (LeafNode*)malloc(sizeof (LeafNode));
     LeafNodeConstructor(newHigh, leafNode->node.tree);
     LeafNodeAllocId(newHigh);
+    NodeAddWriteLock(newHigh);
     int median = leafNode->node.allocated >> 1;
     int oldSize = leafNode->node.allocated;
     if(useBFPRT){
@@ -430,4 +437,16 @@ int LeafNodeFindSlotByKey( LeafNode * node, KeyType* searchKey) {
         }
     }
     return -(low + 1);  // key not found.
+}
+
+BOOL LeafNodeCheckLink(LeafNode* node){
+    if(node->node.right!= NULL){
+        if(node->node.nextNodeMin == ((LeafNode*)node->node.right)->data[0].key.searchKey){
+            return TRUE;
+        } else{
+            return FALSE;
+        }
+    } else{
+        return TRUE;
+    }
 }

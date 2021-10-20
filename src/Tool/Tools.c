@@ -5,6 +5,11 @@
 #include <math.h>
 #include <stdio.h>
 #include <papi.h>
+#include <stdarg.h>
+#include <unistd.h>
+#include <pthread.h>
+#include <fcntl.h>
+#include <string.h>
 #include "Tools.h"
 #include "common.h"
 #define N 999
@@ -342,4 +347,28 @@ void PAPI_end(){
     if ((retval = PAPI_stop(EventSet, papiValues)) != PAPI_OK)
         handle_error(1);
 
+}
+int logF = -1;
+void vmlog( char* fmat, ...){
+    //get the string passed by the caller through the format string
+//    va_list argptr;
+//    va_start(argptr, fmat);
+//    char buffer[MAX_LOG_SIZE]="\0";
+//    int count = vsprintf(buffer, fmat, argptr);
+//    va_end(argptr);
+//    if(count >= MAX_LOG_SIZE)
+//    {
+//        printf("ERROR:log message too many\n");
+//        return;
+//    }
+//    printf("(pid:%lu)---%s\n", pthread_self(), buffer);
+//    fflush(stdout);
+//
+//    if(logF <= 0)
+//    {
+//        logF = open(LOG_PATH, O_RDWR|O_APPEND|O_CREAT, S_IRWXU  );
+//    }
+//    char output[MAX_LOG_SIZE];
+//    snprintf(output, sizeof(output),"(pid:%lu)---%s\n",pthread_self(), buffer);
+//    write(logF, output, strlen(output));
 }

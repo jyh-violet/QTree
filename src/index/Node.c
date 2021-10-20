@@ -11,7 +11,7 @@ void NodeConstructor(Node* node, QTree *tree){
     node-> allocated = 0;
     node->tree = tree;
     pthread_spin_init(&node->lock, PTHREAD_PROCESS_SHARED);
-
+    node->nextNodeMin = RAND_MAX;
     node->read = 0;
 
 //    node->keys = malloc(sizeof(KeyType *) * tree->Border);
@@ -115,4 +115,21 @@ BOOL NodeCheckKey(Node * node){
     } else{
         return InternalNodeCheckKey((InternalNode *)node);
     }
+}
+
+BOOL NodeCheckLink(Node* node){
+    if(NodeIsLeaf(node)){
+        return LeafNodeCheckLink((LeafNode*)node);
+    } else{
+        return InternalNodeCheckLink((InternalNode *)node);
+    }
+}
+void NodeAddWriteLock(Node* node){
+    pthread_spin_lock(&((Node*)node)->lock);
+    vmlog("addWriteLock node:%d", ((Node*)node)->id);
+    while(((Node*)node)->read > 0){}
+}
+void NodeRmWriteLock(Node* node){
+    pthread_spin_unlock(&((Node*)node)->lock);
+    vmlog("rmWriteLock node:%d", ((Node*)node)->id);
 }

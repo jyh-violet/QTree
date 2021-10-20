@@ -28,9 +28,10 @@ BOOL InternalNodeAdd(InternalNode* internalNode, int slot, KeyType * newKey, Nod
         memcpy(internalNode->keys + slot + 1, internalNode->keys + slot, (internalNode->node.allocated - slot) * sizeof(KeyType));
         memcpy(internalNode->childs + slot + 2, internalNode->childs + slot + 1, (internalNode->node.allocated - slot) * sizeof(Node*));
     }
-    internalNode->node.allocated++;
     internalNode->keys[slot] = *newKey;
     internalNode->childs[slot + 1] = child;
+    int allocated = ++internalNode->node.allocated;
+    vmlog("InternalNodeAdd node: %d, allocated:", internalNode->node.id, allocated);
     return TRUE;
 }
 
@@ -70,6 +71,7 @@ Node* InternalNodeSplit(InternalNode* internalNode) {
     InternalNode* newHigh = (InternalNode* )malloc(sizeof (InternalNode));
     InternalNodeConstructor(newHigh, internalNode->node.tree);
     InternalNodeAllocId(newHigh);
+    NodeAddWriteLock(newHigh);
     // int j = ((allocated >> 1) | (allocated & 1)); // dividir por dos y sumar el resto (0 o 1)
     int j = (internalNode->node.allocated >> 1); // dividir por dos (libro)
     int newsize = internalNode->node.allocated - j;
@@ -167,9 +169,10 @@ void InternalNodeRemove(InternalNode* internalNode, int slot) {
         memcpy(internalNode->keys + slot, internalNode->keys + slot + 1, (internalNode->node.allocated - slot - 1) * sizeof (KeyType ));
         memcpy(internalNode->childs + slot + 1, internalNode->childs + slot + 2, (internalNode->node.allocated - slot - 1) * sizeof (Node*));
     }
-    internalNode->node.allocated--;
+    int allocated = --internalNode->node.allocated;
 //    internalNode->node.keys[internalNode->node.allocated] = NULL;
     internalNode->childs[internalNode->node.allocated + 1] = NULL;
+    vmlog("InternalNodeRemove, node:%d, allocated:%d", internalNode->node.id, allocated);
 }
 
 void InternalNodeMerge(Node* internalNode, InternalNode* nodeParent, int slot, Node* nodeFROMx) {
@@ -258,6 +261,7 @@ int InternalNodeFindSlotByKey( InternalNode* node, KeyType* searchKey) {
     }
     int low = 0;
     int high = node->node.allocated - 1;
+    vmlog("InternalNodeFindSlotByKey node:%d, high:%d",node->node.id, high);
 
     while (low <= high) {
         int mid = (low + high) >> 1;
@@ -268,8 +272,57 @@ int InternalNodeFindSlotByKey( InternalNode* node, KeyType* searchKey) {
         } else if (QueryRangeGT(midVal, *searchKey)) {
             high = mid - 1;
         } else {
+            if(mid >= node->node.allocated){
+                vmlog("InternalNodeFindSlotByKey ERROR: node:%d",node->node.id);
+            }
             return mid; // key found
         }
     }
+    if(low > node->node.allocated){
+        vmlog("InternalNodeFindSlotByKey ERROR: node:%d",node->node.id);
+    }
+//    printf("InternalNodeFindSlotByKey: node:%d, slot:%d\n", node->node.id, low);
     return -(low + 1);  // key not found.
+}
+
+int InternalNodeFindSlotByNextMin( InternalNode* node, BoundKey nextMin) {
+    if(node->node.allocated == 0){
+        return -1;
+    }
+    int low = 0;
+    int high = node->node.allocated - 1;
+
+    while (low <= high) {
+        int mid = (low + high) >> 1;
+        KeyType midVal = (node->keys[mid]);
+
+        if (midVal.searchKey <= nextMin) {
+            low = mid + 1;
+        } else if (midVal.searchKey > nextMin) {
+            high = mid - 1;
+        }
+    }
+    return low;  // key not found.
+}
+
+BOOL InternalNodeCheckLink(InternalNode * node){
+    int allocated = node->node.allocated;
+    for (int i = 0; i < allocated; ++i) {
+        if(node->childs[i]->right!= node->childs[i + 1]){
+            if(node->childs[i]->right->right == node->childs[i + 1]){
+                continue;
+            }
+            return FALSE;
+        }
+        if(node->childs[i]->nextNodeMin != node->keys[i].searchKey){
+            return FALSE;
+        }
+    }
+    for(int i = 0; i <= allocated; i ++){
+        if(NodeCheckLink(node->childs[i]) == FALSE){
+            return FALSE;
+        }
+    }
+
+    return TRUE;
 }

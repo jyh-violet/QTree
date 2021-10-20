@@ -5,7 +5,9 @@
 #include <time.h>
 #include <Tool/ArrayList.h>
 #include <papi.h>
+#include <pthread.h>
 
+#define MaxThread 10
 
 DataRegionType dataRegionType = Zipf;
 DataPointType dataPointType = RemovePoint;
@@ -24,6 +26,41 @@ u_int64_t checkInternal = 0;
 int removePoint = 0;
 double zipfPara = 0.99;
 BOOL qtreeCheck = FALSE;
+
+_Atomic int insertNum = 0, removeNum = 0;
+int threadnum = 4;
+
+typedef struct ThreadAttributes{
+    QTree* qTree;
+    QueryMeta* insertQueries ;
+    QueryMeta* queries ;
+    QueryMeta* removeQuery;
+    int start;
+    int end;
+}ThreadAttributes;
+
+void testInsert(ThreadAttributes* attributes){
+    for(    int i = attributes->start; i <  attributes->end; i ++){
+        QTreePut(attributes->qTree, &(attributes->insertQueries[i].dataRegion), attributes->insertQueries + i);
+    }
+}
+
+size_t testMix(ThreadAttributes* attributes){
+    Arraylist* removedQuery = ArraylistCreate(TOTAL);
+    for (int i = attributes->start; i <  attributes->end; ++i) {
+        int randNum = rand();
+        double ratio = ((double )randNum) / ((double )RAND_MAX + 1);
+        if(ratio < insertRatio){
+            QTreePut(attributes->qTree, &(attributes->queries[i].dataRegion), attributes->queries + i);
+            insertNum ++;
+        } else{
+            QTreeFindAndRemoveRelatedQueries(attributes->qTree, (attributes->removeQuery[i].dataRegion.upper + attributes->removeQuery[i].dataRegion.lower) / 2, removedQuery);
+            removeNum ++;
+        }
+    }
+    return removedQuery->size;
+}
+
 int test() {
 
     useBFPRT = 0;
@@ -59,58 +96,60 @@ int test() {
     generateT = (double)(finish - start)/CLOCKS_PER_SEC;
 //    printf("generate end! use %lfs\n", (double)(finish - start)/CLOCKS_PER_SEC );
 
+    int perThread = TOTAL / threadnum;
     time1 = start = clock();
-    for(    int i = 0; i < TOTAL; i ++){
-        QTreePut(&qTree, &(insertQueries[i].dataRegion), insertQueries + i);
+    pthread_t thread[MaxThread];
+    ThreadAttributes attributes[MaxThread];
+    for (int i = 0; i < threadnum; ++i) {
+        attributes[i].start = i * perThread;
+        attributes[i].end = i == (threadnum - 1)? TOTAL: (i + 1)* perThread;
+        attributes[i].insertQueries = insertQueries;
+        attributes[i].queries = queries;
+        attributes[i].removeQuery = removeQuery;
+        attributes[i].qTree = &qTree;
+        pthread_create(&thread[i], 0, (void *(*)(void *))testInsert, (void *)&attributes[i]);
     }
+    for (int i = 0; i < threadnum; ++i) {
+        pthread_join(thread[i], NULL);
+    }
+
     finish = clock();
     putT = (double)(finish - start)/CLOCKS_PER_SEC;
-//    int num = qTree.elements;
-//    num += qTree.batchCount;
-//    printf("%d\n", num);
-//    printQTree(&qTree);
-    QTreeResetStatistics(&qTree);
-    Arraylist* removedQuery = ArraylistCreate(TOTAL * 2);
-
-//    PAPI_init();
-//    PAPI_startCache();
-
-    time1 = start = clock();
-    int insertNum = 0, removeNum = 0;
-    for (int i = 0; i < TOTAL; ++i) {
-
-        if(mixPara[i] < insertRatio){
-            QTreePut(&qTree, &(queries[i].dataRegion), queries + i);
-            insertNum ++;
-        } else{
-            QTreeFindAndRemoveRelatedQueries(&qTree, (removeQuery[i].dataRegion.upper + removeQuery[i].dataRegion.lower) / 2, removedQuery);
-            removeNum ++;
-        }
-        if(qtreeCheck){
-            if(QTreeCheckKey(&qTree) ==FALSE){
-                printQTree(&qTree);
-                printf("QTreeCheckKey error: %d, %d\n", i, mixPara[i] < insertRatio? 0 : 1);
-                //            exit(-1);
-            }
-            if(QTreeCheckMaxMin(&qTree) ==FALSE){
-                printQTree(&qTree);
-                printf("QTreeCheckMaxMin error: %d, %d\n", i, mixPara[i] < insertRatio? 0 : 1);
-                //            exit(-1);
-            }
-            if((i + 1) % TRACE_LEN == 0){
-                time2 = clock();
-                printf("%d, used %lf s, size:%d \n", i, (double)(time2 - time1)/CLOCKS_PER_SEC, qTree.elements);
-                time1 = time2;
-            }
-        }
+    int num = qTree.elements;
+    num += qTree.batchCount;
+    printf("%d\n", num);
+    if(NodeCheckLink(qTree.root) == FALSE){
+        printf("NodeCheckLink ERROR!!!\n");
     }
-    finish = clock();
 //    printQTree(&qTree);
-//    PAPI_readCache();
-//    PAPI_end();
 
-    size_t removed = removedQuery->size;
-    ArraylistDeallocate(removedQuery);
+    size_t removed = 0;
+//    QTreeResetStatistics(&qTree);
+//    Arraylist* removedQuery = ArraylistCreate(TOTAL * 2);
+////    PAPI_init();
+////    PAPI_startCache();
+//    time1 = start = clock();
+//
+//    for (int i = 0; i < threadnum; ++i) {
+//        attributes[i].start = i * perThread;
+//        attributes[i].end = i == (threadnum - 1)? TOTAL: (i + 1)* perThread;
+//        attributes[i].queries = queries;
+//        attributes[i].removeQuery = removeQuery;
+//        attributes[i].qTree = &qTree;
+//        pthread_create(&thread[i], 0, testMix, &attributes[i]);
+//    }
+//
+//    for (int i = 0; i < threadnum; ++i) {
+//        size_t removedNum;
+//        pthread_join(thread[i], &removedNum);
+//        removed += removedNum;
+//    }
+//    finish = clock();
+////    printQTree(&qTree);
+////    PAPI_readCache();
+////    PAPI_end();
+//
+//    ArraylistDeallocate(removedQuery);
     QTreeDestroy(&qTree);
 
     mixT = (double)(finish - start)/CLOCKS_PER_SEC;
@@ -165,6 +204,7 @@ int main(){
     config_lookup_int(&cfg, "dataPointType", (int*)&dataPointType);
     config_lookup_int(&cfg, "valueSpan", &valueSpan);
     config_lookup_float(&cfg, "insertRatio", &insertRatio);
+    config_lookup_int(&cfg, "threadnum", &threadnum);
 
     maxValue = TOTAL;
 

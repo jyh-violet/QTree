@@ -4,6 +4,8 @@
 
 #ifndef QTREE_TOOLS_H
 #define QTREE_TOOLS_H
+#define MAX_LOG_SIZE 1000
+#define LOG_PATH "log"
 
 
 typedef enum DataRegionType {
@@ -62,5 +64,6 @@ int Partion(int a[], int l, int r, int p);
 int FindMid(int a[], int l, int r);
 void InsertSort(int a[], int l, int r);
 
+void vmlog( char* fmat, ...);
 
 #endif //QTREE_TOOLS_H
