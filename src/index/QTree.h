@@ -71,10 +71,15 @@ typedef struct QTree {
     _Atomic size_t funcCount;
     _Atomic size_t whileCount;
     Node *root;
+    pthread_spinlock_t removeLock;
 }QTree;
+
+
+#define NodeIsValid(node)  (((Node*)node)->allocated >= 0)
 
 typedef struct Node{
     pthread_spinlock_t lock; // work as write lock
+    _Atomic int removeRead; // work as the read lock
     int id ;
     int allocated ;
     BoundKey maxValue ;
@@ -92,8 +97,7 @@ struct LeafNode {
 
 struct InternalNode {
     Node node;
-    _Atomic int read; // work as the read lock
-    pthread_spinlock_t removeLock;
+    pthread_rwlock_t removeLock;
     KeyType  keys[Border];  // array of key
     Node* childs[Border + 1];
 };
@@ -141,6 +145,7 @@ void NodeRmWriteLock(Node* node);
 void NodeAddRWLock(Node* node);
 void NodeRmRWLock(Node* node);
 void NodeRmReadLock(Node* node);
+void NodeAddReadLock(Node* node);
 
 
 void LeafNodeConstructor(LeafNode* leafNode, QTree *tree);
@@ -188,6 +193,8 @@ BOOL InternalNodeCheckKey(InternalNode * internalNode);
 int InternalNodeFindSlotByKey( InternalNode * node, KeyType* searchKey) ;
 int InternalNodeFindSlotByNextMin( InternalNode* node, BoundKey nextMin);
 BOOL InternalNodeCheckLink(InternalNode * node);
+void InternalNodeAddRemoveLock(InternalNode* internalNode);
+void InternalNodeRmRemoveLock(InternalNode* internalNode);
 
 void quickSelect(QueryData data[], int k, int s, int e);
 //void quickSelect(KeyType arr[], int k, int s, int e);

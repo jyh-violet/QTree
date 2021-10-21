@@ -349,20 +349,23 @@ void PAPI_end(){
 
 }
 int logF = -1;
-void vmlog( char* fmat, ...){
-//    //get the string passed by the caller through the format string
-//    va_list argptr;
-//    va_start(argptr, fmat);
-//    char buffer[MAX_LOG_SIZE]="\0";
-//    int count = vsprintf(buffer, fmat, argptr);
-//    va_end(argptr);
-//    if(count >= MAX_LOG_SIZE)
-//    {
-//        printf("ERROR:log message too many\n");
-//        return;
-//    }
-//    printf("(pid:%lu)---%s\n", pthread_self(), buffer);
-//    fflush(stdout);
+void vmlog(LOGLevel logLevel, char* fmat, ...){
+    if(logLevel == InsertLog){
+        return;
+    }
+    //get the string passed by the caller through the format string
+    va_list argptr;
+    va_start(argptr, fmat);
+    char buffer[MAX_LOG_SIZE]="\0";
+    int count = vsprintf(buffer, fmat, argptr);
+    va_end(argptr);
+    if(count >= MAX_LOG_SIZE)
+    {
+        printf("ERROR:log message too many\n");
+        return;
+    }
+    printf("(pid:%lu)---%s\n", pthread_self(), buffer);
+    fflush(stdout);
 
 //    if(logF <= 0)
 //    {

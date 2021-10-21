@@ -9,8 +9,7 @@
 void InternalNodeConstructor(InternalNode* internalNode, QTree* qTree){
     memset(internalNode,0, sizeof(InternalNode));
     NodeConstructor((Node*)internalNode, qTree);
-    internalNode->read = 0;
-    pthread_spin_init(&internalNode->removeLock, PTHREAD_PROCESS_SHARED);
+    pthread_rwlock_init(&internalNode->removeLock, 0);
 //    internalNode->childs = malloc(sizeof (Node*) * qTree->Border + 1);
 
 }
@@ -18,9 +17,9 @@ void InternalNodeDestroy(InternalNode* internalNode){
     for(int i = 0; i <= internalNode->node.allocated; i++){
         NodeDestroy(internalNode->childs[i]);
     }
-    pthread_spin_destroy(&internalNode->removeLock);
+    pthread_rwlock_destroy(&internalNode->removeLock);
+    vmlog(MiXLog, "InternalNodeDestroy, rm node:%d, pointer:%lx", internalNode->node.id, internalNode);
     free(internalNode);
-//    free(internalNode->childs);
 }
 
 
@@ -32,7 +31,7 @@ BOOL InternalNodeAdd(InternalNode* internalNode, int slot, KeyType * newKey, Nod
     internalNode->keys[slot] = *newKey;
     internalNode->childs[slot + 1] = child;
     int allocated = ++internalNode->node.allocated;
-    vmlog("InternalNodeAdd node: %d, allocated:", internalNode->node.id, allocated);
+    vmlog(InsertLog,"InternalNodeAdd node: %d, allocated:", internalNode->node.id, allocated);
     return TRUE;
 }
 
@@ -139,8 +138,10 @@ BOOL InternalNodeCheckUnderflowWithRight(InternalNode* internalNode, int slot){
     int maxloop = internalNode->node.allocated - slot;
     int loop = 0;
     BOOL merge = FALSE;
+    NodeAddWriteLock(nodeLeft);
     while ((loop < maxloop) &&NodeIsUnderFlow(nodeLeft)) {
         Node* nodeRight = internalNode->childs[slot + 1];
+        NodeAddWriteLock(nodeRight);
         if (NodeCanMerge(nodeLeft, nodeRight)) {
             NodeMerge(nodeLeft, internalNode, slot, nodeRight);
             internalNode->childs[slot] = nodeLeft;
@@ -148,10 +149,12 @@ BOOL InternalNodeCheckUnderflowWithRight(InternalNode* internalNode, int slot){
         } else {
             //                nodeLeft.shiftRL(internalNode, slot, nodeRight);
         }
+        NodeRmWriteLock(nodeRight);
         loop ++;
 
 //        return TRUE;
     }
+    NodeRmWriteLock(nodeLeft);
     return merge;
 }
 
@@ -173,7 +176,7 @@ void InternalNodeRemove(InternalNode* internalNode, int slot) {
     int allocated = --internalNode->node.allocated;
 //    internalNode->node.keys[internalNode->node.allocated] = NULL;
     internalNode->childs[internalNode->node.allocated + 1] = NULL;
-    vmlog("InternalNodeRemove, node:%d, allocated:%d", internalNode->node.id, allocated);
+    vmlog(InsertLog,"InternalNodeRemove, node:%d, allocated:%d", internalNode->node.id, allocated);
 }
 
 void InternalNodeMerge(Node* internalNode, InternalNode* nodeParent, int slot, Node* nodeFROMx) {
@@ -196,11 +199,18 @@ void InternalNodeMerge(Node* internalNode, InternalNode* nodeParent, int slot, N
         }
     }
     nodeTO->node.right = nodeFROMx->right;
+    nodeTO->node.nextNodeMin = nodeFROMx->nextNodeMin;
     // remove key from nodeParent
     InternalNodeRemove(nodeParent, slot);
-    nodeTO->node.nextNodeMin = nodeFROMx->nextNodeMin;
+
     // Free nodeFROM
-    free((Node*)nodeFROM);
+    nodeFROM->node.allocated = -1;
+    vmlog(MiXLog, "InternalNodeMerge, rm node:%d, pointer:%lx", nodeFROMx->id, nodeFROMx);
+    if(nodeFROMx->removeRead == 0){
+        free(nodeFROMx);
+    } else{
+        vmlog(MiXLog, "InternalNodeMerge, node:%d removedRead=%d", nodeFROMx->id, nodeFROMx->removeRead);
+    }
 }
 
 
@@ -262,7 +272,7 @@ int InternalNodeFindSlotByKey( InternalNode* node, KeyType* searchKey) {
     }
     int low = 0;
     int high = node->node.allocated - 1;
-    vmlog("InternalNodeFindSlotByKey node:%d, high:%d",node->node.id, high);
+    vmlog(InsertLog,"InternalNodeFindSlotByKey node:%d, high:%d",node->node.id, high);
 
     while (low <= high) {
         int mid = (low + high) >> 1;
@@ -274,13 +284,13 @@ int InternalNodeFindSlotByKey( InternalNode* node, KeyType* searchKey) {
             high = mid - 1;
         } else {
             if(mid >= node->node.allocated){
-                vmlog("InternalNodeFindSlotByKey ERROR: node:%d",node->node.id);
+                vmlog(InsertLog,"InternalNodeFindSlotByKey ERROR: node:%d",node->node.id);
             }
             return mid; // key found
         }
     }
     if(low > node->node.allocated){
-        vmlog("InternalNodeFindSlotByKey ERROR: node:%d",node->node.id);
+        vmlog(InsertLog,"InternalNodeFindSlotByKey ERROR: node:%d",node->node.id);
     }
 //    printf("InternalNodeFindSlotByKey: node:%d, slot:%d\n", node->node.id, low);
     return -(low + 1);  // key not found.
@@ -308,6 +318,9 @@ int InternalNodeFindSlotByNextMin( InternalNode* node, BoundKey nextMin) {
 
 BOOL InternalNodeCheckLink(InternalNode * node){
     int allocated = node->node.allocated;
+    if(allocated > Border){
+        return FALSE;
+    }
     for (int i = 0; i < allocated; ++i) {
         if(node->childs[i]->right!= node->childs[i + 1]){
             if(node->childs[i]->right->right == node->childs[i + 1]){
@@ -326,4 +339,12 @@ BOOL InternalNodeCheckLink(InternalNode * node){
     }
 
     return TRUE;
+}
+
+void InternalNodeAddRemoveLock(InternalNode* internalNode){
+    pthread_rwlock_wrlock(&internalNode->removeLock);
+}
+
+void InternalNodeRmRemoveLock(InternalNode* internalNode){
+    pthread_rwlock_unlock(&internalNode->removeLock);
 }

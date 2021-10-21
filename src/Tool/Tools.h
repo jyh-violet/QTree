@@ -7,6 +7,10 @@
 #define MAX_LOG_SIZE 1000
 #define LOG_PATH "log"
 
+typedef enum LOGLevel{
+    InsertLog,
+    MiXLog
+}LOGLevel;
 
 typedef enum DataRegionType {
     Same,
@@ -64,6 +68,6 @@ int Partion(int a[], int l, int r, int p);
 int FindMid(int a[], int l, int r);
 void InsertSort(int a[], int l, int r);
 
-void vmlog( char* fmat, ...);
+void vmlog(LOGLevel logLevel, char* fmat, ...);
 
 #endif //QTREE_TOOLS_H

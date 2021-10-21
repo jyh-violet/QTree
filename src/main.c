@@ -35,6 +35,7 @@ typedef struct ThreadAttributes{
     QueryMeta* insertQueries ;
     QueryMeta* queries ;
     QueryMeta* removeQuery;
+    double *mixPara;
     int start;
     int end;
 }ThreadAttributes;
@@ -46,17 +47,16 @@ void testInsert(ThreadAttributes* attributes){
 }
 
 size_t testMix(ThreadAttributes* attributes){
-    Arraylist* removedQuery = ArraylistCreate(TOTAL);
+    Arraylist* removedQuery = ArraylistCreate(attributes->end - attributes->start);
     for (int i = attributes->start; i <  attributes->end; ++i) {
-        int randNum = rand();
-        double ratio = ((double )randNum) / ((double )RAND_MAX + 1);
-        if(ratio < insertRatio){
+        if(attributes->mixPara[i] < insertRatio){
             QTreePut(attributes->qTree, &(attributes->queries[i].dataRegion), attributes->queries + i);
             insertNum ++;
         } else{
             QTreeFindAndRemoveRelatedQueries(attributes->qTree, (attributes->removeQuery[i].dataRegion.upper + attributes->removeQuery[i].dataRegion.lower) / 2, removedQuery);
             removeNum ++;
         }
+        vmlog(MiXLog,"i:%d, para:%lf, rm:%ld",i, attributes->mixPara[i], removedQuery->size);
     }
     return removedQuery->size;
 }
@@ -107,6 +107,7 @@ int test() {
         attributes[i].queries = queries;
         attributes[i].removeQuery = removeQuery;
         attributes[i].qTree = &qTree;
+        attributes[i].mixPara = mixPara;
         pthread_create(&thread[i], 0, (void *(*)(void *))testInsert, (void *)&attributes[i]);
     }
     for (int i = 0; i < threadnum; ++i) {
@@ -124,43 +125,44 @@ int test() {
 //    printQTree(&qTree);
 
     size_t removed = 0;
-//    QTreeResetStatistics(&qTree);
-//    Arraylist* removedQuery = ArraylistCreate(TOTAL * 2);
-////    PAPI_init();
-////    PAPI_startCache();
-//    time1 = start = clock();
-//
-//    for (int i = 0; i < threadnum; ++i) {
-//        attributes[i].start = i * perThread;
-//        attributes[i].end = i == (threadnum - 1)? TOTAL: (i + 1)* perThread;
-//        attributes[i].queries = queries;
-//        attributes[i].removeQuery = removeQuery;
-//        attributes[i].qTree = &qTree;
-//        pthread_create(&thread[i], 0, testMix, &attributes[i]);
-//    }
-//
-//    for (int i = 0; i < threadnum; ++i) {
-//        size_t removedNum;
-//        pthread_join(thread[i], &removedNum);
-//        removed += removedNum;
-//    }
-//    finish = clock();
-////    printQTree(&qTree);
-////    PAPI_readCache();
-////    PAPI_end();
-//
-//    ArraylistDeallocate(removedQuery);
+    QTreeResetStatistics(&qTree);
+//    PAPI_init();
+//    PAPI_startCache();
+    time1 = start = clock();
+
+    for (int i = 0; i < threadnum; ++i) {
+        attributes[i].start = i * perThread;
+        attributes[i].end = i == (threadnum - 1)? TOTAL: (i + 1)* perThread;
+        attributes[i].queries = queries;
+        attributes[i].removeQuery = removeQuery;
+        attributes[i].qTree = &qTree;
+        attributes[i].mixPara = mixPara;
+        pthread_create(&thread[i], 0, testMix, &attributes[i]);
+    }
+
+    for (int i = 0; i < threadnum; ++i) {
+        size_t removedNum;
+        pthread_join(thread[i], &removedNum);
+        removed += removedNum;
+    }
+    finish = clock();
+//    printQTree(&qTree);
+//    PAPI_readCache();
+//    PAPI_end();
+    if(NodeCheckLink(qTree.root) == FALSE){
+        printf("NodeCheckLink ERROR!!!\n");
+    }
     QTreeDestroy(&qTree);
 
+
     mixT = (double)(finish - start)/CLOCKS_PER_SEC;
-//    printf("remove end! use %lfs\n", (double)(finish - start)/CLOCKS_PER_SEC);
-//    printf( "get and remove end!\n remain:%d\n",  qTree.elements);
 printf("%d, %d, %d,  %d, %d, %d, %.2lf, %d,  %d,  %.3lf,%.3lf,%.3lf, %d, %d, %ld, %ld, %ld,  %ld, %ld, %ld, %ld, %ld, %d, %d, %d, %d, \n",
        Border, checkQueryMeta, optimizationType, dataPointType, dataRegionTypeOld, searchKeyType, insertRatio, removePoint, TOTAL,
            generateT, putT, mixT, insertNum, removeNum, removed, checkQuery, checkLeaf, checkInternal,
            qTree.leafSplitCount, qTree.internalSplitCount, qTree.whileCount, qTree.funcCount, RemovedQueueSize, batchMissThreshold, MaxBatchCount, setKeyCount);
     free(queries) ;
     free(removeQuery);
+    free(insertQueries);
     return 0;
 }
 

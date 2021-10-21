@@ -10,8 +10,8 @@ inline void LeafNodeConstructor(LeafNode* leafNode, QTree *tree){
 //    memset(leafNode->values,0, sizeof (ValueType *) * Border);
 }
 void LeafNodeDestroy(LeafNode* leafNode){
+    vmlog(MiXLog, "LeafNodeDestroy, rm node:%d, pointer:%lx", leafNode->node.id, leafNode);
     free(leafNode);
-//    free(leafNode->values);
 }
 
 void LeafNodeMerge(LeafNode* leafNode, InternalNode* nodeParent, int slot,
@@ -37,7 +37,11 @@ void LeafNodeMerge(LeafNode* leafNode, InternalNode* nodeParent, int slot,
     // remove key from nodeParent
     InternalNodeRemove(nodeParent, slot);
     // Free nodeFROM
-    free((Node*)nodeFROM);
+    vmlog(MiXLog, "LeafNodeMerge, rm node:%d, pointer:%lx", nodeFROM->node.id, nodeFROM);
+    nodeFROM->node.allocated = -1;
+//    if(nodeFROMx->removeRead == 0){
+//        free((Node*)nodeFROM);
+//    }
 }
 
 void * LeafNodRemove(LeafNode* leafNode, int slot) {
@@ -58,7 +62,7 @@ BOOL LeafNodeAdd(LeafNode* leafNode, int slot, KeyType * newKey, ValueType * new
         leafNode->node.minValue = newKey->lower;
     }
     int allocated = ++leafNode->node.allocated;
-    vmlog("LeafNodeAdd, node:%d, allocated:%d", leafNode->node.id, allocated);
+    vmlog(InsertLog,"LeafNodeAdd, node:%d, allocated:%d", leafNode->node.id, allocated);
     return TRUE;
 }
 BOOL LeafNodeAddBatch(LeafNode* leafNode, int slot, QueryData batch[], int batchCount, BoundKey *min, BoundKey* max){
@@ -86,7 +90,7 @@ BOOL LeafNodeAddBatch(LeafNode* leafNode, int slot, QueryData batch[], int batch
         leafNode->node.minValue = localMin;
     }
     leafNode->node.allocated += batchCount;
-    vmlog("LeafNodeAddBatch, node:%d, allocated:%d", leafNode->node.id, leafNode->node.allocated);
+    vmlog(InsertLog,"LeafNodeAddBatch, node:%d, allocated:%d", leafNode->node.id, leafNode->node.allocated);
     return TRUE;
 }
 
@@ -94,7 +98,7 @@ BOOL LeafNodeAddLast(LeafNode* leafNode, KeyType * newKey, ValueType * newValue)
     leafNode->data[leafNode->node.allocated].key = *newKey;
     leafNode->data[leafNode->node.allocated].value = newValue;
     leafNode->node.allocated++;
-    vmlog("LeafNodeAddLast, node:%d, allocated:%d", leafNode->node.id, leafNode->node.allocated);
+    vmlog(InsertLog,"LeafNodeAddLast, node:%d, allocated:%d", leafNode->node.id, leafNode->node.allocated);
     if(leafNode->node.allocated == 1 || (newKey->upper >  (leafNode->node.maxValue))){
         leafNode->node.maxValue = newKey->upper;
     }
@@ -440,6 +444,9 @@ int LeafNodeFindSlotByKey( LeafNode * node, KeyType* searchKey) {
 }
 
 BOOL LeafNodeCheckLink(LeafNode* node){
+    if(node->node.allocated > Border){
+        return FALSE;
+    }
     if(node->node.right!= NULL){
         if(node->node.nextNodeMin == ((LeafNode*)node->node.right)->data[0].key.searchKey){
             return TRUE;
