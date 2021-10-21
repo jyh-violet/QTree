@@ -39,9 +39,9 @@ void LeafNodeMerge(LeafNode* leafNode, InternalNode* nodeParent, int slot,
     // Free nodeFROM
     vmlog(MiXLog, "LeafNodeMerge, rm node:%d, pointer:%lx", nodeFROM->node.id, nodeFROM);
     nodeFROM->node.allocated = -1;
-//    if(nodeFROMx->removeRead == 0){
-//        free((Node*)nodeFROM);
-//    }
+    if(nodeFROMx->read == 0){
+        free((Node*)nodeFROM);
+    }
 }
 
 void * LeafNodRemove(LeafNode* leafNode, int slot) {

@@ -79,7 +79,7 @@ typedef struct QTree {
 
 typedef struct Node{
     pthread_spinlock_t lock; // work as write lock
-    _Atomic int removeRead; // work as the read lock
+    _Atomic int read; // work as the read lock
     int id ;
     int allocated ;
     BoundKey maxValue ;

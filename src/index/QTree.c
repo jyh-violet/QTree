@@ -318,7 +318,7 @@ inline void QTreePutOne(QTree* qTree, QueryRange* key, QueryMeta* value){
                 InternalNode* node = stackPop(nodesStack.stackNodes, nodesStack.stackNodesIndex);
                 NodeRmReadLock((Node*)node);
             }
-            if(nodeLeaf->node.removeRead == 1){
+            if(nodeLeaf->node.read == 1){
                 vmlog(MiXLog, "QTreePutOne, rm node:%d, pointer:%lx", nodeLeaf->node.id, nodeLeaf);
                 free(nodeLeaf);
             } else{

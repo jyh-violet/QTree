@@ -49,6 +49,7 @@ void testInsert(ThreadAttributes* attributes){
 size_t testMix(ThreadAttributes* attributes){
     Arraylist* removedQuery = ArraylistCreate(attributes->end - attributes->start);
     for (int i = attributes->start; i <  attributes->end; ++i) {
+        vmlog(MiXLog,"i:%d, para:%lf, rm:%ld",i, attributes->mixPara[i], removedQuery->size);
         if(attributes->mixPara[i] < insertRatio){
             QTreePut(attributes->qTree, &(attributes->queries[i].dataRegion), attributes->queries + i);
             insertNum ++;
@@ -56,7 +57,6 @@ size_t testMix(ThreadAttributes* attributes){
             QTreeFindAndRemoveRelatedQueries(attributes->qTree, (attributes->removeQuery[i].dataRegion.upper + attributes->removeQuery[i].dataRegion.lower) / 2, removedQuery);
             removeNum ++;
         }
-        vmlog(MiXLog,"i:%d, para:%lf, rm:%ld",i, attributes->mixPara[i], removedQuery->size);
     }
     return removedQuery->size;
 }

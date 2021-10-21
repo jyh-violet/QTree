@@ -12,7 +12,7 @@ void NodeConstructor(Node* node, QTree *tree){
     node->tree = tree;
     pthread_spin_init(&node->lock, PTHREAD_PROCESS_SHARED);
     node->nextNodeMin = RAND_MAX;
-    node->removeRead = 0;
+    node->read = 0;
 
 //    node->keys = malloc(sizeof(KeyType *) * tree->Border);
 //    memset(node->keys,0, sizeof(KeyType *) * Border);
@@ -138,11 +138,9 @@ void NodeRmWriteLock(Node* node){
 void NodeAddRWLock(Node* node){
     if(!NodeIsLeaf(node)){
         pthread_rwlock_rdlock(&((InternalNode*)node)->removeLock);
-        pthread_spin_lock(&((Node*)node)->lock);
-    } else{
-        node->removeRead ++;
-        pthread_spin_lock(&((Node*)node)->lock);
     }
+    node->read ++;
+    pthread_spin_lock(&((Node*)node)->lock);
     vmlog(InsertLog,"addRWLock node:%d", ((Node*)node)->id);
 }
 void NodeRmRWLock(Node* node){
@@ -150,26 +148,23 @@ void NodeRmRWLock(Node* node){
     pthread_spin_unlock(&((Node*)node)->lock);
     if(!NodeIsLeaf(node)){
         pthread_rwlock_unlock(&((InternalNode*)node)->removeLock);
-    } else{
-        node->removeRead ++;
     }
+    node->read --;
     vmlog(InsertLog,"rmRWLock node:%d", ((Node*)node)->id);
 }
 void NodeRmReadLock(Node* node){
     if(!NodeIsLeaf(node)){
         pthread_rwlock_unlock(&((InternalNode*)node)->removeLock);
-    } else{
-        node->removeRead ++;
     }
+    node->read --;
     vmlog(InsertLog,"rmReadLock node:%d", ((Node*)node)->id);
 }
 
 void NodeAddReadLock(Node* node){
     if(!NodeIsLeaf(node)){
         pthread_rwlock_rdlock(&((InternalNode*)node)->removeLock);
-    } else{
-        node->removeRead ++;
     }
+    node->read ++;
     vmlog(InsertLog,"addReadLock node:%d", ((Node*)node)->id);
 }
 

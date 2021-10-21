@@ -206,10 +206,10 @@ void InternalNodeMerge(Node* internalNode, InternalNode* nodeParent, int slot, N
     // Free nodeFROM
     nodeFROM->node.allocated = -1;
     vmlog(MiXLog, "InternalNodeMerge, rm node:%d, pointer:%lx", nodeFROMx->id, nodeFROMx);
-    if(nodeFROMx->removeRead == 0){
+    if(nodeFROMx->read == 0){
         free(nodeFROMx);
     } else{
-        vmlog(MiXLog, "InternalNodeMerge, node:%d removedRead=%d", nodeFROMx->id, nodeFROMx->removeRead);
+        vmlog(MiXLog, "InternalNodeMerge, node:%d removedRead=%d", nodeFROMx->id, nodeFROMx->read);
     }
 }
 
