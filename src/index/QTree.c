@@ -140,7 +140,7 @@ inline void QTreeMakeNewRoot(QTree* qTree, Node* splitedNode){
     InternalNodeAllocId(nodeRootNew);
 
     KeyType newkey = NodeSplitShiftKeysLeft(splitedNode);
-    NodeRmWriteLock(splitedNode);
+    NodeRmRWLock(splitedNode);
     nodeRootNew->childs[0] = qTree->root;
     nodeRootNew->keys[0] = newkey;
     nodeRootNew->childs[1] = splitedNode;
@@ -213,7 +213,7 @@ inline LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key, NodesStack* node
 
     while (!NodeIsLeaf(node)) {
         InternalNode *nodeInternal = (InternalNode*) node;
-        NodeAddWriteLock(nodeInternal);
+        NodeAddRWLock(nodeInternal);
         if((max >(nodeInternal->node.maxValue)) ){
             nodeInternal->node.maxValue = max;
         }
@@ -305,11 +305,12 @@ inline void QTreePutOne(QTree* qTree, QueryRange* key, QueryMeta* value){
         exit(-1);
     }
     int slot;
-    NodeAddWriteLock(nodeLeaf);
+    NodeAddRWLock(nodeLeaf);
     while (key->searchKey > nodeLeaf->node.nextNodeMin){
-        NodeAddWriteLock(nodeLeaf->node.right);
-        NodeRmWriteLock(nodeLeaf);
-        nodeLeaf = (LeafNode*) nodeLeaf->node.right;
+        NodeAddRWLock(nodeLeaf->node.right);
+        LeafNode* tempNode = nodeLeaf;
+        nodeLeaf = nodeLeaf->node.right;
+        NodeRmRWLock(tempNode);
     }
     switch (optimizationType) {
         case None:
@@ -346,10 +347,10 @@ inline void QTreePutOne(QTree* qTree, QueryRange* key, QueryMeta* value){
             KeyType  childKey = NodeSplitShiftKeysLeft(splitedNode);
             BoundKey nextMin = splitedNode->nextNodeMin;
             while (nextMin > node->node.nextNodeMin){
-                NodeAddWriteLock(node->node.right);
+                NodeAddRWLock(node->node.right);
                 Node* tempNode = node;
                 node = (InternalNode*) node->node.right;
-                NodeRmWriteLock(tempNode);
+                NodeRmRWLock(tempNode);
 
             }
             slot = InternalNodeFindSlotByNextMin(node, nextMin);
@@ -359,14 +360,14 @@ inline void QTreePutOne(QTree* qTree, QueryRange* key, QueryMeta* value){
                 slot --;
             }
             InternalNodeAdd(node, slot, &childKey, splitedNode);
-            NodeRmWriteLock(splitedNode);
+            NodeRmRWLock(splitedNode);
         }
         if(NodeIsFull((Node*)node)){
             splitedNode = InternalNodeSplit(node);
         }else{
             splitedNode = NULL;
         }
-        NodeRmWriteLock(lastNode);
+        NodeRmRWLock(lastNode);
         lastNode = (Node*) node;
         //    splitedNode = (node->isFull() ? node->split() : NULL);
     }
@@ -376,27 +377,26 @@ inline void QTreePutOne(QTree* qTree, QueryRange* key, QueryMeta* value){
         } else{
             while (lastNode != qTree->root){
                 InternalNode* node = (InternalNode*) qTree->root;
-                NodeAddWriteLock(node);
+                NodeAddRWLock(node);
                 KeyType  childKey = NodeSplitShiftKeysLeft(splitedNode);
                 BoundKey nextMin = splitedNode->nextNodeMin;
                 while (nextMin > node->node.nextNodeMin){
-                    NodeAddWriteLock(node->node.right);
+                    NodeAddRWLock(node->node.right);
                     Node* tempNode = node;
                     node = (InternalNode*) node->node.right;
-                    NodeRmWriteLock(tempNode);
+                    NodeRmRWLock(tempNode);
                 }
                 slot = InternalNodeFindSlotByNextMin(node, nextMin);
                 while (slot >= 0 && node->childs[slot] != lastNode){
                     slot --;
                 }
                 InternalNodeAdd(node, slot, &childKey, splitedNode);
-                NodeRmWriteLock(splitedNode);
-                NodeRmWriteLock(lastNode);
+                NodeRmRWLock(splitedNode);
                 lastNode = (Node*) node;
             }
         }
     }
-    NodeRmWriteLock(lastNode);
+    NodeRmRWLock(lastNode);
     qTree->elements ++;
 
     //    NodeCheckTree(qTree->root);

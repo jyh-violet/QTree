@@ -350,7 +350,7 @@ void PAPI_end(){
 }
 int logF = -1;
 void vmlog( char* fmat, ...){
-    //get the string passed by the caller through the format string
+//    //get the string passed by the caller through the format string
 //    va_list argptr;
 //    va_start(argptr, fmat);
 //    char buffer[MAX_LOG_SIZE]="\0";
@@ -363,7 +363,7 @@ void vmlog( char* fmat, ...){
 //    }
 //    printf("(pid:%lu)---%s\n", pthread_self(), buffer);
 //    fflush(stdout);
-//
+
 //    if(logF <= 0)
 //    {
 //        logF = open(LOG_PATH, O_RDWR|O_APPEND|O_CREAT, S_IRWXU  );

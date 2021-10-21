@@ -94,7 +94,7 @@ BOOL LeafNodeAddLast(LeafNode* leafNode, KeyType * newKey, ValueType * newValue)
     leafNode->data[leafNode->node.allocated].key = *newKey;
     leafNode->data[leafNode->node.allocated].value = newValue;
     leafNode->node.allocated++;
-    vmlog("LeafNodeAddBatch, node:%d, allocated:%d", leafNode->node.id, leafNode->node.allocated);
+    vmlog("LeafNodeAddLast, node:%d, allocated:%d", leafNode->node.id, leafNode->node.allocated);
     if(leafNode->node.allocated == 1 || (newKey->upper >  (leafNode->node.maxValue))){
         leafNode->node.maxValue = newKey->upper;
     }
@@ -258,7 +258,7 @@ Node* LeafNodeSplit_Sort(LeafNode* leafNode) {
     LeafNode* newHigh = (LeafNode*)malloc(sizeof (LeafNode));
     LeafNodeConstructor(newHigh, leafNode->node.tree);
     LeafNodeAllocId(newHigh);
-    NodeAddWriteLock(newHigh);
+    NodeAddRWLock(newHigh);
 
     int j = leafNode->node.allocated >> 1; // dividir por dos (libro)
     int newsize = leafNode->node.allocated - j;
@@ -290,7 +290,7 @@ Node* LeafNodeSplit_NoSort(LeafNode* leafNode) {
     LeafNode* newHigh = (LeafNode*)malloc(sizeof (LeafNode));
     LeafNodeConstructor(newHigh, leafNode->node.tree);
     LeafNodeAllocId(newHigh);
-    NodeAddWriteLock(newHigh);
+    NodeAddRWLock(newHigh);
     int median = leafNode->node.allocated >> 1;
     int oldSize = leafNode->node.allocated;
     if(useBFPRT){

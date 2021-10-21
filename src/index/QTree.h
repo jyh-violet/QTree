@@ -73,28 +73,8 @@ typedef struct QTree {
     Node *root;
 }QTree;
 
-#define addReadLock(node)   {pthread_spin_lock(&((Node*)node)->lock); \
-((Node*)node)->read ++; \
-pthread_spin_unlock(&((Node*)node)->lock); }
-
-#define addWriteLock(node)   {pthread_spin_lock(&((Node*)node)->lock); \
-printf("addWriteLock node:%d\n", ((Node*)node)->id);  \
-while(((Node*)node)->read > 0){}}
-
-#define rmReadLock(node)    ((Node*)node)->read --;
-
-#define rmWriteLock(node)  {pthread_spin_unlock(&((Node*)node)->lock); \
-printf("rmWriteLock node:%d\n", ((Node*)node)->id); }
-
-#define addSplitLock(internalNode)  pthread_spin_lock(&((InternalNode*)internalNode)->splitLock);
-
-#define rmSplitLock(internalNode)   pthread_spin_unlock(&((InternalNode*)internalNode)->splitLock);
-
-#define NodeIsValid(node)  (((Node*)node)->allocated >= 0)
-
 typedef struct Node{
     pthread_spinlock_t lock; // work as write lock
-    _Atomic int read; // work as the read lock
     int id ;
     int allocated ;
     BoundKey maxValue ;
@@ -112,7 +92,8 @@ struct LeafNode {
 
 struct InternalNode {
     Node node;
-    pthread_spinlock_t splitLock;
+    _Atomic int read; // work as the read lock
+    pthread_spinlock_t removeLock;
     KeyType  keys[Border];  // array of key
     Node* childs[Border + 1];
 };
@@ -157,6 +138,9 @@ BOOL NodeCheckKey(Node * node);
 BOOL NodeCheckLink(Node* node);
 void NodeAddWriteLock(Node* node);
 void NodeRmWriteLock(Node* node);
+void NodeAddRWLock(Node* node);
+void NodeRmRWLock(Node* node);
+void NodeRmReadLock(Node* node);
 
 
 void LeafNodeConstructor(LeafNode* leafNode, QTree *tree);

@@ -9,7 +9,8 @@
 void InternalNodeConstructor(InternalNode* internalNode, QTree* qTree){
     memset(internalNode,0, sizeof(InternalNode));
     NodeConstructor((Node*)internalNode, qTree);
-    pthread_spin_init(&internalNode->splitLock, PTHREAD_PROCESS_SHARED);
+    internalNode->read = 0;
+    pthread_spin_init(&internalNode->removeLock, PTHREAD_PROCESS_SHARED);
 //    internalNode->childs = malloc(sizeof (Node*) * qTree->Border + 1);
 
 }
@@ -17,7 +18,7 @@ void InternalNodeDestroy(InternalNode* internalNode){
     for(int i = 0; i <= internalNode->node.allocated; i++){
         NodeDestroy(internalNode->childs[i]);
     }
-    pthread_spin_destroy(&internalNode->splitLock);
+    pthread_spin_destroy(&internalNode->removeLock);
     free(internalNode);
 //    free(internalNode->childs);
 }
@@ -71,7 +72,7 @@ Node* InternalNodeSplit(InternalNode* internalNode) {
     InternalNode* newHigh = (InternalNode* )malloc(sizeof (InternalNode));
     InternalNodeConstructor(newHigh, internalNode->node.tree);
     InternalNodeAllocId(newHigh);
-    NodeAddWriteLock(newHigh);
+    NodeAddRWLock(newHigh);
     // int j = ((allocated >> 1) | (allocated & 1)); // dividir por dos y sumar el resto (0 o 1)
     int j = (internalNode->node.allocated >> 1); // dividir por dos (libro)
     int newsize = internalNode->node.allocated - j;
