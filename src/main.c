@@ -122,12 +122,16 @@ int test() {
     if(NodeCheckLink(qTree.root) == FALSE){
         printf("NodeCheckLink ERROR!!!\n");
     }
+    if(NodeCheckMaxMin(qTree.root) == FALSE){
+        printf("NodeCheckMaxMin ERROR!!!\n");
+    }
 //    printQTree(&qTree);
 
     size_t removed = 0;
     QTreeResetStatistics(&qTree);
 //    PAPI_init();
 //    PAPI_startCache();
+//    printLog = 1;
     time1 = start = clock();
 
     for (int i = 0; i < threadnum; ++i) {
@@ -151,6 +155,9 @@ int test() {
 //    PAPI_end();
     if(NodeCheckLink(qTree.root) == FALSE){
         printf("NodeCheckLink ERROR!!!\n");
+    }
+    if(NodeCheckMaxMin(qTree.root) == FALSE){
+        printf("NodeCheckMaxMin ERROR!!!\n");
     }
     QTreeDestroy(&qTree);
 

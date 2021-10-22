@@ -7,6 +7,7 @@
 #define MAX_LOG_SIZE 1000
 #define LOG_PATH "log"
 
+int printLog;
 typedef enum LOGLevel{
     InsertLog,
     MiXLog

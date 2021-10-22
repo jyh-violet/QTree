@@ -350,10 +350,13 @@ void PAPI_end(){
 }
 int logF = -1;
 void vmlog(LOGLevel logLevel, char* fmat, ...){
-    if(logLevel == InsertLog){
+//    if(logLevel == InsertLog){
+//        return;
+//    }
+    //get the string passed by the caller through the format string
+    if(!printLog){
         return;
     }
-    //get the string passed by the caller through the format string
     va_list argptr;
     va_start(argptr, fmat);
     char buffer[MAX_LOG_SIZE]="\0";

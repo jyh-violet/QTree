@@ -9,7 +9,7 @@
 void InternalNodeConstructor(InternalNode* internalNode, QTree* qTree){
     memset(internalNode,0, sizeof(InternalNode));
     NodeConstructor((Node*)internalNode, qTree);
-    pthread_rwlock_init(&internalNode->removeLock, 0);
+    pthread_rwlock_init(&internalNode->removeLock, NULL);
 //    internalNode->childs = malloc(sizeof (Node*) * qTree->Border + 1);
 
 }
@@ -207,7 +207,7 @@ void InternalNodeMerge(Node* internalNode, InternalNode* nodeParent, int slot, N
     nodeFROM->node.allocated = -1;
     vmlog(MiXLog, "InternalNodeMerge, rm node:%d, pointer:%lx", nodeFROMx->id, nodeFROMx);
     if(nodeFROMx->read == 0){
-        free(nodeFROMx);
+//        free(nodeFROMx);
     } else{
         vmlog(MiXLog, "InternalNodeMerge, node:%d removedRead=%d", nodeFROMx->id, nodeFROMx->read);
     }
@@ -272,7 +272,7 @@ int InternalNodeFindSlotByKey( InternalNode* node, KeyType* searchKey) {
     }
     int low = 0;
     int high = node->node.allocated - 1;
-    vmlog(InsertLog,"InternalNodeFindSlotByKey node:%d, high:%d",node->node.id, high);
+//    vmlog(InsertLog,"InternalNodeFindSlotByKey node:%d, high:%d",node->node.id, high);
 
     while (low <= high) {
         int mid = (low + high) >> 1;
@@ -328,9 +328,9 @@ BOOL InternalNodeCheckLink(InternalNode * node){
             }
             return FALSE;
         }
-        if(node->childs[i]->nextNodeMin != node->keys[i].searchKey){
-            return FALSE;
-        }
+//        if(node->childs[i]->nextNodeMin != node->keys[i].searchKey){
+//            return FALSE;
+//        }
     }
     for(int i = 0; i <= allocated; i ++){
         if(NodeCheckLink(node->childs[i]) == FALSE){
@@ -342,9 +342,13 @@ BOOL InternalNodeCheckLink(InternalNode * node){
 }
 
 void InternalNodeAddRemoveLock(InternalNode* internalNode){
+    vmlog(MiXLog,"InternalNodeAddRemoveLock node:%d", ((Node*)internalNode)->id);
     pthread_rwlock_wrlock(&internalNode->removeLock);
+    vmlog(MiXLog,"InternalNodeAddRemoveLock node:%d success", ((Node*)internalNode)->id);
 }
 
 void InternalNodeRmRemoveLock(InternalNode* internalNode){
+    vmlog(MiXLog,"InternalNodeRmRemoveLock node:%d", ((Node*)internalNode)->id);
     pthread_rwlock_unlock(&internalNode->removeLock);
+    vmlog(MiXLog,"InternalNodeRmRemoveLock node:%d success", ((Node*)internalNode)->id);
 }
