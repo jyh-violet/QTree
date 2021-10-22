@@ -328,9 +328,9 @@ BOOL InternalNodeCheckLink(InternalNode * node){
             }
             return FALSE;
         }
-//        if(node->childs[i]->nextNodeMin != node->keys[i].searchKey){
-//            return FALSE;
-//        }
+        if(node->childs[i]->nextNodeMin != node->keys[i].searchKey){
+            return FALSE;
+        }
     }
     for(int i = 0; i <= allocated; i ++){
         if(NodeCheckLink(node->childs[i]) == FALSE){

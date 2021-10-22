@@ -650,11 +650,22 @@ inline Node* getAnotherNode(QTree* qTree, KeyType* key, BoundKey* removedMax, Bo
         NodeRmWriteLock((Node*)internalNode);
         InternalNodeAddRemoveLock(internalNode);
         for(int i = 0; i <= node->allocated; i ++ ){
+            NodeAddWriteLock(internalNode->childs[i]);
             while ((i <= node->allocated) && ((!childIsLeaf && internalNode->childs[i]->allocated < 0) || (childIsLeaf && internalNode->childs[i]->allocated == 0))){
+                if(i > 0){
+                    NodeAddWriteLock(internalNode->childs[i - 1]);
+                    internalNode->childs[i - 1]->right = internalNode->childs[i]->right;
+                    internalNode->childs[i - 1]->nextNodeMin = internalNode->childs[i]->nextNodeMin;
+                    NodeRmWriteLock(internalNode->childs[i - 1]);
+                }
                 InternalNodeRemove(internalNode, i - 1);
+                if(i <= node->allocated){
+                    NodeAddWriteLock(internalNode->childs[i]);
+                }
                 childMerge = TRUE;
             }
-            if(i < node->allocated){
+            if(i <= node->allocated){
+                NodeRmWriteLock(internalNode->childs[i]);
                 childMerge = InternalNodeCheckUnderflowWithRight(((InternalNode*) node), i) || childMerge;
             }
         }

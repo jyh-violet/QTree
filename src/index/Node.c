@@ -121,13 +121,13 @@ BOOL NodeCheckKey(Node * node){
 
 BOOL NodeCheckLink(Node* node){
     if(NodeIsLeaf(node)){
-        return TRUE;
         return LeafNodeCheckLink((LeafNode*)node);
     } else{
         return InternalNodeCheckLink((InternalNode *)node);
     }
 }
 void NodeAddWriteLock(Node* node){
+
     vmlog(InsertLog,"addWriteLock node:%d", ((Node*)node)->id);
 
     pthread_spin_lock(&((Node*)node)->lock);
