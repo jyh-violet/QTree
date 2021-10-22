@@ -396,6 +396,12 @@ BOOL LeafNodeCheckMaxMin(LeafNode * leafNode){
     }
     int findMin = FALSE, findMax = FALSE;
     for(int i = 0; i < leafNode->node.allocated; i ++){
+        if(leafNode->data[i].key.lower < leafNode->node.minValue){
+            return FALSE;
+        }
+        if(leafNode->data[i].key.upper > leafNode->node.maxValue){
+            return FALSE;
+        }
         if(leafNode->data[i].key.lower == leafNode->node.minValue){
             findMin = TRUE;
         }
@@ -448,7 +454,7 @@ BOOL LeafNodeCheckLink(LeafNode* node){
         return FALSE;
     }
     if(node->node.right!= NULL){
-        if(node->node.nextNodeMin == node->node.right->minValue){
+        if(node->node.nextNodeMin <= node->node.right->minValue){
             return TRUE;
         } else{
             return FALSE;

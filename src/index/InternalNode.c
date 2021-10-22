@@ -242,6 +242,12 @@ BOOL InternalNodeCheckMaxMin(InternalNode * internalNode){
         if(NodeCheckMaxMin(internalNode->childs[i]) == FALSE){
             return FALSE;
         }
+        if(internalNode->node.maxValue < internalNode->childs[i]->maxValue){
+            return FALSE;
+        }
+        if(internalNode->node.minValue > internalNode->childs[i]->minValue){
+            return FALSE;
+        }
         if(internalNode->node.maxValue == internalNode->childs[i]->maxValue){
             findMax = TRUE;
         }

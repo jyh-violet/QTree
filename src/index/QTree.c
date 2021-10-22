@@ -385,12 +385,13 @@ inline void QTreePutOne(QTree* qTree, QueryRange* key, QueryMeta* value){
             }
             InternalNodeAdd(node, slot, &childKey, splitedNode);
             NodeRmRWLock(splitedNode);
+            if(NodeIsFull((Node*)node)){
+                splitedNode = InternalNodeSplit(node);
+            }else{
+                splitedNode = NULL;
+            }
         }
-        if(NodeIsFull((Node*)node)){
-            splitedNode = InternalNodeSplit(node);
-        }else{
-            splitedNode = NULL;
-        }
+
         NodeRmRWLock(lastNode);
         lastNode = (Node*) node;
         //    splitedNode = (node->isFull() ? node->split() : NULL);
