@@ -319,12 +319,12 @@ inline void QTreePutOne(QTree* qTree, QueryRange* key, QueryMeta* value){
                 NodeRmReadLock((Node*)node);
             }
             if(nodeLeaf->node.read == 1){
-                vmlog(MiXLog, "QTreePutOne, rm node:%d, pointer:%lx", nodeLeaf->node.id, nodeLeaf);
+//                vmlog(MiXLog, "QTreePutOne, rm node:%d, pointer:%lx", nodeLeaf->node.id, nodeLeaf);
                 free(nodeLeaf);
             } else{
                 NodeRmReadLock((Node*)nodeLeaf);
             }
-            vmlog(MiXLog, "QTreePutOne, retry");
+//            vmlog(MiXLog, "QTreePutOne, retry");
             goto retry;
         }
     }
@@ -362,7 +362,7 @@ inline void QTreePutOne(QTree* qTree, QueryRange* key, QueryMeta* value){
     while (!stackEmpty(nodesStack.stackNodes, nodesStack.stackNodesIndex)) {
         //        cout << slot << endl;
         InternalNode* node = stackPop(nodesStack.stackNodes, nodesStack.stackNodesIndex);
-        vmlog(InsertLog, "QTreePutOne, stackPop node:%d", node->node.id);
+//        vmlog(InsertLog, "QTreePutOne, stackPop node:%d", node->node.id);
         NodeAddWriteLock((Node*)node);
 
         //            System.out.println(key + ", "  + otherBound + "," + node.id + ", "  + node.keys[0] + "," + slot);
@@ -763,7 +763,7 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
         InternalNode *internalNode = (InternalNode*)qTree->root;
         if(internalNode->node.allocated == 0){
             qTree->root = internalNode->childs[0];
-            vmlog(MiXLog, "change root, rm node:%d, pointer:%lx", internalNode->node.id, internalNode);
+//            vmlog(MiXLog, "change root, rm node:%d, pointer:%lx", internalNode->node.id, internalNode);
             free((void *)internalNode);
         } else{
             InternalNodeRmRemoveLock( (InternalNode*)qTree->root);

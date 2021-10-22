@@ -18,7 +18,7 @@ void InternalNodeDestroy(InternalNode* internalNode){
         NodeDestroy(internalNode->childs[i]);
     }
     pthread_rwlock_destroy(&internalNode->removeLock);
-    vmlog(MiXLog, "InternalNodeDestroy, rm node:%d, pointer:%lx", internalNode->node.id, internalNode);
+//    vmlog(MiXLog, "InternalNodeDestroy, rm node:%d, pointer:%lx", internalNode->node.id, internalNode);
     free(internalNode);
 }
 
@@ -31,7 +31,7 @@ BOOL InternalNodeAdd(InternalNode* internalNode, int slot, KeyType * newKey, Nod
     internalNode->keys[slot] = *newKey;
     internalNode->childs[slot + 1] = child;
     int allocated = ++internalNode->node.allocated;
-    vmlog(InsertLog,"InternalNodeAdd node: %d, allocated:", internalNode->node.id, allocated);
+//    vmlog(InsertLog,"InternalNodeAdd node: %d, allocated:", internalNode->node.id, allocated);
     return TRUE;
 }
 
@@ -176,7 +176,7 @@ void InternalNodeRemove(InternalNode* internalNode, int slot) {
     int allocated = --internalNode->node.allocated;
 //    internalNode->node.keys[internalNode->node.allocated] = NULL;
     internalNode->childs[internalNode->node.allocated + 1] = NULL;
-    vmlog(InsertLog,"InternalNodeRemove, node:%d, allocated:%d", internalNode->node.id, allocated);
+//    vmlog(InsertLog,"InternalNodeRemove, node:%d, allocated:%d", internalNode->node.id, allocated);
 }
 
 void InternalNodeMerge(Node* internalNode, InternalNode* nodeParent, int slot, Node* nodeFROMx) {
@@ -205,11 +205,11 @@ void InternalNodeMerge(Node* internalNode, InternalNode* nodeParent, int slot, N
 
     // Free nodeFROM
     nodeFROM->node.allocated = -1;
-    vmlog(MiXLog, "InternalNodeMerge, rm node:%d, pointer:%lx", nodeFROMx->id, nodeFROMx);
+//    vmlog(MiXLog, "InternalNodeMerge, rm node:%d, pointer:%lx", nodeFROMx->id, nodeFROMx);
     if(nodeFROMx->read == 0){
 //        free(nodeFROMx);
     } else{
-        vmlog(MiXLog, "InternalNodeMerge, node:%d removedRead=%d", nodeFROMx->id, nodeFROMx->read);
+//        vmlog(MiXLog, "InternalNodeMerge, node:%d removedRead=%d", nodeFROMx->id, nodeFROMx->read);
     }
 }
 
@@ -334,7 +334,7 @@ BOOL InternalNodeCheckLink(InternalNode * node){
             }
             return FALSE;
         }
-        if(node->childs[i]->nextNodeMin != node->keys[i].searchKey){
+        if(node->childs[i]->nextNodeMin > node->keys[i].searchKey){
             return FALSE;
         }
     }
@@ -348,13 +348,13 @@ BOOL InternalNodeCheckLink(InternalNode * node){
 }
 
 void InternalNodeAddRemoveLock(InternalNode* internalNode){
-    vmlog(MiXLog,"InternalNodeAddRemoveLock node:%d", ((Node*)internalNode)->id);
+//    vmlog(MiXLog,"InternalNodeAddRemoveLock node:%d", ((Node*)internalNode)->id);
     pthread_rwlock_wrlock(&internalNode->removeLock);
-    vmlog(MiXLog,"InternalNodeAddRemoveLock node:%d success", ((Node*)internalNode)->id);
+//    vmlog(MiXLog,"InternalNodeAddRemoveLock node:%d success", ((Node*)internalNode)->id);
 }
 
 void InternalNodeRmRemoveLock(InternalNode* internalNode){
-    vmlog(MiXLog,"InternalNodeRmRemoveLock node:%d", ((Node*)internalNode)->id);
+//    vmlog(MiXLog,"InternalNodeRmRemoveLock node:%d", ((Node*)internalNode)->id);
     pthread_rwlock_unlock(&internalNode->removeLock);
-    vmlog(MiXLog,"InternalNodeRmRemoveLock node:%d success", ((Node*)internalNode)->id);
+//    vmlog(MiXLog,"InternalNodeRmRemoveLock node:%d success", ((Node*)internalNode)->id);
 }

@@ -10,7 +10,7 @@ inline void LeafNodeConstructor(LeafNode* leafNode, QTree *tree){
 //    memset(leafNode->values,0, sizeof (ValueType *) * Border);
 }
 void LeafNodeDestroy(LeafNode* leafNode){
-    vmlog(MiXLog, "LeafNodeDestroy, rm node:%d, pointer:%lx", leafNode->node.id, leafNode);
+//    vmlog(MiXLog, "LeafNodeDestroy, rm node:%d, pointer:%lx", leafNode->node.id, leafNode);
     free(leafNode);
 }
 
@@ -37,7 +37,7 @@ void LeafNodeMerge(LeafNode* leafNode, InternalNode* nodeParent, int slot,
     // remove key from nodeParent
     InternalNodeRemove(nodeParent, slot);
     // Free nodeFROM
-    vmlog(MiXLog, "LeafNodeMerge, rm node:%d, pointer:%lx", nodeFROM->node.id, nodeFROM);
+//    vmlog(MiXLog, "LeafNodeMerge, rm node:%d, pointer:%lx", nodeFROM->node.id, nodeFROM);
     nodeFROM->node.allocated = -1;
     if(nodeFROMx->read == 0){
 //        free((Node*)nodeFROM);
@@ -62,7 +62,7 @@ BOOL LeafNodeAdd(LeafNode* leafNode, int slot, KeyType * newKey, ValueType * new
         leafNode->node.minValue = newKey->lower;
     }
     int allocated = ++leafNode->node.allocated;
-    vmlog(InsertLog,"LeafNodeAdd, node:%d, allocated:%d", leafNode->node.id, allocated);
+//    vmlog(InsertLog,"LeafNodeAdd, node:%d, allocated:%d", leafNode->node.id, allocated);
     return TRUE;
 }
 BOOL LeafNodeAddBatch(LeafNode* leafNode, int slot, QueryData batch[], int batchCount, BoundKey *min, BoundKey* max){
@@ -90,7 +90,7 @@ BOOL LeafNodeAddBatch(LeafNode* leafNode, int slot, QueryData batch[], int batch
         leafNode->node.minValue = localMin;
     }
     leafNode->node.allocated += batchCount;
-    vmlog(InsertLog,"LeafNodeAddBatch, node:%d, allocated:%d", leafNode->node.id, leafNode->node.allocated);
+//    vmlog(InsertLog,"LeafNodeAddBatch, node:%d, allocated:%d", leafNode->node.id, leafNode->node.allocated);
     return TRUE;
 }
 
