@@ -187,3 +187,13 @@ void NodeAddInsertReadLock(Node* node){
 void NodeRmInsertReadLock(Node* node){
     node->insertRead--;
 }
+
+void NodeAddInsertRWLock(Node* node){
+    pthread_spin_lock(&((Node*)node)->lock);
+    node->insertRead ++;
+}
+
+void NodeRmInsertRWLock(Node* node){
+    node->insertRead --;
+    pthread_spin_unlock(&((Node*)node)->lock);
+}

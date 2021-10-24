@@ -30,6 +30,10 @@ BOOL qtreeCheck = FALSE;
 _Atomic int insertNum = 0, removeNum = 0;
 int threadnum = 4;
 
+typedef struct TaskRes{
+    double usedTime;
+    size_t size;
+}TaskRes;
 typedef struct ThreadAttributes{
     QTree* qTree;
     QueryMeta* insertQueries ;
@@ -38,16 +42,27 @@ typedef struct ThreadAttributes{
     double *mixPara;
     int start;
     int end;
+    TaskRes  result;
 }ThreadAttributes;
 
 void testInsert(ThreadAttributes* attributes){
+    clock_t   start,   finish;
+    start = clock();
     for(    int i = attributes->start; i <  attributes->end; i ++){
         QTreePut(attributes->qTree, &(attributes->insertQueries[i].dataRegion), attributes->insertQueries + i);
+//        if((i + 1) % 100000 == 0){
+//            vmlog(InsertLog,"insert:%d", i);
+//        }
     }
+    finish = clock();
+    attributes->result.usedTime = (double)(finish - start)/CLOCKS_PER_SEC;
+    attributes->result.size = attributes->end - attributes->start;
 }
 
-size_t testMix(ThreadAttributes* attributes){
+void testMix(ThreadAttributes* attributes){
     Arraylist* removedQuery = ArraylistCreate(attributes->end - attributes->start);
+    clock_t   start,   finish;
+    start = clock();
     for (int i = attributes->start; i <  attributes->end; ++i) {
 //        vmlog(MiXLog,"i:%d, para:%lf, rm:%ld",i, attributes->mixPara[i], removedQuery->size);
         if(attributes->mixPara[i] < insertRatio){
@@ -58,7 +73,10 @@ size_t testMix(ThreadAttributes* attributes){
             removeNum ++;
         }
     }
-    return removedQuery->size;
+    finish = clock();
+    attributes->result.usedTime = (double)(finish - start)/CLOCKS_PER_SEC;
+    attributes->result.size = removedQuery->size;
+    ArraylistDeallocate(removedQuery);
 }
 
 int test() {
@@ -81,6 +99,7 @@ int test() {
     QueryMeta* insertQueries = (QueryMeta*)malloc(sizeof(QueryMeta) * TOTAL );
     QueryMeta* queries = (QueryMeta*)malloc(sizeof(QueryMeta) * TOTAL );
     QueryMeta* removeQuery = (QueryMeta*)malloc(sizeof(QueryMeta) * TOTAL);
+
     start = clock();
     for(int i = 0; i < TOTAL ;i ++){
         QueryMetaConstructor(queries + i);
@@ -96,9 +115,10 @@ int test() {
 //    printf("generate end! use %lfs\n", (double)(finish - start)/CLOCKS_PER_SEC );
 
     int perThread = TOTAL / threadnum;
-    start = clock();
+    printLog = 1;
     pthread_t thread[MaxThread];
     ThreadAttributes attributes[MaxThread];
+//    start = clock();
     for (int i = 0; i < threadnum; ++i) {
         attributes[i].start = i * perThread;
         attributes[i].end = i == (threadnum - 1)? TOTAL: (i + 1)* perThread;
@@ -111,10 +131,11 @@ int test() {
     }
     for (int i = 0; i < threadnum; ++i) {
         pthread_join(thread[i], NULL);
+        putT += attributes[i].result.usedTime;
     }
-
-    finish = clock();
-    putT = (double)(finish - start)/CLOCKS_PER_SEC;
+    putT = putT / threadnum;
+//    finish = clock();
+//    putT = (double)(finish - start)/CLOCKS_PER_SEC;
     int num = qTree.elements;
     num += qTree.batchCount;
     printf("%d\n", num);
@@ -131,7 +152,7 @@ int test() {
 //    PAPI_init();
 //    PAPI_startCache();
 //    printLog = 1;
-    start = clock();
+//    start = clock();
 
     for (int i = 0; i < threadnum; ++i) {
         attributes[i].start = i * perThread;
@@ -144,11 +165,12 @@ int test() {
     }
 
     for (int i = 0; i < threadnum; ++i) {
-        size_t removedNum;
-        pthread_join(thread[i],(void **) &removedNum);
-        removed += removedNum;
+        pthread_join(thread[i], NULL);
+        removed += attributes[i].result.size;
+        mixT += attributes[i].result.usedTime;
     }
-    finish = clock();
+    mixT = mixT / threadnum;
+//    finish = clock();
 //    printQTree(&qTree);
 //    PAPI_readCache();
 //    PAPI_end();
@@ -161,7 +183,7 @@ int test() {
     QTreeDestroy(&qTree);
 
 
-    mixT = (double)(finish - start)/CLOCKS_PER_SEC;
+//    mixT = (double)(finish - start)/CLOCKS_PER_SEC;
 printf("%d, %d, %d,  %d, %d, %d, %.2lf, %d,  %d,  %.3lf,%.3lf,%.3lf, %d, %d, %ld, %ld, %ld,  %ld, %ld, %ld, %ld, %ld, %d, %d, %d, %d, %d\n",
        Border, checkQueryMeta, optimizationType, dataPointType, dataRegionTypeOld, searchKeyType, insertRatio, removePoint, TOTAL,
            generateT, putT, mixT, insertNum, removeNum, removed, checkQuery, checkLeaf, checkInternal,
