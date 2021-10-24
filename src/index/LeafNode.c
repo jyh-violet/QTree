@@ -262,7 +262,7 @@ Node* LeafNodeSplit_Sort(LeafNode* leafNode) {
     LeafNode* newHigh = (LeafNode*)malloc(sizeof (LeafNode));
     LeafNodeConstructor(newHigh, leafNode->node.tree);
     LeafNodeAllocId(newHigh);
-    NodeAddRWLock(newHigh);
+    NodeAddRWLock((Node*)newHigh);
 
     int j = leafNode->node.allocated >> 1; // dividir por dos (libro)
     int newsize = leafNode->node.allocated - j;
@@ -294,7 +294,7 @@ Node* LeafNodeSplit_NoSort(LeafNode* leafNode) {
     LeafNode* newHigh = (LeafNode*)malloc(sizeof (LeafNode));
     LeafNodeConstructor(newHigh, leafNode->node.tree);
     LeafNodeAllocId(newHigh);
-    NodeAddRWLock(newHigh);
+    NodeAddRWLock((Node*)newHigh);
     int median = leafNode->node.allocated >> 1;
     int oldSize = leafNode->node.allocated;
     if(useBFPRT){
@@ -334,7 +334,7 @@ Node*  LeafNodeSplit(LeafNode* leafNode) {
     LeafNodeResetMinValue(leafNode);
     LeafNodeResetMinValue(newHigh);
     newHigh->node.right = leafNode->node.right;
-    leafNode->node.right = newHigh;
+    leafNode->node.right = (Node*)newHigh;
     newHigh->node.nextNodeMin = leafNode->node.nextNodeMin;
     leafNode->node.nextNodeMin = newHigh->data[0].key.searchKey;
     return (Node*)newHigh;

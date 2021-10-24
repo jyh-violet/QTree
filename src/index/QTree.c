@@ -215,12 +215,14 @@ inline LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key, NodesStack* node
     NodeAddReadLock(node);
     while (!NodeIsLeaf(node)) {
         InternalNode *nodeInternal = (InternalNode*) node;
-        NodeAddWriteLock((Node*)nodeInternal);
+        NodeAddInsertReadLock((Node*)nodeInternal);
         while (key->searchKey > nodeInternal->node.nextNodeMin){
-            NodeAddRWLock(nodeInternal->node.right);
+            NodeAddReadLock(nodeInternal->node.right);
+            NodeAddInsertReadLock(nodeInternal->node.right);
             InternalNode* temp = nodeInternal;
             nodeInternal = (InternalNode*)nodeInternal->node.right;
-            NodeRmRWLock((Node*)temp);
+            NodeRmInsertReadLock((Node*)temp);
+            NodeRmReadLock((Node*)temp);
         }
         if((max >(nodeInternal->node.maxValue)) ){
             nodeInternal->node.maxValue = max;
@@ -232,7 +234,7 @@ inline LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key, NodesStack* node
         slot = ((slot < 0) ? (-slot) - 1 : slot + 1);
         node =nodeInternal->childs[slot];
         NodeAddReadLock(node);
-        NodeRmWriteLock((Node*)nodeInternal);
+        NodeRmInsertReadLock((Node*)nodeInternal);
         stackPush(nodesStack->stackNodes, nodesStack->stackNodesIndex, nodeInternal);
     }
 
@@ -332,7 +334,7 @@ inline void QTreePutOne(QTree* qTree, QueryRange* key, QueryMeta* value){
     while (key->searchKey > nodeLeaf->node.nextNodeMin){
         NodeAddRWLock(nodeLeaf->node.right);
         LeafNode* tempNode = nodeLeaf;
-        nodeLeaf = nodeLeaf->node.right;
+        nodeLeaf = (LeafNode* )nodeLeaf->node.right;
         NodeRmRWLock((Node*)tempNode);
     }
     switch (optimizationType) {
@@ -407,7 +409,7 @@ inline void QTreePutOne(QTree* qTree, QueryRange* key, QueryMeta* value){
                 BoundKey nextMin = splitedNode->nextNodeMin;
                 while (nextMin > node->node.nextNodeMin){
                     NodeAddRWLock(node->node.right);
-                    Node* tempNode = node;
+                    Node* tempNode = (Node*)node;
                     node = (InternalNode*) node->node.right;
                     NodeRmRWLock(tempNode);
                 }

@@ -64,12 +64,12 @@ size_t testMix(ThreadAttributes* attributes){
 int test() {
 
     useBFPRT = 0;
-    double generateT = 0, putT = 0, removeT = 0, mixT = 0;
+    double generateT = 0, putT = 0,  mixT = 0;
 //    TOTAL = 1000;
     TRACE_LEN = 1000;
     srand((unsigned)time(NULL));
     initZipfParameter(TOTAL, zipfPara);
-    clock_t   start,   finish, time1, time2;
+    clock_t   start,   finish;
     QTree qTree;
     QTreeConstructor(&qTree, 2);
     double *mixPara = (double *) malloc(sizeof (double ) * TOTAL);
@@ -81,8 +81,7 @@ int test() {
     QueryMeta* insertQueries = (QueryMeta*)malloc(sizeof(QueryMeta) * TOTAL );
     QueryMeta* queries = (QueryMeta*)malloc(sizeof(QueryMeta) * TOTAL );
     QueryMeta* removeQuery = (QueryMeta*)malloc(sizeof(QueryMeta) * TOTAL);
-    time1 = start = clock();
-
+    start = clock();
     for(int i = 0; i < TOTAL ;i ++){
         QueryMetaConstructor(queries + i);
         QueryMetaConstructor(insertQueries + i);
@@ -97,7 +96,7 @@ int test() {
 //    printf("generate end! use %lfs\n", (double)(finish - start)/CLOCKS_PER_SEC );
 
     int perThread = TOTAL / threadnum;
-    time1 = start = clock();
+    start = clock();
     pthread_t thread[MaxThread];
     ThreadAttributes attributes[MaxThread];
     for (int i = 0; i < threadnum; ++i) {
@@ -132,7 +131,7 @@ int test() {
 //    PAPI_init();
 //    PAPI_startCache();
 //    printLog = 1;
-    time1 = start = clock();
+    start = clock();
 
     for (int i = 0; i < threadnum; ++i) {
         attributes[i].start = i * perThread;
@@ -141,12 +140,12 @@ int test() {
         attributes[i].removeQuery = removeQuery;
         attributes[i].qTree = &qTree;
         attributes[i].mixPara = mixPara;
-        pthread_create(&thread[i], 0, testMix, &attributes[i]);
+        pthread_create(&thread[i], 0, (void *(*)(void *))testMix, (void *)&attributes[i]);
     }
 
     for (int i = 0; i < threadnum; ++i) {
         size_t removedNum;
-        pthread_join(thread[i], &removedNum);
+        pthread_join(thread[i],(void **) &removedNum);
         removed += removedNum;
     }
     finish = clock();
@@ -163,10 +162,10 @@ int test() {
 
 
     mixT = (double)(finish - start)/CLOCKS_PER_SEC;
-printf("%d, %d, %d,  %d, %d, %d, %.2lf, %d,  %d,  %.3lf,%.3lf,%.3lf, %d, %d, %ld, %ld, %ld,  %ld, %ld, %ld, %ld, %ld, %d, %d, %d, %d, \n",
+printf("%d, %d, %d,  %d, %d, %d, %.2lf, %d,  %d,  %.3lf,%.3lf,%.3lf, %d, %d, %ld, %ld, %ld,  %ld, %ld, %ld, %ld, %ld, %d, %d, %d, %d, %d\n",
        Border, checkQueryMeta, optimizationType, dataPointType, dataRegionTypeOld, searchKeyType, insertRatio, removePoint, TOTAL,
            generateT, putT, mixT, insertNum, removeNum, removed, checkQuery, checkLeaf, checkInternal,
-           qTree.leafSplitCount, qTree.internalSplitCount, qTree.whileCount, qTree.funcCount, RemovedQueueSize, batchMissThreshold, MaxBatchCount, setKeyCount);
+           qTree.leafSplitCount, qTree.internalSplitCount, qTree.whileCount, qTree.funcCount, RemovedQueueSize, batchMissThreshold, MaxBatchCount, setKeyCount, threadnum);
     free(queries) ;
     free(removeQuery);
     free(insertQueries);

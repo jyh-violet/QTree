@@ -71,7 +71,7 @@ Node* InternalNodeSplit(InternalNode* internalNode) {
     InternalNode* newHigh = (InternalNode* )malloc(sizeof (InternalNode));
     InternalNodeConstructor(newHigh, internalNode->node.tree);
     InternalNodeAllocId(newHigh);
-    NodeAddRWLock(newHigh);
+    NodeAddRWLock((Node*)newHigh);
     // int j = ((allocated >> 1) | (allocated & 1)); // dividir por dos y sumar el resto (0 o 1)
     int j = (internalNode->node.allocated >> 1); // dividir por dos (libro)
     int newsize = internalNode->node.allocated - j;
@@ -98,7 +98,7 @@ Node* InternalNodeSplit(InternalNode* internalNode) {
     newHigh->node.allocated ++;
 
     newHigh->node.right = internalNode->node.right;
-    internalNode->node.right = newHigh;
+    internalNode->node.right = (Node*)newHigh;
     newHigh->node.nextNodeMin = internalNode->node.nextNodeMin;
     internalNode->node.nextNodeMin = newHigh->keys[0].searchKey;
     return (Node*)newHigh;

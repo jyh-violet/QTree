@@ -57,7 +57,7 @@ typedef struct IntStack{
 typedef struct QueryData{
     KeyType key;
     ValueType *value;
-}__attribute__((packed)) QueryData;
+}QueryData;
 
 typedef struct QTree {
     _Atomic int elements;
@@ -80,6 +80,7 @@ typedef struct QTree {
 typedef struct Node{
     pthread_spinlock_t lock; // work as write lock
     _Atomic int read; // work as the read lock
+    _Atomic int insertRead; // work as the read lock
     int id ;
     int allocated ;
     BoundKey maxValue ;
@@ -146,7 +147,8 @@ void NodeAddRWLock(Node* node);
 void NodeRmRWLock(Node* node);
 void NodeRmReadLock(Node* node);
 void NodeAddReadLock(Node* node);
-
+void NodeAddInsertReadLock(Node* node);
+void NodeRmInsertReadLock(Node* node);
 
 void LeafNodeConstructor(LeafNode* leafNode, QTree *tree);
 void LeafNodeDestroy(LeafNode* leafNode);
