@@ -10,7 +10,7 @@
 #include "../holder/RangeHolder.h"
 #include "../Tool/ArrayList.h"
 #define maxDepth 16
-#define Border  65
+#define Border  5
 
 #define stackPop(stack, index)  stack[ --index]
 #define stackPush(stack, index, elem)  stack[index ++] = elem
@@ -80,7 +80,7 @@ typedef struct QTree {
 typedef struct Node{
     pthread_spinlock_t lock; // work as write lock
     _Atomic int read; // work as the read lock
-    _Atomic int insertRead; // work as the read lock
+    int insertRead; // work as the read lock
     int id ;
     int allocated ;
     BoundKey maxValue ;

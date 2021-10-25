@@ -67,7 +67,7 @@ Node* InternalNodeSplit(InternalNode* internalNode) {
     if(internalNode->node.tree == NULL){
         printInternalNode(internalNode);
     }
-    internalNode->node.tree->internalSplitCount ++;
+//    internalNode->node.tree->internalSplitCount ++;
     InternalNode* newHigh = (InternalNode* )malloc(sizeof (InternalNode));
     InternalNodeConstructor(newHigh, internalNode->node.tree);
     InternalNodeAllocId(newHigh);

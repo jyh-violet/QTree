@@ -50,6 +50,7 @@ void testInsert(ThreadAttributes* attributes){
     start = clock();
     for(    int i = attributes->start; i <  attributes->end; i ++){
         QTreePut(attributes->qTree, &(attributes->insertQueries[i].dataRegion), attributes->insertQueries + i);
+        vmlog(InsertLog,"insert:%d", i);
 //        if((i + 1) % 100000 == 0){
 //            vmlog(InsertLog,"insert:%d", i);
 //        }
@@ -83,7 +84,7 @@ int test() {
 
     useBFPRT = 0;
     double generateT = 0, putT = 0,  mixT = 0;
-//    TOTAL = 1000;
+//    TOTAL = 100;
     TRACE_LEN = 1000;
     srand((unsigned)time(NULL));
     initZipfParameter(TOTAL, zipfPara);
@@ -113,9 +114,8 @@ int test() {
     finish = clock();
     generateT = (double)(finish - start)/CLOCKS_PER_SEC;
 //    printf("generate end! use %lfs\n", (double)(finish - start)/CLOCKS_PER_SEC );
-
+//    printLog = 1;
     int perThread = TOTAL / threadnum;
-    printLog = 1;
     pthread_t thread[MaxThread];
     ThreadAttributes attributes[MaxThread];
 //    start = clock();
@@ -153,7 +153,8 @@ int test() {
 //    PAPI_startCache();
 //    printLog = 1;
 //    start = clock();
-
+//    TOTAL = 100;
+    perThread = TOTAL / threadnum;
     for (int i = 0; i < threadnum; ++i) {
         attributes[i].start = i * perThread;
         attributes[i].end = i == (threadnum - 1)? TOTAL: (i + 1)* perThread;

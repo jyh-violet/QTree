@@ -258,7 +258,7 @@ Node* LeafNodeSplit_Sort(LeafNode* leafNode) {
     if(leafNode->node.tree == NULL){
         printLeafNode(leafNode);
     }
-    leafNode->node.tree->leafSplitCount ++;
+//    leafNode->node.tree->leafSplitCount ++;
     LeafNode* newHigh = (LeafNode*)malloc(sizeof (LeafNode));
     LeafNodeConstructor(newHigh, leafNode->node.tree);
     LeafNodeAllocId(newHigh);
@@ -290,7 +290,7 @@ Node* LeafNodeSplit_NoSort(LeafNode* leafNode) {
     if(leafNode->node.tree == NULL){
         printLeafNode(leafNode);
     }
-    leafNode->node.tree->leafSplitCount ++;
+//    leafNode->node.tree->leafSplitCount ++;
     LeafNode* newHigh = (LeafNode*)malloc(sizeof (LeafNode));
     LeafNodeConstructor(newHigh, leafNode->node.tree);
     LeafNodeAllocId(newHigh);
