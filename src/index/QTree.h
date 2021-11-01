@@ -34,7 +34,6 @@ BoundKey RemovedKey[RemovedQueueSize];
 u_int32_t clockFlag;
 int clockIndex;
 
-int printQTreelog;
 int useBFPRT;
 
 OptimizationType optimizationType;
@@ -81,11 +80,22 @@ struct LeafNode {
     QueryData data[Border];
 };
 
- struct InternalNode {
+struct InternalNode {
     Node node;
     KeyType  keys[Border];  // array of key
     Node* childs[Border + 1];
 };
+
+typedef enum OpType{
+    OP_Insert,
+    OP_InsertBatch,
+    OP_FindAndRemove
+}OpType;
+
+typedef struct WorkerInfo{
+    int workerId;
+
+}WorkerInfo;
 
 
 void QTreeConstructor(QTree* qTree,  int BOrder);
