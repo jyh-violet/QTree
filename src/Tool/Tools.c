@@ -350,9 +350,9 @@ void PAPI_end(){
 }
 int logF = -1;
 void vmlog(LOGLevel logLevel, char* fmat, ...){
-//    if(logLevel == InsertLog){
-//        return;
-//    }
+    if(logLevel == InsertLog){
+        return;
+    }
     //get the string passed by the caller through the format string
     if(!printLog){
         return;

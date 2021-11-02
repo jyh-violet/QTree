@@ -44,6 +44,8 @@ OptimizationType optimizationType;
 #define batchMissThreshold  5
 #define MaxBatchCount (Border/2 - 1)
 
+//extern pthread_key_t threadId;
+
 typedef struct NodesStack{
     InternalNode*   stackNodes[maxDepth];
     int             stackNodesIndex;
@@ -80,7 +82,7 @@ typedef struct QTree {
 typedef struct Node{
     pthread_spinlock_t lock; // work as write lock
     _Atomic int read; // work as the read lock
-    int insertRead; // work as the read lock
+    u_int64_t insertLock; // work as the read lock
     int id ;
     int allocated ;
     BoundKey maxValue ;
@@ -109,12 +111,12 @@ void QTreeDestroy(QTree* qTree);
 void printQTree( QTree* qTree);
 int  QTreeAllocNode(QTree* qTree, BOOL isLeaf);
 void QTreeMakeNewRoot(QTree* qTree, Node* splitedNode);
-LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key, NodesStack* nodesStack, IntStack* slotStack, BoundKey min, BoundKey max);
-void QTreePut(QTree* qTree, KeyType * key, ValueType * value);
+LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key, NodesStack* nodesStack, IntStack* slotStack, BoundKey min, BoundKey max, int threadId);
+void QTreePut(QTree* qTree, KeyType * key, ValueType * value, int threadId);
 void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* removedQuery);
-void QTreePutBatch(QTree* qTree, QueryData * batch, int batchCount);
+void QTreePutBatch(QTree* qTree, QueryData * batch, int batchCount, int threadId);
 void QTreeCheckBatch(QTree* qTree, int attribute, Arraylist* removedQuery);
-void QTreePutOne(QTree* qTree, QueryRange* key, QueryMeta* value);
+void QTreePutOne(QTree* qTree, QueryRange* key, QueryMeta* value, int threadId);
 Node* checkInternalNode(QTree* qTree, InternalNode* nodeInternal,  KeyType* key, NodesStack *nodesStack, IntStack* slotStack);
 void checkLeafNode(QTree* qTree, LeafNode* leafNode, BoundKey* removedMax, BoundKey* removedMin, BoundKey attribute, Arraylist* removedQuery);
 Node* getAnotherNode(QTree* qTree, KeyType* key, BoundKey *removedMax, BoundKey *removedMin, Arraylist* removedQuery, NodesStack *nodesStack, IntStack* slotStack);
@@ -147,8 +149,8 @@ void NodeAddRWLock(Node* node);
 void NodeRmRWLock(Node* node);
 void NodeRmReadLock(Node* node);
 void NodeAddReadLock(Node* node);
-void NodeAddInsertReadLock(Node* node);
-void NodeRmInsertReadLock(Node* node);
+void NodeAddInsertReadLock(Node* node, int threadId);
+void NodeRmInsertReadLock(Node* node, int threadId);
 void NodeAddInsertRWLock(Node* node);
 void NodeRmInsertRWLock(Node* node);
 
@@ -204,4 +206,5 @@ void quickSelect(QueryData data[], int k, int s, int e);
 //void quickSelect(KeyType arr[], int k, int s, int e);
 void swap(KeyType arr[], int a, int b);
 
+int getThreadId();
 #endif //QTREE_QTREE_H

@@ -29,12 +29,13 @@ BOOL qtreeCheck = FALSE;
 
 _Atomic int insertNum = 0, removeNum = 0;
 int threadnum = 4;
-
+//pthread_key_t threadId;
 typedef struct TaskRes{
     double usedTime;
     size_t size;
 }TaskRes;
 typedef struct ThreadAttributes{
+    int threadId;
     QTree* qTree;
     QueryMeta* insertQueries ;
     QueryMeta* queries ;
@@ -46,42 +47,51 @@ typedef struct ThreadAttributes{
 }ThreadAttributes;
 
 void testInsert(ThreadAttributes* attributes){
-    clock_t   start,   finish;
-    start = clock();
+//    pthread_setspecific(threadId, (void *)attributes->threadId);
+struct timespec startTmp, endTmp;
+clock_gettime(CLOCK_REALTIME, &startTmp);
     for(    int i = attributes->start; i <  attributes->end; i ++){
-        QTreePut(attributes->qTree, &(attributes->insertQueries[i].dataRegion), attributes->insertQueries + i);
+        QTreePut(attributes->qTree, &(attributes->insertQueries[i].dataRegion), attributes->insertQueries + i, attributes->threadId);
         vmlog(InsertLog,"insert:%d", i);
 //        if((i + 1) % 100000 == 0){
 //            vmlog(InsertLog,"insert:%d", i);
 //        }
     }
-    finish = clock();
-    attributes->result.usedTime = (double)(finish - start)/CLOCKS_PER_SEC;
+    clock_gettime(CLOCK_REALTIME, &endTmp);
+    attributes->result.usedTime = (endTmp.tv_sec - startTmp.tv_sec) + (endTmp.tv_nsec - startTmp.tv_nsec) * 1e-9;
     attributes->result.size = attributes->end - attributes->start;
 }
 
 void testMix(ThreadAttributes* attributes){
+//    pthread_setspecific(threadId, (void *)attributes->threadId);
     Arraylist* removedQuery = ArraylistCreate(attributes->end - attributes->start);
-    clock_t   start,   finish;
-    start = clock();
+    struct timespec startTmp, endTmp;
+    clock_gettime(CLOCK_REALTIME, &startTmp);
     for (int i = attributes->start; i <  attributes->end; ++i) {
 //        vmlog(MiXLog,"i:%d, para:%lf, rm:%ld",i, attributes->mixPara[i], removedQuery->size);
         if(attributes->mixPara[i] < insertRatio){
-            QTreePut(attributes->qTree, &(attributes->queries[i].dataRegion), attributes->queries + i);
+            QTreePut(attributes->qTree, &(attributes->queries[i].dataRegion), attributes->queries + i, attributes->threadId);
             insertNum ++;
         } else{
             QTreeFindAndRemoveRelatedQueries(attributes->qTree, (attributes->removeQuery[i].dataRegion.upper + attributes->removeQuery[i].dataRegion.lower) / 2, removedQuery);
             removeNum ++;
         }
     }
-    finish = clock();
-    attributes->result.usedTime = (double)(finish - start)/CLOCKS_PER_SEC;
+    clock_gettime(CLOCK_REALTIME, &endTmp);
+    attributes->result.usedTime = (endTmp.tv_sec - startTmp.tv_sec) + (endTmp.tv_nsec - startTmp.tv_nsec) * 1e-9;
     attributes->result.size = removedQuery->size;
     ArraylistDeallocate(removedQuery);
 }
 
-int test() {
 
+static void key_destrutor(void * value)
+{
+    return (void)0;
+}
+
+
+int test() {
+//    threadnum = 4;
     useBFPRT = 0;
     double generateT = 0, putT = 0,  mixT = 0;
 //    TOTAL = 100;
@@ -119,7 +129,9 @@ int test() {
     pthread_t thread[MaxThread];
     ThreadAttributes attributes[MaxThread];
 //    start = clock();
+//    pthread_key_create(&threadId, key_destrutor);
     for (int i = 0; i < threadnum; ++i) {
+        attributes[i].threadId = i;
         attributes[i].start = i * perThread;
         attributes[i].end = i == (threadnum - 1)? TOTAL: (i + 1)* perThread;
         attributes[i].insertQueries = insertQueries;
@@ -156,6 +168,7 @@ int test() {
 //    TOTAL = 100;
     perThread = TOTAL / threadnum;
     for (int i = 0; i < threadnum; ++i) {
+        attributes[i].threadId = i;
         attributes[i].start = i * perThread;
         attributes[i].end = i == (threadnum - 1)? TOTAL: (i + 1)* perThread;
         attributes[i].queries = queries;

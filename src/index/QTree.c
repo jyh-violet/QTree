@@ -207,7 +207,7 @@ inline void setSearchKey(Node* node, KeyType * key){
     }
 }
 
-inline LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key, NodesStack* nodesStack, IntStack* slotStack, BoundKey min, BoundKey max) {
+inline LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key, NodesStack* nodesStack, IntStack* slotStack, BoundKey min, BoundKey max, int threadId) {
 //    qTree->funcCount ++;
 
     Node* node = qTree->root;
@@ -215,16 +215,16 @@ inline LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key, NodesStack* node
     NodeAddReadLock(node);
     while (!NodeIsLeaf(node)) {
         InternalNode *nodeInternal = (InternalNode*) node;
-        NodeAddInsertReadLock(node);
+        NodeAddInsertReadLock(node, threadId);
 //        NodeAddInsertRWLock((Node*)nodeInternal);
         while (key->searchKey > nodeInternal->node.nextNodeMin){
             NodeAddReadLock(nodeInternal->node.right);
-            NodeAddInsertReadLock(nodeInternal->node.right);
+            NodeAddInsertReadLock(nodeInternal->node.right, threadId);
 //            NodeAddInsertRWLock(nodeInternal->node.right);
             InternalNode* temp = nodeInternal;
             nodeInternal = (InternalNode*)nodeInternal->node.right;
 //            NodeRmInsertRWLock((Node*)temp);
-            NodeRmInsertReadLock((Node*) temp);
+            NodeRmInsertReadLock((Node*) temp, threadId);
             NodeRmReadLock((Node*)temp);
         }
 //        NodeRmWriteLock((Node*)nodeInternal);
@@ -232,7 +232,7 @@ inline LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key, NodesStack* node
         slot = ((slot < 0) ? (-slot) - 1 : slot + 1);
         node =nodeInternal->childs[slot];
         NodeAddReadLock(node);
-        NodeRmInsertReadLock((Node*)nodeInternal);
+        NodeRmInsertReadLock((Node*)nodeInternal, threadId);
         BoundKey oldBound = nodeInternal->node.maxValue;
         while (oldBound < max && (! __sync_bool_compare_and_swap (&nodeInternal->node.maxValue,oldBound, max))){
             oldBound = nodeInternal->node.maxValue;
@@ -250,7 +250,7 @@ inline LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key, NodesStack* node
     return (NodeIsLeaf(node) ? (LeafNode*) node : NULL);
 }
 
-void QTreePut(QTree* qTree, QueryRange * key, QueryMeta * value){
+void QTreePut(QTree* qTree, QueryRange * key, QueryMeta * value, int threadId){
     if(key == NULL || value == NULL){
         return ;
     }
@@ -258,7 +258,7 @@ void QTreePut(QTree* qTree, QueryRange * key, QueryMeta * value){
         case None:
         case NoSort:
             setSearchKey(NULL, key);
-            QTreePutOne(qTree, key, value);
+            QTreePutOne(qTree, key, value, threadId);
             return;
 
     }
@@ -281,7 +281,7 @@ void QTreePut(QTree* qTree, QueryRange * key, QueryMeta * value){
         qTree->batch[innerIndex].value = value;
         qTree->batchCount ++;
         if(qTree->batchCount >= MaxBatchCount){
-            QTreePutBatch(qTree, qTree->batch, qTree->batchCount);
+            QTreePutBatch(qTree, qTree->batch, qTree->batchCount, threadId);
             qTree->batchCount = 0;
         }
         qTree->batchMissCount = 0;
@@ -290,7 +290,7 @@ void QTreePut(QTree* qTree, QueryRange * key, QueryMeta * value){
 
     // replace the  batch or insert the key directly
     if(qTree->batchMissCount > batchMissThreshold){
-        QTreePutBatch(qTree, qTree->batch, qTree->batchCount);
+        QTreePutBatch(qTree, qTree->batch, qTree->batchCount, threadId);
         setSearchKey(NULL, key);
         qTree->batchSearchKey = key->searchKey;
         qTree->batch[0].key = *key;
@@ -299,13 +299,13 @@ void QTreePut(QTree* qTree, QueryRange * key, QueryMeta * value){
         qTree->batchMissCount = 0;
     } else{
         setSearchKey(NULL, key);
-        QTreePutOne(qTree, key, value);
+        QTreePutOne(qTree, key, value, threadId);
         qTree->batchMissCount ++;
     }
 
 }
 
-inline void QTreePutOne(QTree* qTree, QueryRange* key, QueryMeta* value){
+inline void QTreePutOne(QTree* qTree, QueryRange* key, QueryMeta* value, int threadId){
     if(key == NULL || value == NULL){
         return ;
     }
@@ -318,7 +318,7 @@ inline void QTreePutOne(QTree* qTree, QueryRange* key, QueryMeta* value){
     LeafNode* nodeLeaf;
     int slot;
     retry:{
-        nodeLeaf = QTreeFindLeafNode(qTree, key, &nodesStack, &slotStack, min, max);
+        nodeLeaf = QTreeFindLeafNode(qTree, key, &nodesStack, &slotStack, min, max, threadId);
         if (nodeLeaf == NULL) {
             printf("QTreeFindLeafNode error!\n");
             exit(-1);
@@ -444,7 +444,7 @@ inline void QTreePutOne(QTree* qTree, QueryRange* key, QueryMeta* value){
     //    NodeCheckTree(qTree->root);
 }
 
-inline void QTreePutBatch(QTree* qTree, QueryData * batch, int batchCount){
+inline void QTreePutBatch(QTree* qTree, QueryData * batch, int batchCount, int threadId){
     if(batchCount == 0){
         return ;
     }
@@ -463,7 +463,7 @@ inline void QTreePutBatch(QTree* qTree, QueryData * batch, int batchCount){
         }
     }
 
-    LeafNode* nodeLeaf = QTreeFindLeafNode(qTree, &batch[0].key, &nodesStack, &slotStack, min, max);
+    LeafNode* nodeLeaf = QTreeFindLeafNode(qTree, &batch[0].key, &nodesStack, &slotStack, min, max, threadId);
     if (nodeLeaf == NULL) {
         printf("QTreeFindLeafNode error!\n");
         exit(-1);
