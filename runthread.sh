@@ -1,4 +1,5 @@
 cmake .
+make clean
 make
 n=20000000
 tracelen=2000000000

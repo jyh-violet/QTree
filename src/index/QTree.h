@@ -9,7 +9,7 @@
 #include "../query/QueryRange.h"
 #include "../holder/RangeHolder.h"
 #include "../Tool/ArrayList.h"
-#define maxDepth 16
+#define maxDepth 32
 #define Border  5
 
 #define stackPop(stack, index)  stack[ --index]
@@ -213,4 +213,5 @@ void quickSelect(QueryData data[], int k, int s, int e);
 void swap(KeyType arr[], int a, int b);
 
 int getThreadId();
+
 #endif //QTREE_QTREE_H

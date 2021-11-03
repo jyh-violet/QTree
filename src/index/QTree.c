@@ -216,6 +216,9 @@ inline BOOL QTreeAddLockForFindLeaf(Node* node, int threadId){
 }
 
 inline void QTreeRmLockForFindLeaf(Node* node, int threadId){
+    if(node ==NULL){
+        return;
+    }
     if(NodeIsLeaf(node)){
         NodeRmWriteLock(node);
     } else{
@@ -290,16 +293,12 @@ inline LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key, NodesStack* node
             }
             QTreeModifyNodeMaxMin(node, min, max);
             
-            if(lastNode != NULL){
-                QTreeRmLockForFindLeaf(lastNode, threadId);
-            }
+            QTreeRmLockForFindLeaf(lastNode, threadId);
             lastNode = (Node*) nodeInternal;
         }
 
     }
-    if(lastNode != NULL){
-        QTreeRmLockForFindLeaf(lastNode, threadId);
-    }
+    QTreeRmLockForFindLeaf(lastNode, threadId);
 
     return (NodeIsLeaf(node) ? (LeafNode*) node : NULL);
 }
