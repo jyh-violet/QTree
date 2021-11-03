@@ -150,13 +150,14 @@ int test() {
 //    putT = (double)(finish - start)/CLOCKS_PER_SEC;
     int num = qTree.elements;
     num += qTree.batchCount;
-    printf("%d\n", num);
     if(NodeCheckLink(qTree.root) == FALSE){
         printf("NodeCheckLink ERROR!!!\n");
     }
     if(NodeCheckMaxMin(qTree.root) == FALSE){
         printf("NodeCheckMaxMin ERROR!!!\n");
     }
+    printf("%d\n", num);
+
 //    printQTree(&qTree);
 
     size_t removed = 0;

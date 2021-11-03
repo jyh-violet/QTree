@@ -125,6 +125,10 @@ void printQTreeStatistics(QTree * qTree);
 BOOL CheckLeafNodeCover(LeafNode * leafNode, int i,  BoundKey attribute);
 BOOL QTreeCheckKey(QTree* qTree);
 void QTreeResetStatistics(QTree* qTree);
+BOOL QTreeAddLockForFindLeaf(Node* node, int threadId);
+void QTreeRmLockForFindLeaf(Node* node, int threadId);
+void QTreeModifyNodeMaxMin(Node* node, BoundKey min, BoundKey max);
+Node* QTreeTravelRightLink(Node* node, KeyType * key, int threadId);
 
 void NodeCheckTree(Node* node);
 void NodeConstructor(Node* node, QTree *tree);
@@ -153,6 +157,8 @@ void NodeAddInsertReadLock(Node* node, int threadId);
 void NodeRmInsertReadLock(Node* node, int threadId);
 void NodeAddInsertRWLock(Node* node);
 void NodeRmInsertRWLock(Node* node);
+BOOL NodeTryAddWriteLock(Node* node);
+BOOL NodeTryAddInsertReadLock(Node* node, int threadId);
 
 void LeafNodeConstructor(LeafNode* leafNode, QTree *tree);
 void LeafNodeDestroy(LeafNode* leafNode);
