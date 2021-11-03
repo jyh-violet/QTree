@@ -214,4 +214,7 @@ void swap(KeyType arr[], int a, int b);
 
 int getThreadId();
 
+BoundKey NodeGetMaxValue(Node* node);
+BoundKey NodeGetMinValue(Node* node);
+
 #endif //QTREE_QTREE_H

@@ -227,11 +227,11 @@ inline void QTreeRmLockForFindLeaf(Node* node, int threadId){
 }
 
 inline void QTreeModifyNodeMaxMin(Node* node, BoundKey min, BoundKey max){
-    BoundKey oldBound = node->maxValue;
+    BoundKey oldBound = __sync_fetch_and_add (&node->maxValue, 0);
     while (oldBound < max && (! __sync_bool_compare_and_swap (&node->maxValue,oldBound, max))){
         oldBound = __sync_fetch_and_add (&node->maxValue, 0);
     }
-    oldBound = node->minValue;
+    oldBound =  __sync_fetch_and_add (&node->minValue, 0);
     while( (oldBound > min) && (!__sync_bool_compare_and_swap (&node->minValue,oldBound, min) ) ){
         oldBound =  __sync_fetch_and_add (&node->minValue, 0);
     }
@@ -261,7 +261,7 @@ inline LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key, NodesStack* node
     findAgain:{
 
         while (!stackEmpty(nodesStack->stackNodes, nodesStack->stackNodesIndex)){
-            node = stackPop(nodesStack->stackNodes, nodesStack->stackNodesIndex);
+            node = (Node*)stackPop(nodesStack->stackNodes, nodesStack->stackNodesIndex);
             QTreeRmLockForFindLeaf(node,threadId);
             NodeRmReadLock(node);
         }

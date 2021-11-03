@@ -60,10 +60,10 @@ BOOL LeafNodeAdd(LeafNode* leafNode, int slot, KeyType * newKey, ValueType * new
 
     leafNode->data[slot].key = *newKey;
     leafNode->data[slot].value = newValue;
-    if(leafNode->node.allocated == 0 || (newKey->upper >  (leafNode->node.maxValue))){
+    if(leafNode->node.allocated == 0 || (newKey->upper > NodeGetMaxValue((Node*)leafNode))){
         leafNode->node.maxValue = newKey->upper;
     }
-    if(leafNode->node.allocated == 0 || ((leafNode->node.minValue) >  newKey->lower)){
+    if(leafNode->node.allocated == 0 || ((NodeGetMinValue((Node*)leafNode)) >  newKey->lower)){
         leafNode->node.minValue = newKey->lower;
     }
     int allocated = ++leafNode->node.allocated;
@@ -104,10 +104,10 @@ BOOL LeafNodeAddLast(LeafNode* leafNode, KeyType * newKey, ValueType * newValue)
     leafNode->data[leafNode->node.allocated].value = newValue;
     leafNode->node.allocated++;
 //    vmlog(InsertLog,"LeafNodeAddLast, node:%d, allocated:%d", leafNode->node.id, leafNode->node.allocated);
-    if(leafNode->node.allocated == 1 || (newKey->upper >  (leafNode->node.maxValue))){
+    if(leafNode->node.allocated == 1 || (newKey->upper >  NodeGetMaxValue((Node*)leafNode))){
         leafNode->node.maxValue = newKey->upper;
     }
-    if(leafNode->node.allocated == 1 || ((leafNode->node.minValue) >  newKey->lower)){
+    if(leafNode->node.allocated == 1 || ((NodeGetMinValue((Node*)leafNode)) >  newKey->lower)){
         leafNode->node.minValue = newKey->lower;
     }
     return TRUE;

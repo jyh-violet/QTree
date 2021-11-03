@@ -40,24 +40,30 @@ void InternalNodeResetMaxValue(InternalNode* internalNode){
     if(internalNode->node.allocated < 0){
         return;
     }
-    internalNode->node.maxValue = internalNode->childs[0]->maxValue;
+    BoundKey max = NodeGetMaxValue(internalNode->childs[0]);
+
     for(int i = 1; i <= internalNode->node.allocated; i ++){
-        if( (internalNode->childs[i]->maxValue) > (internalNode->node.maxValue)){
-            internalNode->node.maxValue = internalNode->childs[i]->maxValue;
+        BoundKey childMax = NodeGetMaxValue(internalNode->childs[i]);
+        if( max < childMax){
+            max = childMax;
         }
     }
+    internalNode->node.maxValue = max;
 }
 
 void InternalNodeResetMinValue(InternalNode* internalNode){
     if(internalNode->node.allocated < 0){
         return;
     }
-    internalNode->node.minValue = internalNode->childs[0]->minValue;
+    BoundKey min = NodeGetMinValue(internalNode->childs[0]);
     for(int i = 1; i <= internalNode->node.allocated; i ++){
-        if((internalNode->node.minValue) >  (internalNode->childs[i]->minValue)){
-            internalNode->node.minValue = internalNode->childs[i]->minValue;
+        BoundKey childMin = NodeGetMinValue(internalNode->childs[i]);
+        if(min > childMin){
+            min = childMin;
         }
     }
+    internalNode->node.minValue =min;
+
 }
 
 void InternalNodeAllocId(InternalNode* internalNode) {

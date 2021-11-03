@@ -272,3 +272,13 @@ int getThreadId(){
 //    vmlog(MiXLog, "getThreadId:%d", tid);
 //    return tid;
 }
+
+BoundKey NodeGetMaxValue(Node* node){
+    BoundKey key = __sync_fetch_and_add (&node->maxValue, 0);
+    return key;
+}
+
+BoundKey NodeGetMinValue(Node* node){
+    BoundKey key = __sync_fetch_and_add (&node->minValue, 0);
+    return key;
+}

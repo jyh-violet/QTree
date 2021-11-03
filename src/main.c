@@ -94,7 +94,8 @@ int test() {
 //    threadnum = 4;
     useBFPRT = 0;
     double generateT = 0, putT = 0,  mixT = 0;
-//    TOTAL = 100;
+//    TOTAL = 1000000;
+//    maxValue = TOTAL / 4;
     TRACE_LEN = 1000;
     srand((unsigned)time(NULL));
     initZipfParameter(TOTAL, zipfPara);
