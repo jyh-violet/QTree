@@ -275,6 +275,9 @@ inline LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key, NodesStack* node
         }
 
         node = QTreeTravelRightLink(node, key, threadId);
+        if(node == NULL){
+            goto findAgain;
+        }
         QTreeModifyNodeMaxMin(node, min, max);
         while (!NodeIsLeaf(node)) {
             InternalNode *nodeInternal = (InternalNode*) node;
