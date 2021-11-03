@@ -48,7 +48,8 @@ BOOL NodeCanMerge( Node* node, Node* other) {
 
 BOOL NodeIsFull(Node* node){ // node is full
     if(node->allocated > Border + 1){
-        return TRUE;
+        printNode(node);
+        exit(-1);
     }
     return (BOOL)(node->allocated >= Border);
 }
