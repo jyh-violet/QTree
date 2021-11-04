@@ -127,7 +127,7 @@ BOOL QTreeCheckKey(QTree* qTree);
 void QTreeResetStatistics(QTree* qTree);
 BOOL QTreeAddLockForFindLeaf(Node* node, int threadId);
 void QTreeRmLockForFindLeaf(Node* node, int threadId);
-void QTreeModifyNodeMaxMin(Node* node, BoundKey min, BoundKey max);
+BOOL QTreeModifyNodeMaxMin(Node* node, BoundKey min, BoundKey max);
 Node* QTreeTravelRightLink(Node* node, KeyType * key, int threadId);
 
 void NodeCheckTree(Node* node);
@@ -207,6 +207,7 @@ int InternalNodeFindSlotByNextMin( InternalNode* node, BoundKey nextMin);
 BOOL InternalNodeCheckLink(InternalNode * node);
 void InternalNodeAddRemoveLock(InternalNode* internalNode);
 void InternalNodeRmRemoveLock(InternalNode* internalNode);
+int InternalNodeFindSlotByChild( InternalNode* node, Node* child);
 
 void quickSelect(QueryData data[], int k, int s, int e);
 //void quickSelect(KeyType arr[], int k, int s, int e);

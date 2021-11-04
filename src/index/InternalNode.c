@@ -328,6 +328,18 @@ int InternalNodeFindSlotByNextMin( InternalNode* node, BoundKey nextMin) {
     return low;  // key not found.
 }
 
+int InternalNodeFindSlotByChild( InternalNode* node, Node* child) {
+    if(node->node.allocated == 0){
+        return -1;
+    }
+
+    for (int i = 0; i <= node->node.allocated; ++i)
+        if(node->childs[i] == child){
+            return i;
+    }
+    return -1;  // key not found.
+}
+
 BOOL InternalNodeCheckLink(InternalNode * node){
     int allocated = node->node.allocated;
     if(allocated > Border){
@@ -335,9 +347,6 @@ BOOL InternalNodeCheckLink(InternalNode * node){
     }
     for (int i = 0; i < allocated; ++i) {
         if(node->childs[i]->right!= node->childs[i + 1]){
-            if(node->childs[i]->right->right == node->childs[i + 1]){
-                continue;
-            }
             return FALSE;
         }
         if(node->childs[i]->nextNodeMin > node->keys[i].searchKey){

@@ -54,6 +54,7 @@ BOOL LeafNodeAdd(LeafNode* leafNode, int slot, KeyType * newKey, ValueType * new
         printLeafNode(leafNode);
         exit(-1);
     }
+    BOOL restMaxMin = FALSE;
     if (slot < leafNode->node.allocated) {
         memcpy(leafNode->data + slot + 1, leafNode->data + slot, (leafNode->node.allocated - slot) * sizeof(QueryData ));
     }
@@ -61,14 +62,16 @@ BOOL LeafNodeAdd(LeafNode* leafNode, int slot, KeyType * newKey, ValueType * new
     leafNode->data[slot].key = *newKey;
     leafNode->data[slot].value = newValue;
     if(leafNode->node.allocated == 0 || (newKey->upper > NodeGetMaxValue((Node*)leafNode))){
+        restMaxMin = TRUE;
         leafNode->node.maxValue = newKey->upper;
     }
     if(leafNode->node.allocated == 0 || ((NodeGetMinValue((Node*)leafNode)) >  newKey->lower)){
+        restMaxMin = TRUE;
         leafNode->node.minValue = newKey->lower;
     }
     int allocated = ++leafNode->node.allocated;
 //    vmlog(InsertLog,"LeafNodeAdd, node:%d, allocated:%d", leafNode->node.id, allocated);
-    return TRUE;
+    return restMaxMin;
 }
 BOOL LeafNodeAddBatch(LeafNode* leafNode, int slot, QueryData batch[], int batchCount, BoundKey *min, BoundKey* max){
     if(leafNode->node.allocated + batchCount > Border){
@@ -100,17 +103,20 @@ BOOL LeafNodeAddBatch(LeafNode* leafNode, int slot, QueryData batch[], int batch
 }
 
 BOOL LeafNodeAddLast(LeafNode* leafNode, KeyType * newKey, ValueType * newValue){
+    BOOL restMaxMin = FALSE;
     leafNode->data[leafNode->node.allocated].key = *newKey;
     leafNode->data[leafNode->node.allocated].value = newValue;
     leafNode->node.allocated++;
 //    vmlog(InsertLog,"LeafNodeAddLast, node:%d, allocated:%d", leafNode->node.id, leafNode->node.allocated);
     if(leafNode->node.allocated == 1 || (newKey->upper >  NodeGetMaxValue((Node*)leafNode))){
+        restMaxMin = TRUE;
         leafNode->node.maxValue = newKey->upper;
     }
     if(leafNode->node.allocated == 1 || ((NodeGetMinValue((Node*)leafNode)) >  newKey->lower)){
+        restMaxMin = TRUE;
         leafNode->node.minValue = newKey->lower;
     }
-    return TRUE;
+    return restMaxMin;
 }
 
 inline void LeafNodeAllocId(LeafNode* leafNode) {
