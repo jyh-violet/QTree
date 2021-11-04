@@ -329,10 +329,6 @@ int InternalNodeFindSlotByNextMin( InternalNode* node, BoundKey nextMin) {
 }
 
 int InternalNodeFindSlotByChild( InternalNode* node, Node* child) {
-    if(node->node.allocated == 0){
-        return -1;
-    }
-
     for (int i = 0; i <= node->node.allocated; ++i)
         if(node->childs[i] == child){
             return i;
