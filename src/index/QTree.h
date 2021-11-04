@@ -159,6 +159,7 @@ void NodeAddInsertRWLock(Node* node);
 void NodeRmInsertRWLock(Node* node);
 BOOL NodeTryAddWriteLock(Node* node);
 BOOL NodeTryAddInsertReadLock(Node* node, int threadId);
+void NodeDegradeLock(Node* node, int threadId);
 
 void LeafNodeConstructor(LeafNode* leafNode, QTree *tree);
 void LeafNodeDestroy(LeafNode* leafNode);

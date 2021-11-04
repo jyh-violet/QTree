@@ -165,6 +165,14 @@ void NodeRmWriteLock(Node* node){
 //    vmlog(InsertLog,"rmWriteLock node:%d suceess", ((Node*)node)->id);
 }
 
+
+void NodeDegradeLock(Node* node, int threadId){
+//    vmlog(InsertLog,"rmWriteLock node:%d", ((Node*)node)->id);
+    u_int64_t target =  (1 << (threadId + 1));
+    __sync_bool_compare_and_swap(&node->insertLock, 1, target);
+//    vmlog(InsertLog,"rmWriteLock node:%d suceess", ((Node*)node)->id);
+}
+
 void NodeAddRWLock(Node* node){
 //    vmlog(InsertLog,"addRWLock node:%d", ((Node*)node)->id);
 //    if(!NodeIsLeaf(node)){

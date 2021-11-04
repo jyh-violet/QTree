@@ -354,7 +354,7 @@ void vmlog(LOGLevel logLevel, char* fmat, ...){
         return;
     }
     //get the string passed by the caller through the format string
-    if(!printLog){
+    if(!printLog && logLevel < WARN){
         return;
     }
     va_list argptr;

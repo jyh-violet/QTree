@@ -429,17 +429,20 @@ inline void QTreePutOne(QTree* qTree, QueryRange* key, QueryMeta* value, int thr
                 NodeRmRWLock(tempNode);
             }
             InternalNodeAdd(node, slot, &childKey, splitedNode);
-            restMaxMin = QTreeModifyNodeMaxMin(node, min, max);
+            restMaxMin = QTreeModifyNodeMaxMin( (Node*)node, min, max);
             NodeRmRWLock(splitedNode);
             NodeRmRWLock(lastNode);
             if(NodeIsFull((Node*)node)){
                 splitedNode = InternalNodeSplit(node);
+            }else if(restMaxMin){
+                NodeRmReadLock((Node*)node);
+                NodeDegradeLock((Node*)node, threadId);
+                splitedNode = NULL;
             }else{
                 NodeRmRWLock((Node*)node);
                 splitedNode = NULL;
             }
         } else if(restMaxMin){
-            slot = -1;
             NodeAddInsertReadLock((Node*)node, threadId);
             NodeRmReadLock((Node*)node);
             while ((InternalNodeFindSlotByChild(node, lastNode)) < 0){
@@ -448,8 +451,11 @@ inline void QTreePutOne(QTree* qTree, QueryRange* key, QueryMeta* value, int thr
                 node = (InternalNode*) node->node.right;
                 NodeRmInsertReadLock(tempNode, threadId);
             }
-            restMaxMin = QTreeModifyNodeMaxMin(node, min, max);
-            NodeRmInsertReadLock(node, threadId);
+            restMaxMin = QTreeModifyNodeMaxMin( (Node*)node, min, max);
+            NodeRmInsertReadLock(lastNode, threadId);
+            if(!restMaxMin){
+                NodeRmInsertReadLock( (Node*)node, threadId);
+            }
         } else{
             NodeRmReadLock((Node*)node);
         }
@@ -463,7 +469,6 @@ inline void QTreePutOne(QTree* qTree, QueryRange* key, QueryMeta* value, int thr
             while (lastNode != qTree->root){
                 InternalNode* node = (InternalNode*) qTree->root;
                 NodeAddRWLock((Node*)node);
-                NodeRmRWLock(lastNode);
                 KeyType  childKey = NodeSplitShiftKeysLeft(splitedNode);
                 while ((slot = InternalNodeFindSlotByChild(node, lastNode)) < 0){
                     NodeAddRWLock(node->node.right);
@@ -471,34 +476,40 @@ inline void QTreePutOne(QTree* qTree, QueryRange* key, QueryMeta* value, int thr
                     node = (InternalNode*) node->node.right;
                     NodeRmRWLock(tempNode);
                 }
-                InternalNodeAdd(node, slot, &childKey, splitedNode);
+                if(splitedNode != NULL){
+                    InternalNodeAdd(node, slot, &childKey, splitedNode);
+                }
                 if(restMaxMin){
-                    QTreeModifyNodeMaxMin(node, min, max);
+                    restMaxMin = QTreeModifyNodeMaxMin( (Node*)node, min, max);
                 }
                 NodeRmRWLock(splitedNode);
+                NodeRmRWLock(lastNode);
+                splitedNode = NULL;
                 lastNode = (Node*) node;
             }
         }
         NodeRmRWLock(lastNode);
-    } else if(lastNode != qTree->root){
-        if(restMaxMin){
-            NodeRmRWLock(lastNode);
-            while (lastNode != qTree->root && restMaxMin){
-                InternalNode* node = (InternalNode*) qTree->root;
-                NodeAddInsertReadLock((Node*)node, threadId);
+    } else if(lastNode != qTree->root && restMaxMin){
+        while (lastNode != qTree->root && restMaxMin){
+            InternalNode* node = (InternalNode*) qTree->root;
+            NodeAddInsertReadLock((Node*)node, threadId);
 
-                while ((InternalNodeFindSlotByChild(node, lastNode)) < 0){
-                    NodeAddInsertReadLock(node->node.right, threadId);
-                    Node* tempNode = (Node*)node;
-                    node = (InternalNode*) node->node.right;
-                    NodeRmInsertReadLock(tempNode, threadId);
+            while ((InternalNodeFindSlotByChild(node, lastNode)) < 0){
+                if(node ->node.right == NULL){
+                    vmlog(WARN, "ERROR: root split: miss max: %d, min:%d", max, min);
+                    NodeRmInsertReadLock((Node*)node, threadId);
+                    break;
                 }
-                restMaxMin = QTreeModifyNodeMaxMin(node, min, max);
-                NodeRmInsertReadLock(node, threadId);
-                lastNode = (Node*) node;
+                NodeAddInsertReadLock(node->node.right, threadId);
+                Node* tempNode = (Node*)node;
+                node = (InternalNode*) node->node.right;
+                NodeRmInsertReadLock(tempNode, threadId);
             }
+            restMaxMin = QTreeModifyNodeMaxMin( (Node*)node, min, max);
+            NodeRmInsertReadLock(lastNode, threadId);
+            lastNode = (Node*) node;
         }
-
+        NodeRmInsertReadLock(lastNode, threadId);
     }
 
     qTree->elements ++;

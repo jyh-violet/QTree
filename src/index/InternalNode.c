@@ -333,7 +333,7 @@ int InternalNodeFindSlotByChild( InternalNode* node, Node* child) {
         if(node->childs[i] == child){
             return i;
     }
-    return -1;  // key not found.
+    return -1;  // child not found.
 }
 
 BOOL InternalNodeCheckLink(InternalNode * node){
