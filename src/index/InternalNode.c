@@ -237,6 +237,11 @@ void printInternalNode(InternalNode* internalNode){
 
     }
     printf("}\n");
+    for (int i = 0; i <= internalNode->node.allocated; i++) {
+        printf("  ");
+        printNode(internalNode->childs[i]);
+
+    }
 }
 
 BOOL InternalNodeCheckMaxMin(InternalNode * internalNode){
@@ -246,9 +251,11 @@ BOOL InternalNodeCheckMaxMin(InternalNode * internalNode){
     int findMin = FALSE, findMax = FALSE;
     for(int i = 0; i <= internalNode->node.allocated; i ++){
         if(NodeCheckMaxMin(internalNode->childs[i]) == FALSE){
+            printInternalNode(internalNode);
             return FALSE;
         }
         if(internalNode->node.maxValue < internalNode->childs[i]->maxValue){
+            printf("check internal node: ERROR: child:%d maxvalue > parent :%d\n", internalNode->childs[i]->id, internalNode->node.id);
             return FALSE;
         }
         if(internalNode->node.minValue > internalNode->childs[i]->minValue){
