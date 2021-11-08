@@ -229,19 +229,11 @@ void printInternalNode(InternalNode* internalNode){
         QueryRange * k = &internalNode->keys[i];
         if (i == 0) { // left
             printf("C%d:Node%d<", i, internalNode->childs[i]->id);
-        } else {
-            printf("<");
         }
         printf("%d", k->searchKey);
         printf(">C%d:Node%d<",  i + 1, internalNode->childs[i + 1]->id);
-
     }
     printf("}\n");
-    for (int i = 0; i <= internalNode->node.allocated; i++) {
-        printf("  ");
-        printNode(internalNode->childs[i]);
-
-    }
 }
 
 BOOL InternalNodeCheckMaxMin(InternalNode * internalNode){
@@ -252,10 +244,20 @@ BOOL InternalNodeCheckMaxMin(InternalNode * internalNode){
     for(int i = 0; i <= internalNode->node.allocated; i ++){
         if(NodeCheckMaxMin(internalNode->childs[i]) == FALSE){
             printInternalNode(internalNode);
+            for (int i = 0; i <= internalNode->node.allocated; i++) {
+                printf("  ");
+                printNode(internalNode->childs[i]);
+                if(!NodeIsLeaf(internalNode->childs[i])){
+                    for (int j = 0; j <= internalNode->childs[i]->allocated; ++j) {
+                        printf("    ");
+                        printNode(((InternalNode*)internalNode->childs[i])->childs[j]);
+                    }
+                }
+            }
             return FALSE;
         }
         if(internalNode->node.maxValue < internalNode->childs[i]->maxValue){
-            printf("check internal node: ERROR: child:%d maxvalue > parent :%d\n", internalNode->childs[i]->id, internalNode->node.id);
+            printf("check internal node: ERROR: child[%d]:%d maxvalue > parent :%d\n", i, internalNode->childs[i]->id, internalNode->node.id);
             return FALSE;
         }
         if(internalNode->node.minValue > internalNode->childs[i]->minValue){
@@ -271,6 +273,12 @@ BOOL InternalNodeCheckMaxMin(InternalNode * internalNode){
     if(findMin == TRUE && findMax ==TRUE){
         return TRUE;
     } else{
+        vmlog(WARN, "node:%d, max min not found", internalNode->node.id);
+        printInternalNode(internalNode);
+        for (int i = 0; i <= internalNode->node.allocated; i++) {
+            printf("  ");
+            printNode(internalNode->childs[i]);
+        }
         return FALSE;
     }
 }

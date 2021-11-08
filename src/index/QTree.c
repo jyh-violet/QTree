@@ -446,6 +446,10 @@ inline void QTreePutOne(QTree* qTree, QueryRange* key, QueryMeta* value, int thr
                 NodeRmRWLock(tempNode);
             }
             InternalNodeAdd(node, slot, &childKey, splitedNode);
+            min = splitedNode->minValue < min? splitedNode->minValue: min;
+            max = splitedNode->maxValue > max? splitedNode->maxValue: max;
+            min = lastNode->minValue < min? lastNode->minValue: min;
+            max = lastNode->maxValue > max? lastNode->maxValue: max;
             restMaxMin = QTreeModifyNodeMaxMin( (Node*)node, min, max);
             NodeRmRWLock(splitedNode);
             NodeRmRWLock(lastNode);

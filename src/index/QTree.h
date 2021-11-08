@@ -10,7 +10,7 @@
 #include "../holder/RangeHolder.h"
 #include "../Tool/ArrayList.h"
 #define maxDepth 32
-#define Border  17
+#define Border  5
 
 #define stackPop(stack, index)  stack[ --index]
 #define stackPush(stack, index, elem)  stack[index ++] = elem

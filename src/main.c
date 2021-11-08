@@ -7,7 +7,7 @@
 #include <papi.h>
 #include <pthread.h>
 
-#define MaxThread 10
+#define MaxThread 100
 
 DataRegionType dataRegionType = Zipf;
 DataPointType dataPointType = RemovePoint;
@@ -51,7 +51,8 @@ void testInsert(ThreadAttributes* attributes){
 struct timespec startTmp, endTmp;
 clock_gettime(CLOCK_REALTIME, &startTmp);
     for(    int i = attributes->start; i <  attributes->end; i ++){
-        QTreePut(attributes->qTree, &(attributes->insertQueries[i].dataRegion), attributes->insertQueries + i, attributes->threadId);
+        int index = (i - attributes->start) * threadnum + attributes->threadId;
+        QTreePut(attributes->qTree, &(attributes->insertQueries[index].dataRegion), attributes->insertQueries + index, attributes->threadId);
         vmlog(InsertLog,"insert:%d", i);
 //        if((i + 1) % 100000 == 0){
 //            vmlog(InsertLog,"insert:%d", i);
@@ -95,7 +96,8 @@ int test() {
     useBFPRT = 0;
     double generateT = 0, putT = 0,  mixT = 0;
 //    TOTAL = 10000000;
-//    maxValue = TOTAL / 10;
+//    dataRegionType = Increase;
+    maxValue = TOTAL / 10;
     TRACE_LEN = 1000;
     srand((unsigned)time(NULL));
     initZipfParameter(TOTAL, zipfPara);
