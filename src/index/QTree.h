@@ -10,7 +10,7 @@
 #include "../holder/RangeHolder.h"
 #include "../Tool/ArrayList.h"
 #define maxDepth 32
-#define Border  5
+#define Border  17
 
 #define stackPop(stack, index)  stack[ --index]
 #define stackPush(stack, index, elem)  stack[index ++] = elem
@@ -218,5 +218,5 @@ int getThreadId();
 
 BoundKey NodeGetMaxValue(Node* node);
 BoundKey NodeGetMinValue(Node* node);
-
+void NodeRmInsertReadLockNoLog(Node* node, int threadId);
 #endif //QTREE_QTREE_H

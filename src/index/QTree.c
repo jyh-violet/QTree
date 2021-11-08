@@ -5,6 +5,7 @@
 #include <time.h>
 #include <libconfig.h>
 #include <pthread.h>
+#include <unistd.h>
 #include "QTree.h"
 
 extern SearchKeyType searchKeyType;
@@ -222,7 +223,7 @@ inline void QTreeRmLockForFindLeaf(Node* node, int threadId){
     if(NodeIsLeaf(node)){
         NodeRmWriteLock(node);
     } else{
-        NodeRmInsertReadLock(node, threadId);
+        NodeRmInsertReadLockNoLog(node, threadId);
     }
 }
 
@@ -271,12 +272,28 @@ inline Node* QTreeTravelRightLink(Node* node, KeyType * key, int threadId){
 inline LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key, NodesStack* nodesStack, IntStack* slotStack, BoundKey min, BoundKey max, int threadId) {
 //    qTree->funcCount ++;
     Node* node  = NULL;
+    int findTime = 0;
     findAgain:{
-
+        findTime ++;
+        if(findTime % 1000 == 0){
+            vmlog(WARN,"QTreeFindLeafNode retry:%d", findTime);
+            if(findTime % 10000 == 0){
+                while (!stackEmpty(nodesStack->stackNodes, nodesStack->stackNodesIndex)){
+                    node = (Node*)stackPop(nodesStack->stackNodes, nodesStack->stackNodesIndex);
+                    vmlog(WARN, "stackNode: %d", node->id);
+                }
+                exit(-1);
+            }
+        }
+        int sleep = 0;
         while (!stackEmpty(nodesStack->stackNodes, nodesStack->stackNodesIndex)){
             node = (Node*)stackPop(nodesStack->stackNodes, nodesStack->stackNodesIndex);
             QTreeRmLockForFindLeaf(node,threadId);
             NodeRmReadLock(node);
+            sleep = 1;
+        }
+        if(sleep){
+            usleep(100);
         }
         node = qTree->root;
         int slot = 0;
@@ -462,6 +479,7 @@ inline void QTreePutOne(QTree* qTree, QueryRange* key, QueryMeta* value, int thr
         lastNode = (Node*) node;
         //    splitedNode = (node->isFull() ? node->split() : NULL);
     }
+
     if (splitedNode != NULL) {   // root was split, make new root
         if(lastNode ==  qTree->root){
             QTreeMakeNewRoot(qTree, splitedNode);
@@ -471,6 +489,11 @@ inline void QTreePutOne(QTree* qTree, QueryRange* key, QueryMeta* value, int thr
                 NodeAddRWLock((Node*)node);
                 KeyType  childKey = NodeSplitShiftKeysLeft(splitedNode);
                 while ((slot = InternalNodeFindSlotByChild(node, lastNode)) < 0){
+                    if(node ->node.right == NULL){
+                        vmlog(WARN, "ERROR: root split: miss max: %d, min:%d", max, min);
+                        NodeAddRWLock((Node*)node);
+                        break;
+                    }
                     NodeAddRWLock(node->node.right);
                     Node* tempNode = (Node*)node;
                     node = (InternalNode*) node->node.right;
@@ -509,6 +532,8 @@ inline void QTreePutOne(QTree* qTree, QueryRange* key, QueryMeta* value, int thr
             NodeRmInsertReadLock(lastNode, threadId);
             lastNode = (Node*) node;
         }
+        NodeRmInsertReadLock(lastNode, threadId);
+    } else if(restMaxMin){
         NodeRmInsertReadLock(lastNode, threadId);
     }
 
