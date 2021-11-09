@@ -209,8 +209,8 @@ void NodeRmInsertReadLockNoLog(Node* node, int threadId);
 
 void NodeAddInsertWriteLock(Node* node);
 void NodeRmInsertWriteLock(Node* node);
-void NodeAddRemoveReadInsertWriteLock(Node* node);
-void NodeRmRemoveReadInsertWriteLock(Node* node);
+void NodeAddRemoveReadInsertWriteLock(Node* node, int threadId);
+void NodeRmRemoveReadInsertWriteLock(Node* node, int threadId);
 void NodeRmRemoveReadLock(Node* node, int threadId);
 void NodeAddRemoveReadLock(Node* node, int threadId);
 void NodeAddInsertReadLock(Node* node, int threadId);
