@@ -39,7 +39,7 @@ void LeafNodeMerge(LeafNode* leafNode, InternalNode* nodeParent, int slot,
     // Free nodeFROM
 //    vmlog(MiXLog, "LeafNodeMerge, rm node:%d, pointer:%lx", nodeFROM->node.id, nodeFROM);
     nodeFROM->node.allocated = -1;
-    if(nodeFROMx->read == 0){
+    if(nodeFROMx->insertLock == 0){
 //        free((Node*)nodeFROM);
     }
 }
@@ -273,7 +273,6 @@ Node* LeafNodeSplit_Sort(LeafNode* leafNode) {
     LeafNode* newHigh = (LeafNode*)malloc(sizeof (LeafNode));
     LeafNodeConstructor(newHigh, leafNode->node.tree);
     LeafNodeAllocId(newHigh);
-    NodeAddRemoveReadInsertWriteLock((Node*)newHigh);
 
     int j = leafNode->node.allocated >> 1; // dividir por dos (libro)
     int newsize = leafNode->node.allocated - j;
@@ -305,7 +304,6 @@ Node* LeafNodeSplit_NoSort(LeafNode* leafNode) {
     LeafNode* newHigh = (LeafNode*)malloc(sizeof (LeafNode));
     LeafNodeConstructor(newHigh, leafNode->node.tree);
     LeafNodeAllocId(newHigh);
-    NodeAddRemoveReadInsertWriteLock((Node*)newHigh);
     int median = leafNode->node.allocated >> 1;
     int oldSize = leafNode->node.allocated;
     if(useBFPRT){

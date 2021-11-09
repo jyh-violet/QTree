@@ -75,7 +75,6 @@ Node* InternalNodeSplit(InternalNode* internalNode) {
     InternalNode* newHigh = (InternalNode* )malloc(sizeof (InternalNode));
     InternalNodeConstructor(newHigh, internalNode->node.tree);
     InternalNodeAllocId(newHigh);
-    NodeAddRemoveReadInsertWriteLock((Node*)newHigh);
     // int j = ((allocated >> 1) | (allocated & 1)); // dividir por dos y sumar el resto (0 o 1)
     int j = (internalNode->node.allocated >> 1); // dividir por dos (libro)
     int newsize = internalNode->node.allocated - j;
@@ -210,7 +209,7 @@ void InternalNodeMerge(Node* internalNode, InternalNode* nodeParent, int slot, N
     // Free nodeFROM
     nodeFROM->node.allocated = -1;
 //    vmlog(MiXLog, "InternalNodeMerge, rm node:%d, pointer:%lx", nodeFROMx->id, nodeFROMx);
-    if(nodeFROMx->read == 0){
+    if(nodeFROMx->insertLock == 0){
 //        free(nodeFROMx);
     } else{
 //        vmlog(MiXLog, "InternalNodeMerge, node:%d removedRead=%d", nodeFROMx->id, nodeFROMx->read);
