@@ -424,7 +424,12 @@ inline void QTreePutOne(QTree* qTree, QueryRange* key, QueryMeta* value, int thr
     Node*   splitedNode = (NodeIsFull((Node*)nodeLeaf) ? LeafNodeSplit(nodeLeaf) : NULL);
     Node*   lastNode = (Node*)nodeLeaf;
     if(splitedNode == NULL){
-        NodeRmRemoveReadInsertWriteLock(lastNode);
+        if(restMaxMin){
+            NodeRmRemoveReadLock(lastNode, threadId);
+            NodeDegradeInsertLock(lastNode, threadId);
+        }else{
+            NodeRmRemoveReadInsertWriteLock(lastNode);
+        }
     }
 
     // Iterate back over nodes checking overflow / splitting
@@ -437,7 +442,6 @@ inline void QTreePutOne(QTree* qTree, QueryRange* key, QueryMeta* value, int thr
             NodeAddInsertWriteLock((Node*)node);
             // split occurred in previous phase, splitedNode is new child
             KeyType  childKey = NodeSplitShiftKeysLeft(splitedNode);
-            slot = -1;
             while ((slot = InternalNodeFindSlotByChild(node, lastNode)) < 0){
                 NodeAddRemoveReadInsertWriteLock(node->node.right);
                 Node* tempNode = (Node*)node;
