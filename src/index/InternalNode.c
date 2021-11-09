@@ -9,7 +9,6 @@
 void InternalNodeConstructor(InternalNode* internalNode, QTree* qTree){
     memset(internalNode,0, sizeof(InternalNode));
     NodeConstructor((Node*)internalNode, qTree);
-    pthread_rwlock_init(&internalNode->removeLock, NULL);
 //    internalNode->childs = malloc(sizeof (Node*) * qTree->Border + 1);
 
 }
@@ -17,7 +16,6 @@ void InternalNodeDestroy(InternalNode* internalNode){
     for(int i = 0; i <= internalNode->node.allocated; i++){
         NodeDestroy(internalNode->childs[i]);
     }
-    pthread_rwlock_destroy(&internalNode->removeLock);
 //    vmlog(MiXLog, "InternalNodeDestroy, rm node:%d, pointer:%lx", internalNode->node.id, internalNode);
     free(internalNode);
 }

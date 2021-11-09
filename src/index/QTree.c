@@ -297,9 +297,9 @@ inline LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key, NodesStack* node
         }
         node = qTree->root;
         int slot = 0;
-        NodeAddRemoveReadLock(node);
+        NodeAddRemoveReadLock(node, threadId);
         if(QTreeAddLockForFindLeaf(node, threadId) == FALSE){
-            NodeRmRemoveReadLock(node);
+            NodeRmRemoveReadLock(node, threadId);
             goto  findAgain;
         }
         node = QTreeTravelRightLink(node, key, threadId);
@@ -313,7 +313,7 @@ inline LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key, NodesStack* node
             slot = InternalNodeFindSlotByKey(nodeInternal, key);
             slot = ((slot < 0) ? (-slot) - 1 : slot + 1);
             node =nodeInternal->childs[slot];
-            NodeAddRemoveReadLock(node);
+            NodeAddRemoveReadLock(node, threadId);
             if(QTreeAddLockForFindLeaf(node, threadId) == FALSE){
                 NodeRmRemoveReadLock(node);
                 goto  findAgain;
@@ -321,7 +321,7 @@ inline LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key, NodesStack* node
             node = QTreeTravelRightLink(node, key, threadId);
             if(node == NULL || !NodeIsValid(node)){
                 QTreeRmLockForFindLeaf(node, threadId);
-                NodeRmRemoveReadLock(node);
+                NodeRmRemoveReadLock(node, threadId);
                 goto findAgain;
             }
             QTreeRmLockForFindLeaf((Node*)nodeInternal, threadId);
@@ -465,7 +465,7 @@ inline void QTreePutOne(QTree* qTree, QueryRange* key, QueryMeta* value, int thr
             }
         } else if(restMaxMin){
             NodeAddInsertReadLock((Node*)node, threadId);
-            NodeRmRemoveReadLock((Node*)node);
+            NodeRmRemoveReadLock((Node*)node, threadId);
             while ((InternalNodeFindSlotByChild(node, lastNode)) < 0){
                 NodeAddInsertReadLock(node->node.right, threadId);
                 Node* tempNode = (Node*)node;

@@ -80,9 +80,8 @@ typedef struct QTree {
 #define NodeIsValid(node)  (((Node*)node)->allocated >= 0)
 
 typedef struct Node{
-    pthread_spinlock_t lock; // work as write lock
-    _Atomic int read; // work as the read lock
-    u_int64_t insertLock; // work as the read lock
+    u_int64_t removeLock; // work as the lock for findAndRemove
+    u_int64_t insertLock; // work as the lock for insert
     int id ;
     int allocated ;
     BoundKey maxValue ;
@@ -147,17 +146,7 @@ KeyType NodeSplitShiftKeysLeft(Node* node);
 BOOL NodeCheckMaxMin(Node * node);
 BOOL NodeCheckKey(Node * node);
 BOOL NodeCheckLink(Node* node);
-void NodeAddInsertWriteLock(Node* node);
-void NodeRmInsertWriteLock(Node* node);
-void NodeAddRemoveReadInsertWriteLock(Node* node);
-void NodeRmRemoveReadInsertWriteLock(Node* node);
-void NodeRmRemoveReadLock(Node* node);
-void NodeAddRemoveReadLock(Node* node);
-void NodeAddInsertReadLock(Node* node, int threadId);
-void NodeRmInsertReadLock(Node* node, int threadId);
-BOOL NodeTryAddInsertWriteLock(Node* node);
-BOOL NodeTryAddInsertReadLock(Node* node, int threadId);
-void NodeDegradeInsertLock(Node* node, int threadId);
+
 
 void LeafNodeConstructor(LeafNode* leafNode, QTree *tree);
 void LeafNodeDestroy(LeafNode* leafNode);
@@ -217,4 +206,19 @@ int getThreadId();
 BoundKey NodeGetMaxValue(Node* node);
 BoundKey NodeGetMinValue(Node* node);
 void NodeRmInsertReadLockNoLog(Node* node, int threadId);
+
+void NodeAddInsertWriteLock(Node* node);
+void NodeRmInsertWriteLock(Node* node);
+void NodeAddRemoveReadInsertWriteLock(Node* node);
+void NodeRmRemoveReadInsertWriteLock(Node* node);
+void NodeRmRemoveReadLock(Node* node, int threadId);
+void NodeAddRemoveReadLock(Node* node, int threadId);
+void NodeAddInsertReadLock(Node* node, int threadId);
+void NodeRmInsertReadLock(Node* node, int threadId);
+BOOL NodeTryAddInsertWriteLock(Node* node);
+BOOL NodeTryAddInsertReadLock(Node* node, int threadId);
+void NodeDegradeInsertLock(Node* node, int threadId);
+void NodeAddRemoveWriteLock(Node* node);
+void NodeRmRemoveWriteLock(Node* node);
+BOOL NodeTryAddRemoveWriteLock(Node* node);
 #endif //QTREE_QTREE_H
