@@ -463,7 +463,7 @@ BOOL LeafNodeCheckLink(LeafNode* node){
         return FALSE;
     }
     if(node->node.right!= NULL){
-        if(node->node.nextNodeMin <= node->node.right->minValue){
+        if(node->node.nextNodeMin <= ((LeafNode*)node->node.right)->data[0].key.searchKey){
             return TRUE;
         } else{
             return FALSE;
