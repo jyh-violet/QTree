@@ -112,13 +112,14 @@ int  QTreeAllocNode(QTree* qTree, BOOL isLeaf);
 void QTreeMakeNewRoot(QTree* qTree, Node* splitedNode);
 LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key, NodesStack* nodesStack, IntStack* slotStack, BoundKey min, BoundKey max, int threadId);
 void QTreePut(QTree* qTree, KeyType * key, ValueType * value, int threadId);
-void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* removedQuery);
+void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* removedQuery, int threadId);
 void QTreePutBatch(QTree* qTree, QueryData * batch, int batchCount, int threadId);
 void QTreeCheckBatch(QTree* qTree, int attribute, Arraylist* removedQuery);
 void QTreePutOne(QTree* qTree, QueryRange* key, QueryMeta* value, int threadId);
-Node* checkInternalNode(QTree* qTree, InternalNode* nodeInternal,  KeyType* key, NodesStack *nodesStack, IntStack* slotStack);
-void checkLeafNode(QTree* qTree, LeafNode* leafNode, BoundKey* removedMax, BoundKey* removedMin, BoundKey attribute, Arraylist* removedQuery);
-Node* getAnotherNode(QTree* qTree, KeyType* key, BoundKey *removedMax, BoundKey *removedMin, Arraylist* removedQuery, NodesStack *nodesStack, IntStack* slotStack);
+Node* checkInternalNode(QTree* qTree, InternalNode* nodeInternal,  KeyType* key, NodesStack *nodesStack, IntStack* slotStack, int threadId);
+void checkLeafNode(QTree* qTree, LeafNode* leafNode, BoundKey* removedMax, BoundKey* removedMin, BoundKey attribute, Arraylist* removedQuery, int threadId);
+Node* getAnotherNode(QTree* qTree, KeyType* key, BoundKey *removedMax, BoundKey *removedMin, Arraylist* removedQuery,
+                     NodesStack *nodesStack, IntStack* slotStack, int threadId);
 BOOL QTreeCheckMaxMin(QTree* qTree);
 void printQTreeStatistics(QTree * qTree);
 BOOL CheckLeafNodeCover(LeafNode * leafNode, int i,  BoundKey attribute);
@@ -193,8 +194,6 @@ BOOL InternalNodeCheckKey(InternalNode * internalNode);
 int InternalNodeFindSlotByKey( InternalNode * node, KeyType* searchKey) ;
 int InternalNodeFindSlotByNextMin( InternalNode* node, BoundKey nextMin);
 BOOL InternalNodeCheckLink(InternalNode * node);
-void InternalNodeAddRemoveLock(InternalNode* internalNode);
-void InternalNodeRmRemoveLock(InternalNode* internalNode);
 int InternalNodeFindSlotByChild( InternalNode* node, Node* child);
 
 void quickSelect(QueryData data[], int k, int s, int e);

@@ -12,6 +12,7 @@ void NodeConstructor(Node* node, QTree *tree){
     node->tree = tree;
     node->nextNodeMin = RAND_MAX;
     node->insertLock = 0;
+    node->removeLock = 0;
 
 //    node->keys = malloc(sizeof(KeyType *) * tree->Border);
 //    memset(node->keys,0, sizeof(KeyType *) * Border);
@@ -278,15 +279,41 @@ void NodeAddRemoveReadLock(Node* node, int threadId){
 }
 
 void NodeAddRemoveWriteLock(Node* node){
+    vmlog(RemoveLog,"NodeAddRemoveWriteLock node:%d", ((Node*)node)->id);
 
+    int try = 0;
+    while (1){
+        if(__sync_bool_compare_and_swap(&node->removeLock, 0, 1)){
+            vmlog(RemoveLog,"NodeAddRemoveWriteLock node:%d success", ((Node*)node)->id);
+            return;
+        } else{
+            try ++;
+            if(try%1000000000 == 0){
+                vmlog(WARN,"NodeAddRemoveWriteLock node:%d conflict:%x", ((Node*)node)->id, node->removeLock);
+                //                exit(-1);
+            }
+        }
+    }
 }
 
 void NodeRmRemoveWriteLock(Node* node){
-
+    __sync_bool_compare_and_swap(&node->removeLock, 1, 0);
+    vmlog(RemoveLog,"NodeRmRemoveWriteLock node:%d suceess", ((Node*)node)->id);
 }
 
 BOOL NodeTryAddRemoveWriteLock(Node* node){
-
+    vmlog(RemoveLog,"NodeTryAddRemoveWriteLock node:%d", ((Node*)node)->id);
+    int try = 0;
+    while (try < TryCount){
+        if(__sync_bool_compare_and_swap(&node->removeLock, 0, 1)){
+            vmlog(RemoveLog,"NodeTryAddRemoveWriteLock node:%d success", ((Node*)node)->id);
+            return TRUE;
+        } else{
+            try ++;
+        }
+    }
+    vmlog(RemoveLog,"NodeTryAddRemoveWriteLock node:%d failed:%x", ((Node*)node)->id, node->removeLock);
+    return FALSE;
 }
 
 int getThreadId(){

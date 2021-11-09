@@ -141,23 +141,23 @@ BOOL InternalNodeCheckUnderflowWithRight(InternalNode* internalNode, int slot){
     int maxloop = internalNode->node.allocated - slot;
     int loop = 0;
     BOOL merge = FALSE;
-    NodeAddInsertWriteLock(nodeLeft);
     while ((loop < maxloop) &&NodeIsUnderFlow(nodeLeft)) {
         Node* nodeRight = internalNode->childs[slot + 1];
-        NodeAddInsertWriteLock(nodeRight);
+        NodeAddRemoveWriteLock(nodeRight);
         if (NodeCanMerge(nodeLeft, nodeRight)) {
             NodeMerge(nodeLeft, internalNode, slot, nodeRight);
             internalNode->childs[slot] = nodeLeft;
             merge = TRUE;
         } else {
-            //                nodeLeft.shiftRL(internalNode, slot, nodeRight);
+            //cannot merge
+            NodeRmRemoveWriteLock(nodeRight);
+            break;
         }
-        NodeRmInsertWriteLock(nodeRight);
+        NodeRmRemoveWriteLock(nodeRight);
         loop ++;
 
 //        return TRUE;
     }
-    NodeRmInsertWriteLock(nodeLeft);
     return merge;
 }
 
@@ -368,16 +368,4 @@ BOOL InternalNodeCheckLink(InternalNode * node){
     }
 
     return TRUE;
-}
-
-void InternalNodeAddRemoveLock(InternalNode* internalNode){
-//    vmlog(MiXLog,"InternalNodeAddRemoveLock node:%d", ((Node*)internalNode)->id);
-    pthread_rwlock_wrlock(&internalNode->removeLock);
-//    vmlog(MiXLog,"InternalNodeAddRemoveLock node:%d success", ((Node*)internalNode)->id);
-}
-
-void InternalNodeRmRemoveLock(InternalNode* internalNode){
-//    vmlog(MiXLog,"InternalNodeRmRemoveLock node:%d", ((Node*)internalNode)->id);
-    pthread_rwlock_unlock(&internalNode->removeLock);
-//    vmlog(MiXLog,"InternalNodeRmRemoveLock node:%d success", ((Node*)internalNode)->id);
 }
