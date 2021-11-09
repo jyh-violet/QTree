@@ -97,7 +97,7 @@ int test() {
     double generateT = 0, putT = 0,  mixT = 0;
 //    TOTAL = 10000000;
 //    dataRegionType = Increase;
-    maxValue = TOTAL / 10;
+//    maxValue = TOTAL / 10;
     TRACE_LEN = 1000;
     srand((unsigned)time(NULL));
     initZipfParameter(TOTAL, zipfPara);

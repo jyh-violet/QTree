@@ -77,7 +77,7 @@ Node* InternalNodeSplit(InternalNode* internalNode) {
     InternalNode* newHigh = (InternalNode* )malloc(sizeof (InternalNode));
     InternalNodeConstructor(newHigh, internalNode->node.tree);
     InternalNodeAllocId(newHigh);
-    NodeAddRWLock((Node*)newHigh);
+    NodeAddRemoveReadInsertWriteLock((Node*)newHigh);
     // int j = ((allocated >> 1) | (allocated & 1)); // dividir por dos y sumar el resto (0 o 1)
     int j = (internalNode->node.allocated >> 1); // dividir por dos (libro)
     int newsize = internalNode->node.allocated - j;
@@ -144,10 +144,10 @@ BOOL InternalNodeCheckUnderflowWithRight(InternalNode* internalNode, int slot){
     int maxloop = internalNode->node.allocated - slot;
     int loop = 0;
     BOOL merge = FALSE;
-    NodeAddWriteLock(nodeLeft);
+    NodeAddInsertWriteLock(nodeLeft);
     while ((loop < maxloop) &&NodeIsUnderFlow(nodeLeft)) {
         Node* nodeRight = internalNode->childs[slot + 1];
-        NodeAddWriteLock(nodeRight);
+        NodeAddInsertWriteLock(nodeRight);
         if (NodeCanMerge(nodeLeft, nodeRight)) {
             NodeMerge(nodeLeft, internalNode, slot, nodeRight);
             internalNode->childs[slot] = nodeLeft;
@@ -155,12 +155,12 @@ BOOL InternalNodeCheckUnderflowWithRight(InternalNode* internalNode, int slot){
         } else {
             //                nodeLeft.shiftRL(internalNode, slot, nodeRight);
         }
-        NodeRmWriteLock(nodeRight);
+        NodeRmInsertWriteLock(nodeRight);
         loop ++;
 
 //        return TRUE;
     }
-    NodeRmWriteLock(nodeLeft);
+    NodeRmInsertWriteLock(nodeLeft);
     return merge;
 }
 
