@@ -353,7 +353,7 @@ void vmlog(LOGLevel logLevel, char* fmat, ...){
 //    if(logLevel == InsertLog){
 //        return;
 //    }
-    if(!printLog && logLevel < WARN){
+    if(!printLog || logLevel < WARN){
         return;
     }
     //get the string passed by the caller through the format string
@@ -370,11 +370,12 @@ void vmlog(LOGLevel logLevel, char* fmat, ...){
     printf("(pid:%lu)---%s\n", pthread_self(), buffer);
     fflush(stdout);
 
-//    if(logF <= 0)
-//    {
-//        logF = open(LOG_PATH, O_RDWR|O_APPEND|O_CREAT, S_IRWXU  );
-//    }
-//    char output[MAX_LOG_SIZE];
-//    snprintf(output, sizeof(output),"(pid:%lu)---%s\n",pthread_self(), buffer);
-//    write(logF, output, strlen(output));
+    if(logF <= 0)
+    {
+        logF = open(LOG_PATH, O_WRONLY|O_CREAT, S_IRWXU  );
+        lseek(logF, 0, SEEK_SET);
+    }
+    char output[MAX_LOG_SIZE];
+    snprintf(output, sizeof(output),"(pid:%lu)---%s\n",pthread_self(), buffer);
+    write(logF, output, strlen(output));
 }

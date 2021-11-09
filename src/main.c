@@ -69,7 +69,7 @@ void testMix(ThreadAttributes* attributes){
     struct timespec startTmp, endTmp;
     clock_gettime(CLOCK_REALTIME, &startTmp);
     for (int i = attributes->start; i <  attributes->end; ++i) {
-//        vmlog(RemoveLog,"i:%d, para:%lf, rm:%ld",i, attributes->mixPara[i], removedQuery->size);
+        vmlog(RemoveLog,"i:%d, para:%lf, rm:%ld",i, attributes->mixPara[i], removedQuery->size);
         if(attributes->mixPara[i] < insertRatio){
             QTreePut(attributes->qTree, &(attributes->queries[i].dataRegion), attributes->queries + i, attributes->threadId);
             insertNum ++;
@@ -170,7 +170,7 @@ int test() {
     QTreeResetStatistics(&qTree);
 //    PAPI_init();
 //    PAPI_startCache();
-//    printLog = 1;
+    printLog = 1;
 //    start = clock();
 //    TOTAL = 100;
     perThread = TOTAL / threadnum;

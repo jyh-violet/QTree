@@ -166,7 +166,7 @@ void InternalNodeRemove(InternalNode* internalNode, int slot) {
         printf("faking slot=%d allocated=%d\n", slot, internalNode->node.allocated);
         exit(-2);
     }
-
+    vmlog(RemoveLog, "InternalNodeRemove, rm node:%d, pointer:%lx", internalNode->childs[slot + 1]->id, internalNode->childs[slot + 1]);
     if(slot == -1){
         if(internalNode->node.allocated > 0){
             memcpy(internalNode->keys, internalNode->keys + 1, (internalNode->node.allocated - 1) * sizeof (KeyType ));
@@ -208,7 +208,7 @@ void InternalNodeMerge(Node* internalNode, InternalNode* nodeParent, int slot, N
 
     // Free nodeFROM
     nodeFROM->node.allocated = -1;
-//    vmlog(MiXLog, "InternalNodeMerge, rm node:%d, pointer:%lx", nodeFROMx->id, nodeFROMx);
+    vmlog(RemoveLog, "InternalNodeMerge, rm node:%d, pointer:%lx", nodeFROMx->id, nodeFROMx);
     if(nodeFROMx->insertLock == 0){
 //        free(nodeFROMx);
     } else{
