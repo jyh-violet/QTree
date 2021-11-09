@@ -527,21 +527,26 @@ inline void QTreePutOne(QTree* qTree, QueryRange* key, QueryMeta* value, int thr
     } else if(lastNode != qTree->root && restMaxMin){
         while (lastNode != qTree->root && restMaxMin){
             InternalNode* node = (InternalNode*) qTree->root;
+            NodeAddRemoveReadLock((Node*)node, threadId);
             NodeAddInsertReadLock((Node*)node, threadId);
 
             while ((InternalNodeFindSlotByChild(node, lastNode)) < 0){
                 if(node ->node.right == NULL){
                     vmlog(WARN, "ERROR: root split: miss max: %d, min:%d", max, min);
                     NodeRmInsertReadLock((Node*)node, threadId);
+                    NodeRmRemoveReadLock((Node*)node, threadId);
                     break;
                 }
+                NodeAddRemoveReadLock(node->node.right, threadId);
                 NodeAddInsertReadLock(node->node.right, threadId);
                 Node* tempNode = (Node*)node;
                 node = (InternalNode*) node->node.right;
                 NodeRmInsertReadLock(tempNode, threadId);
+                NodeRmRemoveReadLock(tempNode, threadId);
             }
             restMaxMin = QTreeModifyNodeMaxMin( (Node*)node, min, max);
             NodeRmInsertReadLock(lastNode, threadId);
+            NodeRmRemoveReadLock(lastNode, threadId);
             lastNode = (Node*) node;
         }
         NodeRmRemoveReadLock(lastNode, threadId);
