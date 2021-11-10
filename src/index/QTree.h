@@ -37,6 +37,8 @@ int clockIndex;
 int printQTreelog;
 int useBFPRT;
 
+#define MaxThread 100
+
 OptimizationType optimizationType;
 
 #define KeyType QueryRange
@@ -64,16 +66,16 @@ typedef struct QueryData{
 typedef struct QTree {
     _Atomic int elements;
     _Atomic int maxNodeID;
-    _Atomic int     batchCount;
-    _Atomic int     batchMissCount;
-    BoundKey batchSearchKey;
-    QueryData batch[MaxBatchCount];
     _Atomic size_t leafSplitCount;
     _Atomic size_t internalSplitCount;
     _Atomic size_t funcCount;
     _Atomic size_t whileCount;
     Node *root;
     pthread_spinlock_t removeLock;
+    _Atomic int     batchCount[MaxThread];
+    _Atomic int     batchMissCount[MaxThread];
+    BoundKey batchSearchKey[MaxThread];
+    QueryData batch[MaxThread][MaxBatchCount];
 }QTree;
 
 
@@ -110,7 +112,7 @@ void QTreeDestroy(QTree* qTree);
 void printQTree( QTree* qTree);
 int  QTreeAllocNode(QTree* qTree, BOOL isLeaf);
 void QTreeMakeNewRoot(QTree* qTree, Node* splitedNode);
-LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key, NodesStack* nodesStack, IntStack* slotStack, BoundKey min, BoundKey max, int threadId);
+LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key, NodesStack* nodesStack, int threadId);
 void QTreePut(QTree* qTree, KeyType * key, ValueType * value, int threadId);
 void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* removedQuery, int threadId);
 void QTreePutBatch(QTree* qTree, QueryData * batch, int batchCount, int threadId);
@@ -129,6 +131,8 @@ BOOL QTreeAddLockForFindLeaf(Node* node, int threadId);
 void QTreeRmLockForFindLeaf(Node* node, int threadId);
 BOOL QTreeModifyNodeMaxMin(Node* node, BoundKey min, BoundKey max);
 Node* QTreeTravelRightLink(Node* node, KeyType * key, int threadId);
+void QTreePropagateSplit(QTree* qTree, NodesStack* nodesStack, LeafNode* nodeLeaf, Node* splitedNode, BOOL restMaxMin, BoundKey min, BoundKey max, int threadId);
+
 
 void NodeCheckTree(Node* node);
 void NodeConstructor(Node* node, QTree *tree);
@@ -156,6 +160,7 @@ void LeafNodeMerge(LeafNode* leafNode, InternalNode* nodeParent, int slot,
 void * LeafNodeRemove(LeafNode* leafNode, int slot);
 BOOL LeafNodeAdd(LeafNode* leafNode, int slot, KeyType * newKey, ValueType * newValue);
 BOOL LeafNodeAddLast(LeafNode* leafNode, KeyType * newKey, ValueType * newValue);
+BOOL LeafNodeAddLastBatch(LeafNode* leafNode, QueryData* data, int count, BoundKey *min, BoundKey* max);
 void LeafNodeAllocId(LeafNode* leafNode);
 void LeafNodeResetMaxValue(LeafNode* node);
 void LeafNodeResetMinValue(LeafNode* node);

@@ -7,8 +7,6 @@
 #include <papi.h>
 #include <pthread.h>
 
-#define MaxThread 100
-
 DataRegionType dataRegionType = Zipf;
 DataPointType dataPointType = RemovePoint;
 int valueSpan = 30; // 2 ^valueSpan
@@ -52,8 +50,8 @@ struct timespec startTmp, endTmp;
 clock_gettime(CLOCK_REALTIME, &startTmp);
     for(    int i = attributes->start; i <  attributes->end; i ++){
         int index = (i - attributes->start) * threadnum + attributes->threadId;
+//        vmlog(WARN,"i:%d, para:%lf",i, attributes->mixPara[i]);
         QTreePut(attributes->qTree, &(attributes->insertQueries[index].dataRegion), attributes->insertQueries + index, attributes->threadId);
-        vmlog(InsertLog,"insert:%d", i);
 //        if((i + 1) % 100000 == 0){
 //            vmlog(InsertLog,"insert:%d", i);
 //        }
@@ -69,7 +67,7 @@ void testMix(ThreadAttributes* attributes){
     struct timespec startTmp, endTmp;
     clock_gettime(CLOCK_REALTIME, &startTmp);
     for (int i = attributes->start; i <  attributes->end; ++i) {
-        vmlog(RemoveLog,"i:%d, para:%lf, rm:%ld",i, attributes->mixPara[i], removedQuery->size);
+//        vmlog(WARN,"i:%d, para:%lf, rm:%ld",i, attributes->mixPara[i], removedQuery->size);
         if(attributes->mixPara[i] < insertRatio){
             QTreePut(attributes->qTree, &(attributes->queries[i].dataRegion), attributes->queries + i, attributes->threadId);
             insertNum ++;
@@ -155,7 +153,10 @@ int test() {
 //    finish = clock();
 //    putT = (double)(finish - start)/CLOCKS_PER_SEC;
     int num = qTree.elements;
-    num += qTree.batchCount;
+    for (int i = 0; i < threadnum; ++i) {
+        num += qTree.batchCount[i];
+    }
+
     if(NodeCheckLink(qTree.root) == FALSE){
         printf("NodeCheckLink ERROR!!!\n");
     }
@@ -202,7 +203,9 @@ int test() {
         printf("NodeCheckMaxMin ERROR!!!\n");
     }
     num = qTree.elements;
-    num += qTree.batchCount;
+    for (int i = 0; i < threadnum; ++i) {
+        num += qTree.batchCount[i];
+    }
     printf("%d, %d\n", num, NodeGetHeight(qTree.root));
 
     QTreeDestroy(&qTree);

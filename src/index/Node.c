@@ -294,7 +294,7 @@ BOOL NodeAddRemoveWriteLockNoWait(Node* node){
             vmlog(RemoveLog,"NodeAddRemoveWriteLockNoWait node:%d success", ((Node*)node)->id);
             return TRUE;
         } else{
-            vmlog(WARN,"NodeAddRemoveWriteLockNoWait node:%d conflict:%x", ((Node*)node)->id, node->removeLock);
+            vmlog(RemoveLog,"NodeAddRemoveWriteLockNoWait node:%d conflict:%x", ((Node*)node)->id, node->removeLock);
             return FALSE;
         }
     }

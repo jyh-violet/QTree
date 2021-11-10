@@ -74,8 +74,10 @@ BOOL LeafNodeAdd(LeafNode* leafNode, int slot, KeyType * newKey, ValueType * new
     return restMaxMin;
 }
 BOOL LeafNodeAddBatch(LeafNode* leafNode, int slot, QueryData batch[], int batchCount, BoundKey *min, BoundKey* max){
+    BOOL restMaxMin = FALSE;
     if(leafNode->node.allocated + batchCount > Border){
-        printf("LeafNodeAddBatch, batch too large. allocated:%d, batchCount:%d\n", leafNode->node.allocated, batchCount);
+        vmlog(WARN, "LeafNodeAddBatch, batch too large. allocated:%d, batchCount:%d\n", leafNode->node.allocated, batchCount);
+        return FALSE;
     }
     if (slot < leafNode->node.allocated) {
         memcpy(leafNode->data + slot + batchCount, leafNode->data + slot, (leafNode->node.allocated - slot) * sizeof(QueryData ));
@@ -91,15 +93,23 @@ BOOL LeafNodeAddBatch(LeafNode* leafNode, int slot, QueryData batch[], int batch
             localMin = batch[i].key.lower;
         }
     }
-    if(leafNode->node.allocated == 0 || leafNode->node.maxValue < *max){
+    if(leafNode->node.allocated == 0 || leafNode->node.maxValue < localMax){
+        restMaxMin = TRUE;
         leafNode->node.maxValue = localMax;
     }
-    if(leafNode->node.allocated == 0 || leafNode->node.minValue > *min){
+    if(leafNode->node.allocated == 0 || leafNode->node.minValue > localMin){
+        restMaxMin = TRUE;
         leafNode->node.minValue = localMin;
+    }
+    if(localMin < *min){
+        *min = localMin;
+    }
+    if(localMax > *max){
+        *max = localMax;
     }
     leafNode->node.allocated += batchCount;
 //    vmlog(InsertLog,"LeafNodeAddBatch, node:%d, allocated:%d", leafNode->node.id, leafNode->node.allocated);
-    return TRUE;
+    return restMaxMin;
 }
 
 BOOL LeafNodeAddLast(LeafNode* leafNode, KeyType * newKey, ValueType * newValue){
@@ -118,6 +128,41 @@ BOOL LeafNodeAddLast(LeafNode* leafNode, KeyType * newKey, ValueType * newValue)
     }
     return restMaxMin;
 }
+
+BOOL LeafNodeAddLastBatch(LeafNode* leafNode, QueryData* data, int count, BoundKey *min, BoundKey* max){
+    BOOL restMaxMin = FALSE;
+    if(leafNode->node.allocated + count > Border){
+        vmlog(WARN, "LeafNodeAddLastBatch batch too many");
+        return FALSE;
+    }
+    memcpy(leafNode->data + leafNode->node.allocated, data, count * sizeof (QueryData));
+    BoundKey localMin = data[0].key.lower, localMax = data[0].key.upper;
+    for (int i = 1; i < count; ++i) {
+        if( (data[i].key.upper >  localMax)){
+            localMax = data[i].key.upper;
+        }
+        if( (data[i].key.lower <  localMin)){
+            localMin = data[i].key.lower;
+        }
+    }
+    if(leafNode->node.allocated == 0 || leafNode->node.maxValue < localMax){
+        restMaxMin = TRUE;
+        leafNode->node.maxValue = localMax;
+    }
+    if(leafNode->node.allocated == 0 || leafNode->node.minValue > localMin){
+        restMaxMin = TRUE;
+        leafNode->node.minValue = localMin;
+    }
+    if(localMin < *min){
+        *min = localMin;
+    }
+    if(localMax > *max){
+        *max = localMax;
+    }
+    leafNode->node.allocated+= count;
+    return restMaxMin;
+}
+
 
 inline void LeafNodeAllocId(LeafNode* leafNode) {
     leafNode->node.id = QTreeAllocNode(leafNode->node.tree, (TRUE));
@@ -426,7 +471,7 @@ BOOL LeafNodeCheckMaxMin(LeafNode * leafNode){
         return TRUE;
     } else{
         printf("LeafNodeCheckMaxMin ERROR:%d, max or min not fount\n", leafNode->node.id);
-//        printLeafNode(leafNode);
+        printLeafNode(leafNode);
         return TRUE;
     }
 }
