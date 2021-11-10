@@ -222,7 +222,7 @@ inline void QTreeRmLockForFindLeaf(Node* node, int threadId){
     if(NodeIsLeaf(node)){
         NodeRmInsertWriteLock(node);
     } else{
-        NodeRmInsertReadLockNoLog(node, threadId);
+        NodeRmInsertReadLock(node, threadId);
     }
 }
 
@@ -312,6 +312,7 @@ inline LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key, NodesStack* node
             slot = InternalNodeFindSlotByKey(nodeInternal, key);
             slot = ((slot < 0) ? (-slot) - 1 : slot + 1);
             node =nodeInternal->childs[slot];
+            QTreeRmLockForFindLeaf((Node*)nodeInternal, threadId);
             NodeAddRemoveReadLock(node, threadId);
             if(QTreeAddLockForFindLeaf(node, threadId) == FALSE){
                 NodeRmRemoveReadLock(node, threadId);
@@ -323,7 +324,7 @@ inline LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key, NodesStack* node
                 NodeRmRemoveReadLock(node, threadId);
                 goto findAgain;
             }
-            QTreeRmLockForFindLeaf((Node*)nodeInternal, threadId);
+
         }
 
     }
@@ -468,7 +469,7 @@ inline void QTreePutOne(QTree* qTree, QueryRange* key, QueryMeta* value, int thr
 
             while ((InternalNodeFindSlotByChild(node, lastNode)) < 0){
                 if(node->node.nextNodeMin > key->searchKey){
-                    vmlog(WARN, "travel link error: node :%d and its right not contain the key:%d", node->node.id, key->searchKey);
+                    vmlog(WARN, "travel link ERROR: node :%d and its right not contain the key:%d", node->node.id, key->searchKey);
                     exit(-1);
                 }
                 NodeAddRemoveReadLock(node->node.right, threadId);
@@ -708,7 +709,9 @@ inline Node* checkInternalNode(QTree* qTree, InternalNode* nodeInternal,  KeyTyp
 //        NodeRmRWLock(nodeInternal->childs[slot]);
     }
     NodeRmInsertReadLock((Node*)nodeInternal, threadId);
-    NodeRmRemoveReadLock((Node*)nodeInternal, threadId);
+    if(node == NULL){
+        NodeRmRemoveReadLock((Node*)nodeInternal, threadId);
+    }
     return node;
 }
 
@@ -770,7 +773,8 @@ inline Node* getAnotherNode(QTree* qTree, KeyType* key, BoundKey* removedMax, Bo
         slot = stackPop(slotStack->stackSlots, slotStack->stackSlotsIndex);
 
         InternalNode* internalNode = (InternalNode*) node;
-        NodeAddRemoveReadLock((Node*)internalNode, threadId);
+        //the node has been added r-readLock
+        //   NodeAddRemoveReadLock((Node*)internalNode, threadId);
         NodeAddInsertReadLock((Node*)internalNode, threadId);
         for (; slot < node->allocated; slot ++) {
 //            NodeAddRWLock(internalNode->childs[slot]);
@@ -779,7 +783,7 @@ inline Node* getAnotherNode(QTree* qTree, KeyType* key, BoundKey* removedMax, Bo
                 stackPush(nodesStack->stackNodes, nodesStack->stackNodesIndex, internalNode);
                 stackPush(slotStack->stackSlots, slotStack->stackSlotsIndex, slot + 1);
 //                NodeRmRWLock(internalNode->childs[slot]);
-                NodeRmRemoveReadLock((Node*)internalNode, threadId);
+//                NodeRmRemoveReadLock((Node*)internalNode, threadId);
                 NodeRmInsertReadLock((Node*)internalNode, threadId);
                 return node;
             }
@@ -793,13 +797,13 @@ inline Node* getAnotherNode(QTree* qTree, KeyType* key, BoundKey* removedMax, Bo
             }
         }
         NodeRmRemoveReadLock((Node*)internalNode, threadId);
+        NodeRmInsertReadLock((Node*)internalNode, threadId);
         if(childMerge){
             if ((NodeTryAddRemoveWriteLock((Node*)internalNode)) == FALSE){
                 // another thread is doing merge
                 childMerge = FALSE;
             }
         }
-        NodeRmInsertReadLock((Node*)internalNode, threadId);
         if(childMerge == FALSE){
             node = NULL;
             continue;
@@ -807,7 +811,6 @@ inline Node* getAnotherNode(QTree* qTree, KeyType* key, BoundKey* removedMax, Bo
         childMerge = FALSE;
         for(int i = 0; i <= node->allocated; i ++ ){
             Node* child = internalNode->childs[i];
-            NodeAddRemoveWriteLock(child);
 //            while ((i <= node->allocated) && (NodeIsLeaf(child)? (child->allocated == 0) : (child->allocated < 0))){
 //                if(i > 0){
 //                    NodeAddRemoveWriteLock(internalNode->childs[i - 1]);
@@ -826,9 +829,7 @@ inline Node* getAnotherNode(QTree* qTree, KeyType* key, BoundKey* removedMax, Bo
 //            }
             if(i <= node->allocated){
                 childMerge = InternalNodeCheckUnderflowWithRight(((InternalNode*) node), i) || childMerge;
-
             }
-            NodeRmRemoveWriteLock(child);
         }
         if(node->maxValue <= *removedMax || childMerge){
             if(*removedMax < node->maxValue){
@@ -918,14 +919,19 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
         checkInternal = oldCheckInternal;
     }
     while (!NodeIsLeaf(qTree->root)){
-        NodeAddRemoveWriteLock(qTree->root);
         InternalNode *internalNode = (InternalNode*)qTree->root;
+
         if(internalNode->node.allocated == 0){
-            qTree->root = internalNode->childs[0];
-//            vmlog(MiXLog, "change root, rm node:%d, pointer:%lx", internalNode->node.id, internalNode);
-            free((void *)internalNode);
+            NodeAddRemoveWriteLock((Node*)internalNode);
+            if(internalNode->node.allocated == 0){
+                qTree->root = internalNode->childs[0];
+                vmlog(RemoveLog, "change root, rm node:%d, pointer:%lx, new root:%d", internalNode->node.id, internalNode, qTree->root->id);
+                internalNode->node.allocated = -1;
+
+            }
+            NodeRmRemoveWriteLock( (Node*)internalNode);
+//            free((void *)internalNode);
         } else{
-            NodeRmRemoveWriteLock( qTree->root);
             break;
         }
     }

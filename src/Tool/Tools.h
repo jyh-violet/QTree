@@ -11,8 +11,8 @@ int printLog;
 typedef enum LOGLevel{
     InsertLog,
     MiXLog,
-    WARN,
-    RemoveLog
+    RemoveLog,
+    WARN
 }LOGLevel;
 
 typedef enum DataRegionType {

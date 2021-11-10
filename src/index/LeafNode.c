@@ -406,9 +406,13 @@ BOOL LeafNodeCheckMaxMin(LeafNode * leafNode){
     int findMin = FALSE, findMax = FALSE;
     for(int i = 0; i < leafNode->node.allocated; i ++){
         if(leafNode->data[i].key.lower < leafNode->node.minValue){
+            printf("LeafNodeCheckMaxMin ERROR:%d, data[%d].lower<node.min\n", leafNode->node.id, i);
+            printLeafNode(leafNode);
             return FALSE;
         }
         if(leafNode->data[i].key.upper > leafNode->node.maxValue){
+            printf("LeafNodeCheckMaxMin ERROR:%d, data[%d].upper>node.max\n", leafNode->node.id, i);
+            printLeafNode(leafNode);
             return FALSE;
         }
         if(leafNode->data[i].key.lower == leafNode->node.minValue){
@@ -421,7 +425,9 @@ BOOL LeafNodeCheckMaxMin(LeafNode * leafNode){
     if(findMin == TRUE && findMax ==TRUE){
         return TRUE;
     } else{
-        return FALSE;
+        printf("LeafNodeCheckMaxMin ERROR:%d, max or min not fount\n", leafNode->node.id);
+//        printLeafNode(leafNode);
+        return TRUE;
     }
 }
 
@@ -466,6 +472,9 @@ BOOL LeafNodeCheckLink(LeafNode* node){
         if(node->node.nextNodeMin <= ((LeafNode*)node->node.right)->data[0].key.searchKey){
             return TRUE;
         } else{
+            printf("LeafNodeCheckLink ERROR:%d, node.nextNodeMin > right->data[0].searchKey\n", node->node.id);
+            printLeafNode(node);
+            printNode(node->node.right);
             return FALSE;
         }
     } else{
