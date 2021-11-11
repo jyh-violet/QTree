@@ -278,12 +278,12 @@ BOOL InternalNodeCheckMaxMin(InternalNode * internalNode){
     if(findMin == TRUE && findMax ==TRUE){
         return TRUE;
     } else{
-        printf( "node:%d, max min not found\n", internalNode->node.id);
-        printInternalNode(internalNode);
-        for (int i = 0; i <= internalNode->node.allocated; i++) {
-            printf("  ");
-            printNode(internalNode->childs[i]);
-        }
+//        printf( "node:%d, max min not found\n", internalNode->node.id);
+//        printInternalNode(internalNode);
+//        for (int i = 0; i <= internalNode->node.allocated; i++) {
+//            printf("  ");
+//            printNode(internalNode->childs[i]);
+//        }
         return TRUE;
     }
 }

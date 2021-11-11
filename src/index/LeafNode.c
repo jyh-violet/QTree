@@ -470,8 +470,8 @@ BOOL LeafNodeCheckMaxMin(LeafNode * leafNode){
     if(findMin == TRUE && findMax ==TRUE){
         return TRUE;
     } else{
-        printf("LeafNodeCheckMaxMin ERROR:%d, max or min not fount\n", leafNode->node.id);
-        printLeafNode(leafNode);
+//        printf("LeafNodeCheckMaxMin ERROR:%d, max or min not fount\n", leafNode->node.id);
+//        printLeafNode(leafNode);
         return TRUE;
     }
 }

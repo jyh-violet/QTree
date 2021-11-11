@@ -150,6 +150,7 @@ inline void QTreeMakeNewRoot(QTree* qTree, Node* splitedNode){
     InternalNodeResetMaxValue(nodeRootNew);
     InternalNodeResetMinValue(nodeRootNew);
     qTree->root = (Node* )nodeRootNew;
+    vmlog(WARN, "QTreeMakeNewRoot :%d", nodeRootNew->node.id);
 }
 
 inline void setSearchKey(Node* node, KeyType * key){
@@ -208,11 +209,21 @@ inline void setSearchKey(Node* node, KeyType * key){
 }
 
 inline BOOL QTreeAddLockForFindLeaf(Node* node, int threadId){
+    BOOL success;
     if(NodeIsLeaf(node)){
-        return NodeTryAddInsertWriteLock(node);
+        success = NodeTryAddInsertWriteLock(node);
     } else{
-        return NodeTryAddInsertReadLock(node, threadId);
+        success = NodeTryAddInsertReadLock(node, threadId);
     }
+    if(!NodeIsValid(node)){
+        if(NodeIsLeaf(node)){
+            NodeRmInsertWriteLock(node);
+        } else{
+            NodeRmInsertReadLock(node, threadId);
+        }
+        success = FALSE;
+    }
+    return success;
 }
 
 inline void QTreeRmLockForFindLeaf(Node* node, int threadId){
@@ -444,6 +455,10 @@ inline void QTreePropagateSplit(QTree* qTree, NodesStack* nodesStack, LeafNode* 
     while (!stackEmpty(nodesStack.stackNodes, nodesStack->stackNodesIndex)) {
         //        cout << slot << endl;
         InternalNode* node = stackPop(nodesStack->stackNodes, nodesStack->stackNodesIndex);
+        if(!NodeIsValid((Node*)node)){
+            vmlog(WARN, "node invalid:%d", node->node.id);
+            exit(-1);
+        }
         //        vmlog(InsertLog, "QTreePutOne, stackPop node:%d", node->node.id);
 
         if (splitedNode != NULL) {
@@ -478,7 +493,6 @@ inline void QTreePropagateSplit(QTree* qTree, NodesStack* nodesStack, LeafNode* 
             }
         } else if(restMaxMin){
             NodeAddInsertReadLock((Node*)node, threadId);
-
             while ((InternalNodeFindSlotByChild(node, lastNode)) < 0){
                 if(node->node.nextNodeMin > max){
                     vmlog(WARN, "travel link ERROR: node :%d and its right not contain the key:%d", node->node.id, max);
@@ -883,11 +897,10 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
 
         if(internalNode->node.allocated == 0){
             NodeAddRemoveWriteLock((Node*)internalNode);
-            if(internalNode->node.allocated == 0){
+            if((internalNode->node.allocated == 0) && (qTree->root == internalNode)){
                 qTree->root = internalNode->childs[0];
-                vmlog(RemoveLog, "change root, rm node:%d, pointer:%lx, new root:%d", internalNode->node.id, internalNode, qTree->root->id);
+                vmlog(WARN, "change root, rm node:%d, pointer:%lx, new root:%d", internalNode->node.id, internalNode, qTree->root->id);
                 internalNode->node.allocated = -1;
-
             }
             NodeRmRemoveWriteLock( (Node*)internalNode);
 //            free((void *)internalNode);
