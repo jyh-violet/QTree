@@ -150,7 +150,7 @@ inline void QTreeMakeNewRoot(QTree* qTree, Node* splitedNode){
     InternalNodeResetMaxValue(nodeRootNew);
     InternalNodeResetMinValue(nodeRootNew);
     qTree->root = (Node* )nodeRootNew;
-    vmlog(WARN, "QTreeMakeNewRoot :%d", nodeRootNew->node.id);
+    vmlog(RemoveLog, "QTreeMakeNewRoot :%d", nodeRootNew->node.id);
 }
 
 inline void setSearchKey(Node* node, KeyType * key){
@@ -899,7 +899,7 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
             NodeAddRemoveWriteLock((Node*)internalNode);
             if((internalNode->node.allocated == 0) && (qTree->root == internalNode)){
                 qTree->root = internalNode->childs[0];
-                vmlog(WARN, "change root, rm node:%d, pointer:%lx, new root:%d", internalNode->node.id, internalNode, qTree->root->id);
+                vmlog(RemoveLog, "change root, rm node:%d, pointer:%lx, new root:%d", internalNode->node.id, internalNode, qTree->root->id);
                 internalNode->node.allocated = -1;
             }
             NodeRmRemoveWriteLock( (Node*)internalNode);

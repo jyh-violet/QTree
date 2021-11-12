@@ -242,6 +242,9 @@ void NodeRmRemoveReadInsertWriteLock(Node* node, int threadId){
 
 
 void NodeRmRemoveReadLock(Node* node, int threadId){
+    if(node == NULL){
+        return;
+    }
     __sync_and_and_fetch(&node->removeLock, ~(1<<(threadId + RemoveReadOff)));
     vmlog(RemoveLog,"NodeRmRemoveReadLock node:%d success :%x", ((Node*)node)->id, node->removeLock);
 }
