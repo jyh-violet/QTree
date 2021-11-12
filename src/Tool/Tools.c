@@ -367,15 +367,18 @@ void vmlog(LOGLevel logLevel, char* fmat, ...){
         printf("ERROR:log message too many\n");
         return;
     }
-    printf("(pid:%lu)---%s\n", pthread_self(), buffer);
-    fflush(stdout);
+//    printf("(pid:%lu)---%s\n", pthread_self(), buffer);
+//    fflush(stdout);
 
-//    if(logF <= 0)
-//    {
-//        logF = open(LOG_PATH, O_WRONLY|O_CREAT, S_IRWXU  );
-//        lseek(logF, 0, SEEK_SET);
-//    }
-//    char output[MAX_LOG_SIZE];
-//    snprintf(output, sizeof(output),"(pid:%lu)---%s\n",pthread_self(), buffer);
-//    write(logF, output, strlen(output));
+    if(logF <= 0)
+    {
+        if (access(LOG_PATH,0) == 0 ){
+            remove(LOG_PATH);
+        }
+        logF = open(LOG_PATH, O_WRONLY|O_CREAT, S_IRWXU  );
+        lseek(logF, 0, SEEK_SET);
+    }
+    char output[MAX_LOG_SIZE];
+    snprintf(output, sizeof(output),"(pid:%lu)---%s\n",pthread_self(), buffer);
+    write(logF, output, strlen(output));
 }

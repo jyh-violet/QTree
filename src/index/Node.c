@@ -6,6 +6,9 @@
 #include <pthread.h>
 #include "QTree.h"
 
+#define WriteLockTryThreshold 100000000
+#define TryCount 10
+
 void NodeConstructor(Node* node, QTree *tree){
     node-> id = 0;
     node-> allocated = 0;
@@ -126,6 +129,7 @@ BOOL NodeCheckLink(Node* node){
         return InternalNodeCheckLink((InternalNode *)node);
     }
 }
+
 inline void NodeAddInsertWriteLock(Node* node){
 
     vmlog(RemoveLog,"NodeAddInsertWriteLock node:%d", ((Node*)node)->id);
@@ -137,7 +141,7 @@ inline void NodeAddInsertWriteLock(Node* node){
             return;
         } else{
             try ++;
-            if(try%1000000000 == 0){
+            if(try%WriteLockTryThreshold == 0){
                 vmlog(WARN,"NodeAddInsertWriteLock node:%d conflict:%x", ((Node*)node)->id, node->insertLock);
 //                exit(-1);
             }
@@ -145,7 +149,6 @@ inline void NodeAddInsertWriteLock(Node* node){
     }
 
 }
-#define TryCount 10
 BOOL NodeTryAddInsertWriteLock(Node* node){
     vmlog(RemoveLog,"NodeTryAddWriteLock node:%d", ((Node*)node)->id);
     int try = 0;
@@ -263,7 +266,7 @@ inline void NodeAddRemoveReadLock(Node* node, int threadId){
             }
         } else{
             try ++;
-            if(try%1000000000 == 0){
+            if(try%WriteLockTryThreshold == 0){
                 vmlog(WARN,"NodeAddRemoveReadLock node:%d conflict:%x", ((Node*)node)->id, node->removeLock);
             }
         }
@@ -281,9 +284,11 @@ void NodeAddRemoveWriteLock(Node* node){
         } else{
             __sync_fetch_and_or (&node->removeLock, 1);
             try ++;
-            if(try%1000000000 == 0){
+            if(try%WriteLockTryThreshold == 0){
                 vmlog(WARN,"NodeAddRemoveWriteLock node:%d conflict:%x", ((Node*)node)->id, node->removeLock);
-                                exit(-1);
+                if(try % (100 * WriteLockTryThreshold) == 0){
+                    exit(-1);
+                }
             }
         }
     }
@@ -325,9 +330,11 @@ BOOL NodeTryAddRemoveWriteLock(Node* node){
         }else{
             try ++;
             __sync_fetch_and_or (&node->removeLock, 1);
-            if(try%1000000000 == 0){
+            if(try%WriteLockTryThreshold == 0){
                 vmlog(WARN,"NodeTryAddRemoveWriteLock node:%d conflict:%x", ((Node*)node)->id, node->removeLock);
-                exit(-1);
+                if(try % (100 * WriteLockTryThreshold) == 0){
+                    exit(-1);
+                }
             }
         }
     }
