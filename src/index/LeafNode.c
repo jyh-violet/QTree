@@ -69,7 +69,7 @@ BOOL LeafNodeAdd(LeafNode* leafNode, int slot, KeyType * newKey, ValueType * new
         restMaxMin = TRUE;
         leafNode->node.minValue = newKey->lower;
     }
-    int allocated = ++leafNode->node.allocated;
+    ++leafNode->node.allocated;
 //    vmlog(InsertLog,"LeafNodeAdd, node:%d, allocated:%d", leafNode->node.id, allocated);
     return restMaxMin;
 }

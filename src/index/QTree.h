@@ -10,7 +10,7 @@
 #include "../holder/RangeHolder.h"
 #include "../Tool/ArrayList.h"
 #define maxDepth 32
-#define Border  5
+#define Border  65
 
 #define stackPop(stack, index)  stack[ --index]
 #define stackPush(stack, index, elem)  stack[index ++] = elem
@@ -81,9 +81,11 @@ typedef struct QTree {
 
 #define NodeIsValid(node)  (((Node*)node)->allocated >= 0)
 
+#define LockType u_int32_t
+
 typedef struct Node{
-    u_int64_t removeLock; // work as the lock for findAndRemove
-    u_int64_t insertLock; // work as the lock for insert
+    LockType removeLock; // work as the lock for findAndRemove
+    LockType insertLock; // work as the lock for insert
     int id ;
     int allocated ;
     BoundKey maxValue ;
@@ -101,7 +103,6 @@ struct LeafNode {
 
 struct InternalNode {
     Node node;
-    pthread_rwlock_t removeLock;
     KeyType  keys[Border];  // array of key
     Node* childs[Border + 1];
 };

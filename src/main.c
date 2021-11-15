@@ -163,7 +163,7 @@ int test() {
     if(NodeCheckMaxMin(qTree.root) == FALSE){
         printf("NodeCheckMaxMin ERROR!!!\n");
     }
-    printf("%d, %d\n", num, NodeGetHeight(qTree.root));
+//    printf("%d, %d\n", num, NodeGetHeight(qTree.root));
 
 //    printQTree(&qTree);
 
@@ -206,7 +206,7 @@ int test() {
     for (int i = 0; i < threadnum; ++i) {
         num += qTree.batchCount[i];
     }
-    printf("%d, %d\n", num, NodeGetHeight(qTree.root));
+//    printf("%d, %d\n", num, NodeGetHeight(qTree.root));
 
     QTreeDestroy(&qTree);
 

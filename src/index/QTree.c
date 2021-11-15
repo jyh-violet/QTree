@@ -150,7 +150,7 @@ inline void QTreeMakeNewRoot(QTree* qTree, Node* splitedNode){
     InternalNodeResetMaxValue(nodeRootNew);
     InternalNodeResetMinValue(nodeRootNew);
     qTree->root = (Node* )nodeRootNew;
-    vmlog(RemoveLog, "QTreeMakeNewRoot :%d", nodeRootNew->node.id);
+//    vmlog(RemoveLog, "QTreeMakeNewRoot :%d", nodeRootNew->node.id);
 }
 
 inline void setSearchKey(Node* node, KeyType * key){
@@ -373,7 +373,7 @@ void QTreePut(QTree* qTree, QueryRange * key, QueryMeta * value, int threadId){
         qTree->batch[threadId][innerIndex].key = *key;
         qTree->batch[threadId][innerIndex].value = value;
         qTree->batchCount[threadId] ++;
-        if(qTree->batchCount >= MaxBatchCount){
+        if(qTree->batchCount[threadId] >= MaxBatchCount){
             QTreePutBatch(qTree, qTree->batch[threadId], qTree->batchCount[threadId], threadId);
             qTree->batchCount[threadId] = 0;
         }
@@ -404,9 +404,7 @@ inline void QTreePutOne(QTree* qTree, QueryRange* key, QueryMeta* value, int thr
     }
 
     NodesStack  nodesStack;
-    IntStack slotStack;
     nodesStack.stackNodesIndex = 0;
-    slotStack.stackSlotsIndex = 0;
     BoundKey min = key->lower, max = key->upper;
     LeafNode* nodeLeaf;
     int slot;
@@ -590,9 +588,7 @@ inline void QTreePutBatch(QTree* qTree, QueryData * batch, int batchCount, int t
     }
 
     NodesStack  nodesStack;
-    IntStack slotStack;
     nodesStack.stackNodesIndex = 0;
-    slotStack.stackSlotsIndex = 0;
     BoundKey min = batch[0].key.lower, max = batch[0].key.upper;
 
     LeafNode* nodeLeaf = QTreeFindLeafNode(qTree, &batch[0].key, &nodesStack, threadId);
@@ -784,7 +780,7 @@ inline Node* getAnotherNode(QTree* qTree, KeyType* key, BoundKey* removedMax, Bo
         }
         childMerge = FALSE;
         for(int i = 0; i <= node->allocated; i ++ ){
-            Node* child = internalNode->childs[i];
+//            Node* child = internalNode->childs[i];
 //            while ((i <= node->allocated) && (NodeIsLeaf(child)? (child->allocated == 0) : (child->allocated < 0))){
 //                if(i > 0){
 //                    NodeAddRemoveWriteLock(internalNode->childs[i - 1]);
@@ -899,7 +895,7 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
             NodeAddRemoveWriteLock((Node*)internalNode);
             if((internalNode->node.allocated == 0) && (qTree->root == internalNode)){
                 qTree->root = internalNode->childs[0];
-                vmlog(RemoveLog, "change root, rm node:%d, pointer:%lx, new root:%d", internalNode->node.id, internalNode, qTree->root->id);
+//                vmlog(RemoveLog, "change root, rm node:%d, pointer:%lx, new root:%d", internalNode->node.id, internalNode, qTree->root->id);
                 internalNode->node.allocated = -1;
             }
             NodeRmRemoveWriteLock( (Node*)internalNode);

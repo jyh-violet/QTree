@@ -33,11 +33,11 @@ target_link_libraries(main PUBLIC index -lpthread -lpapi)
 #6.add executable file，添加要编译的可执行文件
 ADD_EXECUTABLE(${PROJECT_NAME}  ${TEST_MATH})
 
-add_library(qtree src/Tool/Tools.h src/Tool/Tools.c src/Tool/ArrayList.h src/Tool/Arraylist.c
-        src/query/QueryRange.c src/query/QueryMeta.c src/query/QueryRange.h src/query/QueryMeta.h
-        src/index/Node.c src/index/QTree.h src/index/QTree.c src/index/LeafNode.c src/index/InternalNode.c
-        src/common.h  src/main.c)
-set_target_properties(qtree PROPERTIES output_name "qtree")
+#add_library(qtree src/Tool/Tools.h src/Tool/Tools.c src/Tool/ArrayList.h src/Tool/Arraylist.c
+#        src/query/QueryRange.c src/query/QueryMeta.c src/query/QueryRange.h src/query/QueryMeta.h
+#        src/index/Node.c src/index/QTree.h src/index/QTree.c src/index/LeafNode.c src/index/InternalNode.c
+#        src/common.h  src/main.c)
+#set_target_properties(qtree PROPERTIES output_name "qtree")
 
 #7.add link library，添加可执行文件所需要的库，比如我们用到了libm.so（命名规则：lib+name+.so），就添加该库的名称
 #TARGET_LINK_LIBRARIES(${PROJECT_NAME} m)
