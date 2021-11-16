@@ -99,6 +99,7 @@ int test() {
 //    TOTAL = 10000000;
 //    dataRegionType = Increase;
 //    maxValue = TOTAL / 10;
+    maxValue = TOTAL * 2;
     TRACE_LEN = 1000;
     srand((unsigned)time(NULL));
     initZipfParameter(TOTAL, zipfPara);
@@ -264,7 +265,7 @@ int main(){
     config_lookup_float(&cfg, "insertRatio", &insertRatio);
     config_lookup_int(&cfg, "threadnum", &threadnum);
 
-    maxValue = TOTAL;
+
 
     test();
     return 0;
