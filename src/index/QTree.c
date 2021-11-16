@@ -153,26 +153,14 @@ inline void QTreeMakeNewRoot(QTree* qTree, Node* splitedNode){
 //    vmlog(RemoveLog, "QTreeMakeNewRoot :%d", nodeRootNew->node.id);
 }
 
-inline void setSearchKey(Node* node, KeyType * key){
+inline void setSearchKey(KeyType * key, int threadId){
 //    node->tree->funcCount ++;
     switch (searchKeyType) {
         case LOW:
             key->searchKey = key->lower;
             break;
         case DYMID:
-            if(node->maxValue == 0){
-                key->searchKey = (key->lower + key->upper) >> 1;
-            } else if((key->lower < (node->maxValue)) && (key-> upper > (node->minValue))){
-                BoundKey low = (node->minValue);
-                if((key->lower > (node->minValue))){
-                    low = key->lower;
-                }
-                BoundKey high =(node->maxValue);
-                if((key->upper < (node->maxValue))){
-                    high = key->upper;
-                }
-                key->searchKey = (low + high) >> 1;
-            }
+            key->searchKey = key->lower;
             break;
         case RAND:
             if(key->searchKey == -1){
@@ -190,12 +178,12 @@ inline void setSearchKey(Node* node, KeyType * key){
             break;
         case REMOVE:
             if(key->searchKey == -1){
-                int index = clockIndex;
+                int index = clockIndex[threadId];
                 for (int i = 0; i < RemovedQueueSize; ++i) {
                     index --;
                     index = index < 0? index + RemovedQueueSize: index;
-                    if(QueryRangeCover(*key, RemovedKey[index])){
-                        key->searchKey = RemovedKey[index];
+                    if(QueryRangeCover(*key, RemovedKey[threadId][index])){
+                        key->searchKey = RemovedKey[threadId][index];
                         setKeyCount ++;
                         break;
                     }
@@ -350,14 +338,14 @@ void QTreePut(QTree* qTree, QueryRange * key, QueryMeta * value, int threadId){
     switch (optimizationType) {
         case None:
         case NoSort:
-            setSearchKey(NULL, key);
+            setSearchKey(key, threadId);
             QTreePutOne(qTree, key, value, threadId);
             return;
 
     }
     // empty batch
     if( qTree->batchCount[threadId] == 0){
-        setSearchKey(NULL, key);
+        setSearchKey(key, threadId);
         qTree->batchSearchKey[threadId] = key->searchKey;
         qTree->batch[threadId][0].key = *key;
         qTree->batch[threadId][0].value = value;
@@ -384,14 +372,14 @@ void QTreePut(QTree* qTree, QueryRange * key, QueryMeta * value, int threadId){
     // replace the  batch or insert the key directly
     if(qTree->batchMissCount[threadId] > batchMissThreshold){
         QTreePutBatch(qTree, qTree->batch[threadId], qTree->batchCount[threadId], threadId);
-        setSearchKey(NULL, key);
+        setSearchKey(key, threadId);
         qTree->batchSearchKey[threadId] = key->searchKey;
         qTree->batch[threadId][0].key = *key;
         qTree->batch[threadId][0].value = value;
         qTree->batchCount[threadId] = 1;
         qTree->batchMissCount[threadId] = 0;
     } else{
-        setSearchKey(NULL, key);
+        setSearchKey(key, threadId);
         QTreePutOne(qTree, key, value, threadId);
         qTree->batchMissCount[threadId] ++;
     }
@@ -823,15 +811,15 @@ inline Node* getAnotherNode(QTree* qTree, KeyType* key, BoundKey* removedMax, Bo
 void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* removedQuery, int threadId){
     if(searchKeyType == REMOVE){
         for (int i = 0; i < RemovedQueueSize; ++i) {
-            clockIndex = (clockIndex + 1) % RemovedQueueSize;
-            if(RemovedKey[clockIndex] == attribute){
+            clockIndex[threadId] = (clockIndex[threadId] + 1) % RemovedQueueSize;
+            if(RemovedKey[threadId][clockIndex[threadId]] == attribute){
                 break;
             }
-            if(clockFlag & (1 << clockIndex)){
-                clockFlag &= ~(1 << clockIndex);
+            if(clockFlag[threadId] & (1 << clockIndex[threadId])){
+                clockFlag[threadId] &= ~(1 << clockIndex[threadId]);
             } else{
-                RemovedKey[clockIndex] = attribute;
-                clockFlag |= (1 << clockIndex);
+                RemovedKey[threadId][clockIndex[threadId]] = attribute;
+                clockFlag[threadId] |= (1 << clockIndex[threadId]);
                 break;
             }
         }

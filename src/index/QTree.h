@@ -29,15 +29,15 @@ typedef struct InternalNode InternalNode;
 typedef struct LeafNode LeafNode;
 typedef struct Node Node;
 
+#define MaxThread 100
 #define RemovedQueueSize 8
-BoundKey RemovedKey[RemovedQueueSize];
-u_int32_t clockFlag;
-int clockIndex;
+BoundKey RemovedKey[MaxThread][RemovedQueueSize];
+u_int32_t clockFlag[MaxThread];
+int clockIndex[MaxThread];
 
 int printQTreelog;
 int useBFPRT;
 
-#define MaxThread 100
 
 OptimizationType optimizationType;
 
@@ -141,7 +141,7 @@ void NodeDestroy(Node* node);
 BOOL NodeIsUnderFlow(Node* node);
 BOOL NodeCanMerge( Node* node, Node* other) ;
 BOOL NodeIsFull(Node* node);
-void setSearchKey(Node* node, KeyType * key);
+void setSearchKey(KeyType * key, int threadId);
 void printNode(Node* node);
 Node* NodeSplit(Node* node);
 int NodeGetHeight(Node* node);
