@@ -5,7 +5,6 @@
 #include <time.h>
 #include <libconfig.h>
 #include <pthread.h>
-#include <unistd.h>
 #include "QTree.h"
 
 extern SearchKeyType searchKeyType;

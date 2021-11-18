@@ -130,7 +130,7 @@ int test() {
     finish = clock();
     generateT = (double)(finish - start)/CLOCKS_PER_SEC;
 //    printf("generate end! use %lfs\n", (double)(finish - start)/CLOCKS_PER_SEC );
-//    printLog = 1;
+    printLog = 1;
     int perThread = TOTAL / threadnum;
     pthread_t thread[MaxThread];
     ThreadAttributes attributes[MaxThread];

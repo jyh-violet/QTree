@@ -5,6 +5,7 @@
 #ifndef QTREE_QTREE_H
 #define QTREE_QTREE_H
 
+#include <unistd.h>
 #include "../query/QueryMeta.h"
 #include "../query/QueryRange.h"
 #include "../holder/RangeHolder.h"
