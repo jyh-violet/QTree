@@ -9,6 +9,7 @@ extern  DataRegionType dataRegionType;
 extern  DataPointType dataPointType;
 extern int maxValue;
 extern int removePoint;
+extern int rangeWidth;
 
 
 void QueryRangeConstructor(QueryRange *queryRange){
@@ -22,38 +23,38 @@ void QueryRangeConstructor(QueryRange *queryRange){
             break;
         case  Random:
             r = (int) RAND_RANGE(maxValue);
-            diff = (int) RAND_RANGE(span);
+            diff = (int) RAND_RANGE(rangeWidth);
             switch (dataPointType) {
                 case RemovePoint:
-                    queryRange->lower = r + span - diff / 4 * 3;
-                    queryRange->upper = r + span + diff / 4 ;
+                    queryRange->lower = r + rangeWidth - diff / 4 * 3;
+                    queryRange->upper = r + rangeWidth + diff / 4 ;
                     break;
                 case LowPoint:
-                    queryRange->lower = r + span ;
-                    queryRange->upper = r + span + diff ;
+                    queryRange->lower = r + rangeWidth ;
+                    queryRange->upper = r + rangeWidth + diff ;
                     break;
                 case MidPoint:
-                    queryRange->lower = r + span - diff / 2;
-                    queryRange->upper = r + span + diff / 2;
+                    queryRange->lower = r + rangeWidth - diff / 2;
+                    queryRange->upper = r + rangeWidth + diff / 2;
                     break;
             }
 
             break;
         case Zipf:
             randNum = zipf();
-            diff = (int) RAND_RANGE(span);
+            diff = (int) RAND_RANGE(rangeWidth);
             switch (dataPointType) {
                 case RemovePoint:
-                    queryRange->lower = randNum + span - diff / 4 * 3;
-                    queryRange->upper = randNum + span + diff / 4 ;
+                    queryRange->lower = randNum + rangeWidth - diff / 4 * 3;
+                    queryRange->upper = randNum + rangeWidth + diff / 4 ;
                     break;
                 case  LowPoint:
-                    queryRange->lower = randNum + span ;
-                    queryRange->upper = randNum + span + diff ;
+                    queryRange->lower = randNum + rangeWidth ;
+                    queryRange->upper = randNum + rangeWidth + diff ;
                     break;
                 case  MidPoint:
-                    queryRange->lower = randNum + span - diff / 2;
-                    queryRange->upper = randNum + span + diff / 2;
+                    queryRange->lower = randNum + rangeWidth - diff / 2;
+                    queryRange->upper = randNum + rangeWidth + diff / 2;
                     break;
             }
             break;
@@ -63,8 +64,8 @@ void QueryRangeConstructor(QueryRange *queryRange){
             break;
         case Remove:
             randNum = zipf();
-            queryRange->lower =  removePoint  + randNum + span ;
-            queryRange->upper =  removePoint  + randNum + span;
+            queryRange->lower =  removePoint  + randNum + rangeWidth ;
+            queryRange->upper =  removePoint  + randNum + rangeWidth;
             break;
     }
 //    queryRange->boundInclude = 3;

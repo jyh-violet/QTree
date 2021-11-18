@@ -331,7 +331,7 @@ BOOL NodeTryAddRemoveWriteLock(Node* node){
             try ++;
             __sync_fetch_and_or (&node->removeLock, 1);
             if(try%WriteLockTryThreshold == 0){
-//                vmlog(WARN,"NodeTryAddRemoveWriteLock node:%d conflict:%x", ((Node*)node)->id, node->removeLock);
+                vmlog(WARN,"NodeTryAddRemoveWriteLock node:%d conflict:%x", ((Node*)node)->id, node->removeLock);
                 if(try % (100 * WriteLockTryThreshold) == 0){
                     exit(-1);
                 }
