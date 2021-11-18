@@ -22,7 +22,7 @@ u_int64_t checkLeaf = 0;
 u_int64_t checkQuery = 0;
 u_int64_t checkInternal = 0;
 int removePoint = 0;
-double zipfPara = 0.99;
+double zipfPara = 0.75;
 BOOL qtreeCheck = FALSE;
 
 _Atomic int insertNum = 0, removeNum = 0;
@@ -213,10 +213,10 @@ int test() {
 
 
 //    mixT = (double)(finish - start)/CLOCKS_PER_SEC;
-printf("%d, %d, %d,  %d, %d, %d, %.2lf, %d,  %d,  %.3lf,%.3lf,%.3lf, %d, %d, %ld, %ld, %ld,  %ld, %ld, %ld, %ld, %ld, %d, %d, %d, %d, %d\n",
+printf("%d, %d, %d,  %d, %d, %d, %.2lf, %d,  %d,  %.3lf,%.3lf,%.3lf, %d, %d, %ld, %ld, %ld,  %ld, %ld, %ld, %ld, %ld, %d, %d, %d, %d, %.2lf, %d, %d\n",
        Border, checkQueryMeta, optimizationType, dataPointType, dataRegionTypeOld, searchKeyType, insertRatio, removePoint, TOTAL,
            generateT, putT, mixT, insertNum, removeNum, removed, checkQuery, checkLeaf, checkInternal,
-           qTree.leafSplitCount, qTree.internalSplitCount, qTree.whileCount, qTree.funcCount, RemovedQueueSize, batchMissThreshold, MaxBatchCount, setKeyCount, threadnum);
+           qTree.leafSplitCount, qTree.internalSplitCount, qTree.whileCount, qTree.funcCount, RemovedQueueSize, batchMissThreshold, MaxBatchCount, setKeyCount, zipfPara, span, threadnum);
     free(queries) ;
     free(removeQuery);
     free(insertQueries);
@@ -265,7 +265,7 @@ int main(){
     config_lookup_float(&cfg, "insertRatio", &insertRatio);
     config_lookup_int(&cfg, "threadnum", &threadnum);
 
-
+    maxValue = TOTAL;
 
     test();
     return 0;

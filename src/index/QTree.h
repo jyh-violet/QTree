@@ -43,8 +43,8 @@ OptimizationType optimizationType;
 
 #define KeyType QueryRange
 #define ValueType   QueryMeta
-#define batchMissThreshold  5
 #define MaxBatchCount (Border/2 - 1)
+#define batchMissThreshold  100
 
 //extern pthread_key_t threadId;
 

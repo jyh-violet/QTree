@@ -7,7 +7,7 @@
 
 #include "../common.h"
 
-#define span 1024
+#define span 100
 
 #define QueryRangeLT(queryRange1, queryRange2) \
 (BOOL)(((QueryRange)queryRange1).searchKey < ((QueryRange)queryRange2).searchKey)

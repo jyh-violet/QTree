@@ -268,7 +268,7 @@ inline Node* QTreeTravelRightLink(Node* node, KeyType * key, int threadId){
 }
 
 inline LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key, NodesStack* nodesStack, int threadId) {
-//    qTree->funcCount ++;
+    qTree->funcCount ++;
     Node* node  = NULL;
     int findTime = 0;
     findAgain:{
