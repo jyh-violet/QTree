@@ -378,7 +378,7 @@ void vmlog(LOGLevel logLevel, char* fmat, ...){
         logF = open(LOG_PATH, O_WRONLY|O_CREAT, S_IRWXU  );
         lseek(logF, 0, SEEK_SET);
     }
-    char output[MAX_LOG_SIZE];
+    char output[MAX_LOG_SIZE + 100];
     snprintf(output, sizeof(output),"(pid:%lu)---%s\n",pthread_self(), buffer);
     write(logF, output, strlen(output));
 }

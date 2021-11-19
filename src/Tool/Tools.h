@@ -12,7 +12,7 @@ typedef enum LOGLevel{
     InsertLog,
     MiXLog,
     RemoveLog,
-    WARN
+    WARN,
 }LOGLevel;
 
 typedef enum DataRegionType {

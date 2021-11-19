@@ -310,14 +310,8 @@ inline void quickSelect(QueryData data[], int k, int s, int e){
     }
 }
 
-Node* LeafNodeSplit_Sort(LeafNode* leafNode) {
-    if(leafNode->node.tree == NULL){
-        printLeafNode(leafNode);
-    }
-//    leafNode->node.tree->leafSplitCount ++;
-    LeafNode* newHigh = (LeafNode*)malloc(sizeof (LeafNode));
-    LeafNodeConstructor(newHigh, leafNode->node.tree);
-    LeafNodeAllocId(newHigh);
+Node* LeafNodeSplit_Sort(LeafNode* leafNode, LeafNode* newHigh) {
+
 
     int j = leafNode->node.allocated >> 1; // dividir por dos (libro)
     int newsize = leafNode->node.allocated - j;
@@ -341,14 +335,7 @@ BOOL LeafNodeCheckMinKey(LeafNode* leafNode){
     return TRUE;
 }
 
-Node* LeafNodeSplit_NoSort(LeafNode* leafNode) {
-    if(leafNode->node.tree == NULL){
-        printLeafNode(leafNode);
-    }
-//    leafNode->node.tree->leafSplitCount ++;
-    LeafNode* newHigh = (LeafNode*)malloc(sizeof (LeafNode));
-    LeafNodeConstructor(newHigh, leafNode->node.tree);
-    LeafNodeAllocId(newHigh);
+Node* LeafNodeSplit_NoSort(LeafNode* leafNode, LeafNode* newHigh) {
     int median = leafNode->node.allocated >> 1;
     int oldSize = leafNode->node.allocated;
     if(useBFPRT){
@@ -368,15 +355,42 @@ Node* LeafNodeSplit_NoSort(LeafNode* leafNode) {
 }
 
 Node*  LeafNodeSplit(LeafNode* leafNode) {
+    vmlog(InsertLog, "LeafNodeSplit:%d", leafNode->node.id);
     LeafNode* newHigh;
+    int newAllocated = 0;
+    for (int i = 0; i < leafNode->node.allocated; ++i) {
+        if(QueryIsDeleted(leafNode->data[i].value) == FALSE){
+            leafNode->data[newAllocated ++] = leafNode->data[i];
+        }
+    }
+    leafNode->node.allocated = newAllocated;
+    if(!NodeIsFull((Node*)leafNode)){
+        return NULL;
+    }
+//    int wait = 0;
+//    while (leafNode->node.allowSplit == 0){
+//        usleep(100);
+//        wait ++;
+//        if(wait > 1000){
+//            vmlog(WARN, "LeafNodeSplit wait too long");
+//        }
+//    }
+    if(leafNode->node.tree == NULL){
+        printLeafNode(leafNode);
+    }
+    //    leafNode->node.tree->leafSplitCount ++;
+    newHigh = (LeafNode*)malloc(sizeof (LeafNode));
+    LeafNodeConstructor(newHigh, leafNode->node.tree);
+    LeafNodeAllocId(newHigh);
+    NodeAddInsertWriteLock((Node*)newHigh);
     switch (optimizationType) {
         case None:
         case Batch:
-            newHigh = (LeafNode* )LeafNodeSplit_Sort(leafNode);
+            LeafNodeSplit_Sort(leafNode, newHigh);
             break;
         case NoSort:
         case BatchAndNoSort:
-            newHigh = (LeafNode* )LeafNodeSplit_NoSort(leafNode);
+            LeafNodeSplit_NoSort(leafNode,  newHigh);
             break;
         default:
             printf("LeafNodeSplit unsupported optimizationType:%d\n", optimizationType);
@@ -391,6 +405,7 @@ Node*  LeafNodeSplit(LeafNode* leafNode) {
     leafNode->node.right = (Node*)newHigh;
     newHigh->node.nextNodeMin = leafNode->node.nextNodeMin;
     leafNode->node.nextNodeMin = newHigh->data[0].key.searchKey;
+    vmlog(InsertLog, "LeafNodeSplit:%d success, newhigh:%d ", leafNode->node.id, newHigh->node.id);
     return (Node*)newHigh;
 }
 

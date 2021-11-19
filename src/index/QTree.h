@@ -89,6 +89,7 @@ typedef struct Node{
     LockType insertLock; // work as the lock for insert
     int id ;
     int allocated ;
+    int allowSplit;
     BoundKey maxValue ;
     BoundKey minValue;
     BoundKey nextNodeMin;
@@ -174,8 +175,8 @@ void LeafNodeResetId(LeafNode* node);
 void printLeafNode(LeafNode* leafNode);
 void LeafNodeResetMinKey(LeafNode* leafNode);
 BOOL LeafNodeCheckMaxMin(LeafNode * leafNode);
-Node* LeafNodeSplit_NoSort(LeafNode* leafNode) ;
-Node* LeafNodeSplit_Sort(LeafNode* leafNode);
+Node* LeafNodeSplit_NoSort(LeafNode* leafNode, LeafNode* newHigh) ;
+Node* LeafNodeSplit_Sort(LeafNode* leafNode, LeafNode* newHigh);
 BOOL LeafNodeCheckKey(LeafNode * leafNode);
 BOOL LeafNodeAddBatch(LeafNode* leafNode, int slot, QueryData batch[], int batchCount, BoundKey *min, BoundKey* max);
 int LeafNodeFindSlotByKey( LeafNode * node, KeyType* searchKey) ;
@@ -202,6 +203,7 @@ int InternalNodeFindSlotByKey( InternalNode * node, KeyType* searchKey) ;
 int InternalNodeFindSlotByNextMin( InternalNode* node, BoundKey nextMin);
 BOOL InternalNodeCheckLink(InternalNode * node);
 int InternalNodeFindSlotByChild( InternalNode* node, Node* child);
+int InternalNodeFindSlotByChildWithRight( InternalNode* node, Node* child);
 
 void quickSelect(QueryData data[], int k, int s, int e);
 //void quickSelect(KeyType arr[], int k, int s, int e);

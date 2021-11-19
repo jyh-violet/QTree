@@ -24,6 +24,13 @@ void QueryMetaConstructorWithPara(QueryMeta* queryMeta, char* id, BoundKey lower
     QueryRangeConstructorWithPara(&queryMeta->dataRegion, lower, upper, TRUE, TRUE);
 }
 
+void QuerySetDeleteFlag(QueryMeta* queryMeta){
+    queryMeta->deleted = 1;
+}
+
+BOOL QueryIsDeleted(QueryMeta* queryMeta){
+    return queryMeta->deleted == 1;
+}
 
 BOOL QueryIdCmp(void *queryMeta1, void * queryMeta2){
     return (BOOL)strcmp(((QueryMeta*)queryMeta1)->queryId, ((QueryMeta*)queryMeta2)->queryId);

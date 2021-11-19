@@ -19,6 +19,7 @@ void QTreeConstructor(QTree* qTree,  int BOrder){
     qTree->root = (Node*)malloc(sizeof (LeafNode));
     LeafNodeConstructor((LeafNode*)qTree->root, qTree);
     LeafNodeAllocId((LeafNode*)qTree->root);
+    qTree->root->allowSplit = 1;
     qTree->elements = 0;
     pthread_spin_init(&qTree->removeLock, PTHREAD_PROCESS_SHARED);
     const char ConfigFile[]= "config.cfg";
@@ -149,6 +150,7 @@ inline void QTreeMakeNewRoot(QTree* qTree, Node* splitedNode){
     InternalNodeResetMaxValue(nodeRootNew);
     InternalNodeResetMinValue(nodeRootNew);
     qTree->root = (Node* )nodeRootNew;
+    nodeRootNew->node.allowSplit = 1;
 //    vmlog(RemoveLog, "QTreeMakeNewRoot :%d", nodeRootNew->node.id);
 }
 
@@ -251,6 +253,8 @@ inline BOOL QTreeModifyNodeMaxMin(Node* node, BoundKey min, BoundKey max){
 
 inline Node* QTreeTravelRightLink(Node* node, KeyType * key, int threadId){
     while (key->searchKey > node->nextNodeMin){
+        vmlog(InsertLog, "QTreeTravelRightLink, key:%d, node:%d, nextNodeMin:%d, right:%d",
+              key->searchKey, node->id, node->nextNodeMin, node->right->id);
         NodeAddRemoveReadLock( node->right, threadId);
         if(QTreeAddLockForFindLeaf(node->right, threadId) == FALSE){
             NodeRmRemoveReadLock(node->right, threadId);
@@ -451,6 +455,7 @@ inline void QTreePropagateSplit(QTree* qTree, NodesStack* nodesStack, LeafNode* 
             // split occurred in previous phase, splitedNode is new child
             KeyType  childKey = NodeSplitShiftKeysLeft(splitedNode);
             while ((slot = InternalNodeFindSlotByChild(node, lastNode)) < 0){
+                vmlog(InsertLog, " node :%d not contain the child:%d", node->node.id, lastNode->id);
                 if(node->node.nextNodeMin > max){
                     vmlog(WARN, "travel link ERROR: node :%d and its right not contain the key:%d", node->node.id, max);
                     exit(-1);
@@ -460,6 +465,8 @@ inline void QTreePropagateSplit(QTree* qTree, NodesStack* nodesStack, LeafNode* 
                 node = (InternalNode*) node->node.right;
                 NodeRmRemoveReadInsertWriteLock(tempNode, threadId);
             }
+            vmlog(InsertLog, "QTreePropagateSplit internalNode:%d add child:%d, slot:%d",
+                  node->node.id, splitedNode->id, slot);
             InternalNodeAdd(node, slot, &childKey, splitedNode);
             min = splitedNode->minValue < min? splitedNode->minValue: min;
             max = splitedNode->maxValue > max? splitedNode->maxValue: max;
@@ -467,6 +474,7 @@ inline void QTreePropagateSplit(QTree* qTree, NodesStack* nodesStack, LeafNode* 
             max = lastNode->maxValue > max? lastNode->maxValue: max;
             restMaxMin = QTreeModifyNodeMaxMin( (Node*)node, min, max);
             NodeRmRemoveReadInsertWriteLock(lastNode, threadId);
+            NodeRmInsertWriteLock(splitedNode);
             if(NodeIsFull((Node*)node)){
                 splitedNode = InternalNodeSplit(node);
             }else if(restMaxMin){
@@ -478,7 +486,7 @@ inline void QTreePropagateSplit(QTree* qTree, NodesStack* nodesStack, LeafNode* 
             }
         } else if(restMaxMin){
             NodeAddInsertReadLock((Node*)node, threadId);
-            while ((InternalNodeFindSlotByChild(node, lastNode)) < 0){
+            while ((InternalNodeFindSlotByChildWithRight(node, lastNode)) < 0){
                 if(node->node.nextNodeMin > max){
                     vmlog(WARN, "travel link ERROR: node :%d and its right not contain the key:%d", node->node.id, max);
                     exit(-1);
@@ -508,6 +516,7 @@ inline void QTreePropagateSplit(QTree* qTree, NodesStack* nodesStack, LeafNode* 
     if (splitedNode != NULL) {   // root was split, make new root
         if(lastNode ==  qTree->root){
             QTreeMakeNewRoot(qTree, splitedNode);
+            NodeRmInsertWriteLock(splitedNode);
         } else{
             while (lastNode != qTree->root){
                 InternalNode* node = (InternalNode*) qTree->root;
@@ -526,6 +535,7 @@ inline void QTreePropagateSplit(QTree* qTree, NodesStack* nodesStack, LeafNode* 
                 }
                 if(splitedNode != NULL){
                     InternalNodeAdd(node, slot, &childKey, splitedNode);
+                    NodeRmInsertWriteLock(splitedNode);
                 }
                 if(restMaxMin){
                     restMaxMin = QTreeModifyNodeMaxMin( (Node*)node, min, max);
@@ -542,7 +552,7 @@ inline void QTreePropagateSplit(QTree* qTree, NodesStack* nodesStack, LeafNode* 
             NodeAddRemoveReadLock((Node*)node, threadId);
             NodeAddInsertReadLock((Node*)node, threadId);
 
-            while ((InternalNodeFindSlotByChild(node, lastNode)) < 0){
+            while ((InternalNodeFindSlotByChildWithRight(node, lastNode)) < 0){
                 if(node ->node.right == NULL){
                     vmlog(WARN, "ERROR: root split: miss max: %d, min:%d", max, min);
                     NodeRmInsertReadLock((Node*)node, threadId);
@@ -592,36 +602,53 @@ inline void QTreePutBatch(QTree* qTree, QueryData * batch, int batchCount, int t
             int inserted = (batchCount > (Border - nodeLeaf->node.allocated))? (Border - nodeLeaf->node.allocated) : batchCount;
             restMaxMin = LeafNodeAddLastBatch(nodeLeaf, batch, inserted, &min, &max);
             splitedNode = (NodeIsFull((Node*)nodeLeaf) ? LeafNodeSplit(nodeLeaf) : NULL);
-
-            if(splitedNode != NULL && inserted < batchCount){ // something remains in the batch
-//                LeafNodeResetMinKey((LeafNode* )splitedNode);
-                LeafNode* insertToNode;
-                if(QueryRangeLT(batch[inserted].key, (((LeafNode* )splitedNode)->data[0].key))){
-                    insertToNode = nodeLeaf;
+            LeafNode* insertToNode;
+            while (inserted < batchCount){
+                if(splitedNode != NULL ){ // something remains in the batch
+                    if(QueryRangeLT(batch[inserted].key, (((LeafNode* )splitedNode)->data[0].key))){
+                        insertToNode = nodeLeaf;
+                    } else{
+                        insertToNode = (LeafNode* )splitedNode;
+                    }
                 } else{
-                    insertToNode = (LeafNode* )splitedNode;
+                    insertToNode = nodeLeaf;
                 }
-                restMaxMin = LeafNodeAddLastBatch(insertToNode, batch + inserted, batchCount - inserted, &min, &max) || restMaxMin;
+                int insertBatch = ((batchCount - inserted) > (Border - insertToNode->node.allocated))? (Border - insertToNode->node.allocated) : (batchCount - inserted);
+                restMaxMin = LeafNodeAddLastBatch(insertToNode, batch + inserted, insertBatch, &min, &max) || restMaxMin;
+                inserted += insertBatch;
+                if(splitedNode == NULL){
+                    splitedNode = (NodeIsFull((Node*)insertToNode) ? LeafNodeSplit(insertToNode) : NULL);
+                }
             }
+
             break;
         }
         case Batch:{
             // Find in leaf node for key
             slot = LeafNodeFindSlotByKey(nodeLeaf, &batch[0].key);
             slot = (slot >= 0)?(slot + 1):((-slot) - 1);
-            int insertBatchCount = nodeLeaf->node.allocated + batchCount <= Border? batchCount : (Border - nodeLeaf->node.allocated);
-            restMaxMin = LeafNodeAddBatch(nodeLeaf, slot, batch, insertBatchCount, &min, &max);
+            int inserted = nodeLeaf->node.allocated + batchCount <= Border? batchCount : (Border - nodeLeaf->node.allocated);
+            restMaxMin = LeafNodeAddBatch(nodeLeaf, slot, batch, inserted, &min, &max);
             splitedNode = (NodeIsFull((Node*)nodeLeaf) ? LeafNodeSplit(nodeLeaf) : NULL);
-            if(splitedNode != NULL && insertBatchCount < batchCount){
-                LeafNode* insertToNode;
-                if(QueryRangeLT(batch[insertBatchCount].key, (((LeafNode* )splitedNode)->data[0].key))){
-                    insertToNode = nodeLeaf;
+            LeafNode* insertToNode;
+            while (inserted < batchCount){
+                if(splitedNode != NULL ){ // something remains in the batch
+                    if(QueryRangeLT(batch[inserted].key, (((LeafNode* )splitedNode)->data[0].key))){
+                        insertToNode = nodeLeaf;
+                    } else{
+                        insertToNode = (LeafNode* )splitedNode;
+                    }
                 } else{
-                    insertToNode = (LeafNode* )splitedNode;
+                    insertToNode = nodeLeaf;
                 }
+                int insertBatch = ((batchCount - inserted) > (Border - insertToNode->node.allocated))? (Border - insertToNode->node.allocated) : (batchCount - inserted);
                 slot = LeafNodeFindSlotByKey(insertToNode, &batch[0].key);
                 slot = (slot >= 0)?(slot + 1):((-slot) - 1);
-                restMaxMin = LeafNodeAddBatch(insertToNode, slot, batch + insertBatchCount, batchCount - insertBatchCount, &min, &max) || restMaxMin;
+                restMaxMin = LeafNodeAddBatch(insertToNode, slot, batch + inserted, insertBatch, &min, &max) || restMaxMin;
+                inserted += insertBatch;
+                if(splitedNode == NULL){
+                    splitedNode = (NodeIsFull((Node*)insertToNode) ? LeafNodeSplit(insertToNode) : NULL);
+                }
             }
             break;
         }
@@ -688,6 +715,10 @@ inline void checkLeafNode(QTree* qTree, LeafNode* leafNode, BoundKey* removedMax
     for(int i = 0; i < leafNode->node.allocated ; i ++){
         checkQuery ++;
         //                    System.out.println("query:" + leafNode.values[i]);
+        if(QueryIsDeleted(leafNode->data[i].value)){
+            free(leafNode->data[i].value);
+            continue;
+        }
         if(CheckLeafNodeCover(leafNode,i, attribute)){
 
             if(leafNode->data[i].key.upper >= leafNode->node.maxValue){
@@ -880,7 +911,7 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
 
         if(internalNode->node.allocated == 0){
             NodeAddRemoveWriteLock((Node*)internalNode);
-            if((internalNode->node.allocated == 0) && (qTree->root == internalNode)){
+            if((internalNode->node.allocated == 0) && (qTree->root == (Node*)internalNode)){
                 qTree->root = internalNode->childs[0];
 //                vmlog(RemoveLog, "change root, rm node:%d, pointer:%lx, new root:%d", internalNode->node.id, internalNode, qTree->root->id);
                 internalNode->node.allocated = -1;

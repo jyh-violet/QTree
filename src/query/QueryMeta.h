@@ -14,6 +14,7 @@ int queryCount;
 #define queryIdLen 20
 typedef struct QueryMeta {
     char    queryId[queryIdLen];
+    char    deleted;
     QueryRange  dataRegion;  //data region of the query
 }QueryMeta;
 
@@ -24,4 +25,6 @@ void QueryMetaConstructorWithPara(QueryMeta* queryMeta, char* id, BoundKey lower
 BOOL QueryIdCmp(void *queryMeta1, void * queryMeta2);
 void QueryMetaDestroy(QueryMeta* queryMeta);
 void printQueryMeta(QueryMeta* queryMeta);
+void QuerySetDeleteFlag(QueryMeta* queryMeta);
+BOOL QueryIsDeleted(QueryMeta* queryMeta);
 #endif //QTREE_QUERYMETA_H
