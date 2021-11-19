@@ -355,7 +355,7 @@ Node* LeafNodeSplit_NoSort(LeafNode* leafNode, LeafNode* newHigh) {
 }
 
 Node*  LeafNodeSplit(LeafNode* leafNode) {
-    vmlog(InsertLog, "LeafNodeSplit:%d", leafNode->node.id);
+//    vmlog(InsertLog, "LeafNodeSplit:%d", leafNode->node.id);
     LeafNode* newHigh;
     int newAllocated = 0;
     for (int i = 0; i < leafNode->node.allocated; ++i) {
@@ -405,7 +405,7 @@ Node*  LeafNodeSplit(LeafNode* leafNode) {
     leafNode->node.right = (Node*)newHigh;
     newHigh->node.nextNodeMin = leafNode->node.nextNodeMin;
     leafNode->node.nextNodeMin = newHigh->data[0].key.searchKey;
-    vmlog(InsertLog, "LeafNodeSplit:%d success, newhigh:%d ", leafNode->node.id, newHigh->node.id);
+//    vmlog(InsertLog, "LeafNodeSplit:%d success, newhigh:%d ", leafNode->node.id, newHigh->node.id);
     return (Node*)newHigh;
 }
 

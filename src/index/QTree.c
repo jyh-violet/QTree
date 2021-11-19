@@ -253,7 +253,7 @@ inline BOOL QTreeModifyNodeMaxMin(Node* node, BoundKey min, BoundKey max){
 
 inline Node* QTreeTravelRightLink(Node* node, KeyType * key, int threadId){
     while (key->searchKey > node->nextNodeMin){
-        vmlog(InsertLog, "QTreeTravelRightLink, key:%d, node:%d, nextNodeMin:%d, right:%d",
+//        vmlog(InsertLog, "QTreeTravelRightLink, key:%d, node:%d, nextNodeMin:%d, right:%d",
               key->searchKey, node->id, node->nextNodeMin, node->right->id);
         NodeAddRemoveReadLock( node->right, threadId);
         if(QTreeAddLockForFindLeaf(node->right, threadId) == FALSE){
@@ -455,7 +455,7 @@ inline void QTreePropagateSplit(QTree* qTree, NodesStack* nodesStack, LeafNode* 
             // split occurred in previous phase, splitedNode is new child
             KeyType  childKey = NodeSplitShiftKeysLeft(splitedNode);
             while ((slot = InternalNodeFindSlotByChild(node, lastNode)) < 0){
-                vmlog(InsertLog, " node :%d not contain the child:%d", node->node.id, lastNode->id);
+//                vmlog(InsertLog, " node :%d not contain the child:%d", node->node.id, lastNode->id);
                 if(node->node.nextNodeMin > max){
                     vmlog(WARN, "travel link ERROR: node :%d and its right not contain the key:%d", node->node.id, max);
                     exit(-1);
@@ -465,7 +465,7 @@ inline void QTreePropagateSplit(QTree* qTree, NodesStack* nodesStack, LeafNode* 
                 node = (InternalNode*) node->node.right;
                 NodeRmRemoveReadInsertWriteLock(tempNode, threadId);
             }
-            vmlog(InsertLog, "QTreePropagateSplit internalNode:%d add child:%d, slot:%d",
+//            vmlog(InsertLog, "QTreePropagateSplit internalNode:%d add child:%d, slot:%d",
                   node->node.id, splitedNode->id, slot);
             InternalNodeAdd(node, slot, &childKey, splitedNode);
             min = splitedNode->minValue < min? splitedNode->minValue: min;

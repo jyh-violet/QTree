@@ -51,7 +51,7 @@ struct timespec startTmp, endTmp;
 clock_gettime(CLOCK_REALTIME, &startTmp);
     for(    int i = attributes->start; i <  attributes->end; i ++){
         int index = (i - attributes->start) * threadnum + attributes->threadId;
-        vmlog(InsertLog,"i:%d, key:%d",i, attributes->insertQueries[index].dataRegion.lower);
+//        vmlog(InsertLog,"i:%d, key:%d",i, attributes->insertQueries[index].dataRegion.lower);
         QTreePut(attributes->qTree, &(attributes->insertQueries[index].dataRegion), attributes->insertQueries + index, attributes->threadId);
 //        if((i + 1) % 100000 == 0){
 //            vmlog(InsertLog,"insert:%d", i);

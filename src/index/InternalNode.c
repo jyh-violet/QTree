@@ -113,7 +113,7 @@ Node* InternalNodeSplit(InternalNode* internalNode) {
     internalNode->node.right = (Node*)newHigh;
     newHigh->node.nextNodeMin = internalNode->node.nextNodeMin;
     internalNode->node.nextNodeMin = newHigh->keys[0].searchKey;
-    vmlog(InsertLog, "InternalNodeSplit:%d success, newhigh:%d ", internalNode->node.id, newHigh->node.id);
+//    vmlog(InsertLog, "InternalNodeSplit:%d success, newhigh:%d ", internalNode->node.id, newHigh->node.id);
     return (Node*)newHigh;
 }
 
@@ -328,7 +328,7 @@ int InternalNodeFindSlotByKey( InternalNode* node, KeyType* searchKey) {
             if(mid >= node->node.allocated){
                 vmlog(WARN,"InternalNodeFindSlotByKey ERROR: node:%d",node->node.id);
             }
-            vmlog(InsertLog,"InternalNodeFindSlotByKey node:%d, allocated:%d, slot:%d, searchKey:%d, high:%d",
+//            vmlog(InsertLog,"InternalNodeFindSlotByKey node:%d, allocated:%d, slot:%d, searchKey:%d, high:%d",
                   node->node.id, node->node.allocated, mid, searchKey->searchKey, node->keys[(mid + 1) >= node->node.allocated? (mid) : mid + 1]);
             return mid; // key found
         }
@@ -336,7 +336,7 @@ int InternalNodeFindSlotByKey( InternalNode* node, KeyType* searchKey) {
     if(low > node->node.allocated){
         vmlog(WARN,"InternalNodeFindSlotByKey ERROR: node:%d",node->node.id);
     }
-    vmlog(InsertLog,"InternalNodeFindSlotByKey node:%d, allocated:%d, slot:%d, searchKey:%d, high:%d",
+//    vmlog(InsertLog,"InternalNodeFindSlotByKey node:%d, allocated:%d, slot:%d, searchKey:%d, high:%d",
           node->node.id, node->node.allocated, low, searchKey->searchKey, node->keys[low >=  node->node.allocated? (low - 1) : low]);
     return -(low + 1);  // key not found.
 }
