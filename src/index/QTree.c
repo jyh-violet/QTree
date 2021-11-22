@@ -21,6 +21,7 @@ void QTreeConstructor(QTree* qTree,  int BOrder){
     LeafNodeAllocId((LeafNode*)qTree->root);
     qTree->root->allowSplit = 1;
     qTree->elements = 0;
+    qTree->height = 1;
     pthread_spin_init(&qTree->removeLock, PTHREAD_PROCESS_SHARED);
     const char ConfigFile[]= "config.cfg";
 
@@ -151,6 +152,7 @@ inline void QTreeMakeNewRoot(QTree* qTree, Node* splitedNode){
     InternalNodeResetMinValue(nodeRootNew);
     qTree->root = (Node* )nodeRootNew;
     nodeRootNew->node.allowSplit = 1;
+    qTree->height ++;
 //    vmlog(RemoveLog, "QTreeMakeNewRoot :%d", nodeRootNew->node.id);
 }
 
@@ -254,7 +256,7 @@ inline BOOL QTreeModifyNodeMaxMin(Node* node, BoundKey min, BoundKey max){
 inline Node* QTreeTravelRightLink(Node* node, KeyType * key, int threadId){
     while (key->searchKey > node->nextNodeMin){
 //        vmlog(InsertLog, "QTreeTravelRightLink, key:%d, node:%d, nextNodeMin:%d, right:%d",
-              key->searchKey, node->id, node->nextNodeMin, node->right->id);
+//              key->searchKey, node->id, node->nextNodeMin, node->right->id);
         NodeAddRemoveReadLock( node->right, threadId);
         if(QTreeAddLockForFindLeaf(node->right, threadId) == FALSE){
             NodeRmRemoveReadLock(node->right, threadId);
@@ -466,7 +468,7 @@ inline void QTreePropagateSplit(QTree* qTree, NodesStack* nodesStack, LeafNode* 
                 NodeRmRemoveReadInsertWriteLock(tempNode, threadId);
             }
 //            vmlog(InsertLog, "QTreePropagateSplit internalNode:%d add child:%d, slot:%d",
-                  node->node.id, splitedNode->id, slot);
+//                  node->node.id, splitedNode->id, slot);
             InternalNodeAdd(node, slot, &childKey, splitedNode);
             min = splitedNode->minValue < min? splitedNode->minValue: min;
             max = splitedNode->maxValue > max? splitedNode->maxValue: max;
@@ -912,6 +914,7 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
         if(internalNode->node.allocated == 0){
             NodeAddRemoveWriteLock((Node*)internalNode);
             if((internalNode->node.allocated == 0) && (qTree->root == (Node*)internalNode)){
+                qTree->height --;
                 qTree->root = internalNode->childs[0];
 //                vmlog(RemoveLog, "change root, rm node:%d, pointer:%lx, new root:%d", internalNode->node.id, internalNode, qTree->root->id);
                 internalNode->node.allocated = -1;

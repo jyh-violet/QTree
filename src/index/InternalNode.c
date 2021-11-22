@@ -329,7 +329,7 @@ int InternalNodeFindSlotByKey( InternalNode* node, KeyType* searchKey) {
                 vmlog(WARN,"InternalNodeFindSlotByKey ERROR: node:%d",node->node.id);
             }
 //            vmlog(InsertLog,"InternalNodeFindSlotByKey node:%d, allocated:%d, slot:%d, searchKey:%d, high:%d",
-                  node->node.id, node->node.allocated, mid, searchKey->searchKey, node->keys[(mid + 1) >= node->node.allocated? (mid) : mid + 1]);
+//                  node->node.id, node->node.allocated, mid, searchKey->searchKey, node->keys[(mid + 1) >= node->node.allocated? (mid) : mid + 1]);
             return mid; // key found
         }
     }
@@ -337,7 +337,7 @@ int InternalNodeFindSlotByKey( InternalNode* node, KeyType* searchKey) {
         vmlog(WARN,"InternalNodeFindSlotByKey ERROR: node:%d",node->node.id);
     }
 //    vmlog(InsertLog,"InternalNodeFindSlotByKey node:%d, allocated:%d, slot:%d, searchKey:%d, high:%d",
-          node->node.id, node->node.allocated, low, searchKey->searchKey, node->keys[low >=  node->node.allocated? (low - 1) : low]);
+//          node->node.id, node->node.allocated, low, searchKey->searchKey, node->keys[low >=  node->node.allocated? (low - 1) : low]);
     return -(low + 1);  // key not found.
 }
 

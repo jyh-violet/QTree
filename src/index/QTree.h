@@ -11,7 +11,7 @@
 #include "../holder/RangeHolder.h"
 #include "../Tool/ArrayList.h"
 #define maxDepth 32
-#define Border  65
+#define Border  5
 
 #define stackPop(stack, index)  stack[ --index]
 #define stackPush(stack, index, elem)  stack[index ++] = elem
@@ -66,6 +66,7 @@ typedef struct QueryData{
 
 typedef struct QTree {
     _Atomic int elements;
+    _Atomic int height;
     _Atomic int maxNodeID;
     _Atomic size_t leafSplitCount;
     _Atomic size_t internalSplitCount;
