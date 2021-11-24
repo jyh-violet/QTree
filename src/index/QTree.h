@@ -68,16 +68,16 @@ typedef struct QTree {
     _Atomic int elements;
     _Atomic int height;
     _Atomic int maxNodeID;
-    _Atomic size_t leafSplitCount;
-    _Atomic size_t internalSplitCount;
-    _Atomic size_t funcCount;
-    _Atomic size_t whileCount;
     Node *root;
     pthread_spinlock_t removeLock;
     _Atomic int     batchCount[MaxThread];
     _Atomic int     batchMissCount[MaxThread];
     BoundKey batchSearchKey[MaxThread];
     QueryData batch[MaxThread][MaxBatchCount];
+    _Atomic size_t leafSplitCount;
+    _Atomic size_t internalSplitCount;
+    _Atomic size_t funcCount;
+    _Atomic size_t whileCount;
 }QTree;
 
 
@@ -117,7 +117,7 @@ void printQTree( QTree* qTree);
 int  QTreeAllocNode(QTree* qTree, BOOL isLeaf);
 void QTreeMakeNewRoot(QTree* qTree, Node* splitedNode);
 LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key, NodesStack* nodesStack, int threadId);
-void QTreePut(QTree* qTree, KeyType * key, ValueType * value, int threadId);
+void QTreePut(QTree* qTree, ValueType * value, int threadId);
 void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* removedQuery, int threadId);
 void QTreePutBatch(QTree* qTree, QueryData * batch, int batchCount, int threadId);
 void QTreeCheckBatch(QTree* qTree, int attribute, Arraylist* removedQuery);
@@ -136,7 +136,10 @@ void QTreeRmLockForFindLeaf(Node* node, int threadId);
 BOOL QTreeModifyNodeMaxMin(Node* node, BoundKey min, BoundKey max);
 Node* QTreeTravelRightLink(Node* node, KeyType * key, int threadId);
 void QTreePropagateSplit(QTree* qTree, NodesStack* nodesStack, LeafNode* nodeLeaf, Node* splitedNode, BOOL restMaxMin, BoundKey min, BoundKey max, int threadId);
-
+void QTreeDeleteQuery(QTree* qTree, QueryMeta * queryMeta, int threadId);
+Node* checkInternalNodeForDelete(QTree* qTree, InternalNode* nodeInternal,  KeyType* key, NodesStack *nodesStack, IntStack* slotStack, int threadId);
+LeafNode* checkLeafNodeForDelete(QTree* qTree, LeafNode* leafNode, QueryMeta * queryMeta, int threadId);
+void QTreePropagateMerge(QTree* qTree, Node* lastNode,  NodesStack *nodesStack, IntStack* slotStack, int threadId);
 
 void NodeCheckTree(Node* node);
 void NodeConstructor(Node* node, QTree *tree);
@@ -205,6 +208,7 @@ int InternalNodeFindSlotByNextMin( InternalNode* node, BoundKey nextMin);
 BOOL InternalNodeCheckLink(InternalNode * node);
 int InternalNodeFindSlotByChild( InternalNode* node, Node* child);
 int InternalNodeFindSlotByChildWithRight( InternalNode* node, Node* child);
+int InternalNodeFindMinSlotByKey( InternalNode* node, BoundKey key) ;
 
 void quickSelect(QueryData data[], int k, int s, int e);
 //void quickSelect(KeyType arr[], int k, int s, int e);

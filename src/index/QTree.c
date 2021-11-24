@@ -36,34 +36,11 @@ void QTreeConstructor(QTree* qTree,  int BOrder){
                 config_error_line(&cfg), config_error_text(&cfg));
         config_destroy(&cfg);
     }
-    int  keyType;
     config_lookup_int(&cfg, "removePoint", (int*)&removePoint);
-    config_lookup_int(&cfg, "searchKeyType", (int*)&keyType);
+    config_lookup_int(&cfg, "searchKeyType", (int*)&searchKeyType);
     config_lookup_int(&cfg, "optimizationType", (int*)&optimizationType);
     config_lookup_int(&cfg, "checkQueryMeta", &checkQueryMeta);
 
-    switch (keyType) {
-        case 0:
-            searchKeyType = LOW;
-            break;
-        case  1:
-            searchKeyType = DYMID;
-            break;
-        case 2:
-            searchKeyType = Mid;
-            break;
-        case  3:
-            searchKeyType = REMOVE;
-            break;
-        case  4:
-            searchKeyType = RAND;
-            break;
-    }
-
-
-//    printf("QTree searchKeyType = %d\n", searchKeyType);
-//    memset(qTree->stackSlots,0, maxDepth * sizeof (int));
-//    memset(qTree->stackNodes,0, maxDepth * sizeof (InternalNode *));
 }
 
 void printQTreeStatistics(QTree * qTree){
@@ -336,23 +313,23 @@ inline LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key, NodesStack* node
     return (NodeIsLeaf(node) ? (LeafNode*) node : NULL);
 }
 
-void QTreePut(QTree* qTree, QueryRange * key, QueryMeta * value, int threadId){
-    if(key == NULL || value == NULL){
+void QTreePut(QTree* qTree, QueryMeta * value, int threadId){
+    if(value == NULL){
         return ;
     }
     switch (optimizationType) {
         case None:
         case NoSort:
-            setSearchKey(key, threadId);
-            QTreePutOne(qTree, key, value, threadId);
+            setSearchKey(&value->dataRegion, threadId);
+            QTreePutOne(qTree, &value->dataRegion, value, threadId);
             return;
 
     }
     // empty batch
     if( qTree->batchCount[threadId] == 0){
-        setSearchKey(key, threadId);
-        qTree->batchSearchKey[threadId] = key->searchKey;
-        qTree->batch[threadId][0].key = *key;
+        setSearchKey(&value->dataRegion, threadId);
+        qTree->batchSearchKey[threadId] = value->dataRegion.searchKey;
+        qTree->batch[threadId][0].key = value->dataRegion;
         qTree->batch[threadId][0].value = value;
         qTree->batchCount[threadId] ++;
         qTree->batchMissCount[threadId] = 0;
@@ -360,10 +337,10 @@ void QTreePut(QTree* qTree, QueryRange * key, QueryMeta * value, int threadId){
     }
 
     // put into the batch
-    if( qTree->batchCount[threadId] > 0 && QueryRangeCover(*key, qTree->batchSearchKey[threadId]) && qTree->batchCount[threadId] < MaxBatchCount){
-        key->searchKey = qTree->batchSearchKey[threadId];
+    if( qTree->batchCount[threadId] > 0 && QueryRangeCover(value->dataRegion, qTree->batchSearchKey[threadId]) && qTree->batchCount[threadId] < MaxBatchCount){
+        value->dataRegion.searchKey = qTree->batchSearchKey[threadId];
         int innerIndex = qTree->batchCount[threadId];
-        qTree->batch[threadId][innerIndex].key = *key;
+        qTree->batch[threadId][innerIndex].key = value->dataRegion;
         qTree->batch[threadId][innerIndex].value = value;
         qTree->batchCount[threadId] ++;
         if(qTree->batchCount[threadId] >= MaxBatchCount){
@@ -377,15 +354,15 @@ void QTreePut(QTree* qTree, QueryRange * key, QueryMeta * value, int threadId){
     // replace the  batch or insert the key directly
     if(qTree->batchMissCount[threadId] > batchMissThreshold){
         QTreePutBatch(qTree, qTree->batch[threadId], qTree->batchCount[threadId], threadId);
-        setSearchKey(key, threadId);
-        qTree->batchSearchKey[threadId] = key->searchKey;
-        qTree->batch[threadId][0].key = *key;
+        setSearchKey(&value->dataRegion, threadId);
+        qTree->batchSearchKey[threadId] = value->dataRegion.searchKey;
+        qTree->batch[threadId][0].key = value->dataRegion;
         qTree->batch[threadId][0].value = value;
         qTree->batchCount[threadId] = 1;
         qTree->batchMissCount[threadId] = 0;
     } else{
-        setSearchKey(key, threadId);
-        QTreePutOne(qTree, key, value, threadId);
+        setSearchKey(&value->dataRegion, threadId);
+        QTreePutOne(qTree, &value->dataRegion, value, threadId);
         qTree->batchMissCount[threadId] ++;
     }
 
@@ -718,7 +695,7 @@ inline void checkLeafNode(QTree* qTree, LeafNode* leafNode, BoundKey* removedMax
         checkQuery ++;
         //                    System.out.println("query:" + leafNode.values[i]);
         if(QueryIsDeleted(leafNode->data[i].value)){
-            free(leafNode->data[i].value);
+//            free(leafNode->data[i].value);
             continue;
         }
         if(CheckLeafNodeCover(leafNode,i, attribute)){
@@ -928,6 +905,151 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
 //    NodeCheckTree(qTree->root);
 }
 
+
+inline Node* checkInternalNodeForDelete(QTree* qTree, InternalNode* nodeInternal,  KeyType* key, NodesStack *nodesStack, IntStack* slotStack, int threadId){
+    checkInternal ++;
+    Node* node = NULL;
+    NodeAddRemoveReadLock((Node*)nodeInternal, threadId);
+    NodeAddInsertReadLock((Node*)nodeInternal, threadId);
+    int slot;
+    while ((slot = InternalNodeFindMinSlotByKey( nodeInternal, key->searchKey)) < 0){
+        if(nodeInternal->node.nextNodeMin > key->searchKey){
+            NodeRmInsertReadLock((Node*)nodeInternal, threadId);
+            NodeRmRemoveReadLock((Node*)nodeInternal, threadId);
+            vmlog(RemoveLog, "checkInternalNodeForDelete not found key:%d", key->searchKey);
+            return NULL;
+        } else{
+            InternalNode* temp = nodeInternal;
+            NodeAddRemoveReadLock(nodeInternal->node.right, threadId);
+            NodeAddInsertReadLock(nodeInternal->node.right, threadId);
+            nodeInternal = (InternalNode*)nodeInternal->node.right;
+            NodeRmInsertReadLock((Node*)temp, threadId);
+            NodeRmRemoveReadLock((Node*)temp, threadId);
+        }
+    }
+    node = nodeInternal->childs[slot];
+    if(node ==NULL){
+        vmlog(RemoveLog, "checkInternalNodeForDelete, slot:%d, node:%d", slot, nodeInternal->node.id);
+    }
+    stackPush(nodesStack->stackNodes, nodesStack->stackNodesIndex, nodeInternal);
+    stackPush(slotStack->stackSlots, slotStack->stackSlotsIndex, slot);
+    NodeRmInsertReadLock((Node*)nodeInternal, threadId);
+    return node;
+}
+
+inline LeafNode * checkLeafNodeForDelete(QTree* qTree, LeafNode* leafNode, QueryMeta * queryMeta, int threadId){
+
+    BOOL find = FALSE;
+    NodeAddRemoveReadInsertWriteLock((Node*)leafNode, threadId);
+    refindLeaf:{
+        int i;
+        for(i = 0; i < leafNode->node.allocated ; i ++){
+            if(leafNode->data[i].value == queryMeta){
+                find = TRUE;
+                break;
+            }
+        }
+        if(find){
+//            free(leafNode->data[i].value);
+            memcpy(leafNode->data + i, leafNode->data + i + 1, (leafNode->node.allocated - i - 1) * sizeof (QueryData));
+            leafNode->node.allocated--;
+            NodeRmRemoveReadInsertWriteLock((Node*)leafNode, threadId);
+        } else if(leafNode->node.nextNodeMin > queryMeta->dataRegion.searchKey){
+            NodeRmRemoveReadInsertWriteLock((Node*)leafNode, threadId);
+            vmlog(RemoveLog, "checkLeafNodeForDelete not found query:%s", queryMeta->queryId);
+            return NULL;
+        } else{
+            LeafNode* temp = leafNode;
+            NodeAddRemoveReadInsertWriteLock(leafNode->node.right, threadId);
+            leafNode = (LeafNode*)leafNode->node.right;
+            NodeRmRemoveReadInsertWriteLock((Node*)temp, threadId);
+            goto refindLeaf;
+        }
+    }
+
+
+    return leafNode;
+}
+
+inline void QTreePropagateMerge(QTree* qTree, Node* lastNode,  NodesStack *nodesStack, IntStack* slotStack, int threadId){
+    Node* node = NULL;
+    int slot;
+    BOOL childMerge = TRUE;
+    while (!stackEmpty(nodesStack->stackNodes, nodesStack->stackNodesIndex)){
+        node = (Node*)stackPop(nodesStack->stackNodes, nodesStack->stackNodesIndex);
+        slot = stackPop(slotStack->stackSlots, slotStack->stackSlotsIndex);
+
+        //the node has been added r-readLock
+        NodeRmRemoveReadLock(node, threadId);
+        if(childMerge == FALSE){
+            continue;
+        }
+        if (NodeTryAddRemoveWriteLock(node) == FALSE){
+            // another thread is doing merge
+            childMerge = FALSE;
+            lastNode = NULL;
+            continue;
+        }
+
+        while ((slot = InternalNodeFindSlotByChild((InternalNode*) node, lastNode)) < 0){
+            //                vmlog(InsertLog, " node :%d not contain the child:%d", node->node.id, lastNode->id);
+            if(node->nextNodeMin > lastNode->nextNodeMin){
+                vmlog(WARN, "travel link ERROR: node :%d and its right not contain the child:%d", node->id, lastNode->id);
+                childMerge = FALSE;
+                NodeRmRemoveWriteLock(node);
+                break;
+            }
+            if (NodeTryAddRemoveWriteLock(node->right) == FALSE){
+                // another thread is doing merge
+                childMerge = FALSE;
+                NodeRmRemoveWriteLock(node);
+                break;
+            } else{
+                Node* tempNode = (Node*)node;
+                node = node->right;
+                NodeRmRemoveWriteLock(tempNode);
+            }
+        }
+        if(childMerge == FALSE){
+            continue;
+        }
+        childMerge = InternalNodeCheckUnderflowWithRight((InternalNode*) node, slot) ;
+        NodeRmRemoveWriteLock(node);
+        lastNode = node;
+    }
+}
+
+void QTreeDeleteQuery(QTree* qTree, QueryMeta * queryMeta, int threadId){
+    NodesStack  nodesStack;
+    IntStack slotStack;
+    nodesStack.stackNodesIndex = 0;
+    slotStack.stackSlotsIndex = 0;
+    Node* node = qTree->root;
+    KeyType* key = &queryMeta->dataRegion;
+    while (!NodeIsLeaf(node)){
+        node = checkInternalNodeForDelete( qTree, (InternalNode*) node,   key, &nodesStack, &slotStack, threadId);
+        if(node == NULL){
+            while (!stackEmpty(nodesStack.stackNodes, nodesStack.stackNodesIndex)){
+                node = (Node*)stackPop(nodesStack.stackNodes, nodesStack.stackNodesIndex);
+                NodeRmRemoveReadLock((Node*)node, threadId);
+            }
+        }
+    }
+    if(NodeIsLeaf(node)){
+        LeafNode* leafNode = (LeafNode*) node;
+        //                System.out.println("getLeafNode:" + leafNode);
+        leafNode = checkLeafNodeForDelete(qTree, leafNode,  queryMeta, threadId);
+        if (leafNode == NULL || !NodeIsUnderFlow((Node*)leafNode)){ // not found
+            while (!stackEmpty(nodesStack.stackNodes, nodesStack.stackNodesIndex)){
+                node = (Node*)stackPop(nodesStack.stackNodes, nodesStack.stackNodesIndex);
+                NodeRmRemoveReadLock((Node*)node, threadId);
+            }
+        } else{
+            QTreePropagateMerge(qTree, (Node*)leafNode,  &nodesStack, &slotStack, threadId);
+        }
+    }
+
+}
 
 BOOL QTreeCheckMaxMin(QTree* qTree){
     return NodeCheckMaxMin(qTree->root);

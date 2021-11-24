@@ -361,6 +361,26 @@ int InternalNodeFindSlotByNextMin( InternalNode* node, BoundKey nextMin) {
     return low;  // key not found.
 }
 
+int InternalNodeFindMinSlotByKey( InternalNode* node, BoundKey key) {
+    if(node->node.allocated == 0){
+        return -1;
+    }
+    int low = 0;
+    int high = node->node.allocated;
+
+    while (low < high) {
+        int mid = (low + high) >> 1;
+        KeyType midVal = (node->keys[mid]);
+
+        if (midVal.searchKey < key) {
+            low = mid + 1;
+        } else{
+            high = mid;
+        }
+    }
+    return low;
+}
+
 int InternalNodeFindSlotByChild( InternalNode* node, Node* child) {
     for (int i = 0; i <= node->node.allocated; ++i)
         if((node->childs[i] == child)){

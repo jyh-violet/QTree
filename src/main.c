@@ -18,6 +18,8 @@ int Qid = 0;
 BOOL countFragment = FALSE;
 int TOTAL = (int) 100, TRACE_LEN = 100000;
 double insertRatio = 0;
+double deleteRatio = 0.25;
+
 u_int64_t checkLeaf = 0;
 u_int64_t checkQuery = 0;
 u_int64_t checkInternal = 0;
@@ -26,7 +28,7 @@ double zipfPara = 0.75;
 int rangeWidth = 100;
 BOOL qtreeCheck = FALSE;
 
-_Atomic int insertNum = 0, removeNum = 0;
+_Atomic int insertNum = 0, removeNum = 0, deleteNum = 0;
 int threadnum = 4;
 //pthread_key_t threadId;
 typedef struct TaskRes{
@@ -52,7 +54,7 @@ clock_gettime(CLOCK_REALTIME, &startTmp);
     for(    int i = attributes->start; i <  attributes->end; i ++){
         int index = (i - attributes->start) * threadnum + attributes->threadId;
 //        vmlog(InsertLog,"i:%d, key:%d",i, attributes->insertQueries[index].dataRegion.lower);
-        QTreePut(attributes->qTree, &(attributes->insertQueries[index].dataRegion), attributes->insertQueries + index, attributes->threadId);
+        QTreePut(attributes->qTree, attributes->insertQueries + index, attributes->threadId);
 //        if((i + 1) % 100000 == 0){
 //            vmlog(InsertLog,"insert:%d", i);
 //        }
@@ -70,13 +72,17 @@ void testMix(ThreadAttributes* attributes){
     for (int i = attributes->start; i <  attributes->end; ++i) {
 //        vmlog(WARN,"i:%d, para:%lf, rm:%ld",i, attributes->mixPara[i], removedQuery->size);
         if(attributes->mixPara[i] < insertRatio){
-            QTreePut(attributes->qTree, &(attributes->queries[i].dataRegion), attributes->queries + i, attributes->threadId);
+            QTreePut(attributes->qTree, attributes->queries + i, attributes->threadId);
             insertNum ++;
+        }else if(attributes->mixPara[i] < (insertRatio + deleteRatio)){
+            QTreeDeleteQuery(attributes->qTree, attributes->insertQueries + i, attributes->threadId);
+            deleteNum ++;
         } else{
             QTreeFindAndRemoveRelatedQueries(attributes->qTree,
                                              (attributes->removeQuery[i].dataRegion.upper + attributes->removeQuery[i].dataRegion.lower) / 2,
                                              removedQuery,
                                              attributes->threadId);
+
             removeNum ++;
         }
     }
@@ -124,7 +130,7 @@ int test() {
     finish = clock();
     generateT = (double)(finish - start)/CLOCKS_PER_SEC;
 //    printf("generate end! use %lfs\n", (double)(finish - start)/CLOCKS_PER_SEC );
-    printLog = 1;
+//    printLog = 1;
     int perThread = TOTAL / threadnum;
     pthread_t thread[MaxThread];
     ThreadAttributes attributes[MaxThread];
@@ -175,6 +181,7 @@ int test() {
         attributes[i].threadId = i;
         attributes[i].start = i * perThread;
         attributes[i].end = i == (threadnum - 1)? TOTAL: (i + 1)* perThread;
+        attributes[i].insertQueries = insertQueries;
         attributes[i].queries = queries;
         attributes[i].removeQuery = removeQuery;
         attributes[i].qTree = &qTree;
@@ -208,9 +215,9 @@ int test() {
 
 
 //    mixT = (double)(finish - start)/CLOCKS_PER_SEC;
-printf("%d, %d, %d,  %d, %d, %d, %.2lf, %d,  %d,  %.3lf,%.3lf,%.3lf, %d, %d, %ld, %ld, %ld,  %ld, %ld, %ld, %ld, %ld, %d, %d, %d, %d, %.2lf, %d, %d\n",
+printf("%d, %d, %d,  %d, %d, %d, %.2lf, %d,  %d,  %.3lf,%.3lf,%.3lf, %d, %d, %d, %ld, %ld, %ld,  %ld, %ld, %ld, %ld, %ld, %d, %d, %d, %d, %.2lf, %d, %d\n",
        Border, checkQueryMeta, optimizationType, dataPointType, dataRegionTypeOld, searchKeyType, insertRatio, removePoint, TOTAL,
-           generateT, putT, mixT, insertNum, removeNum, removed, checkQuery, checkLeaf, checkInternal,
+           generateT, putT, mixT, insertNum, deleteNum, removeNum, removed, checkQuery, checkLeaf, checkInternal,
            qTree.leafSplitCount, qTree.internalSplitCount, qTree.whileCount, qTree.funcCount, RemovedQueueSize, batchMissThreshold, MaxBatchCount, setKeyCount, zipfPara, rangeWidth, threadnum);
     free(queries) ;
     free(removeQuery);
@@ -256,6 +263,7 @@ int main(){
     config_lookup_int(&cfg, "dataPointType", (int*)&dataPointType);
     config_lookup_int(&cfg, "valueSpan", &valueSpan);
     config_lookup_float(&cfg, "insertRatio", &insertRatio);
+    config_lookup_float(&cfg, "deleteRatio", &deleteRatio);
     config_lookup_int(&cfg, "threadnum", &threadnum);
     config_lookup_float(&cfg, "zipfPara", &zipfPara);
     config_lookup_int(&cfg, "rangeWidth", &rangeWidth);
