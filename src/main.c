@@ -18,7 +18,7 @@ int Qid = 0;
 BOOL countFragment = FALSE;
 int TOTAL = (int) 100, TRACE_LEN = 100000;
 double insertRatio = 0;
-double deleteRatio = 0.25;
+double deleteRatio = 0;
 
 u_int64_t checkLeaf = 0;
 u_int64_t checkQuery = 0;
@@ -70,12 +70,14 @@ void testMix(ThreadAttributes* attributes){
     struct timespec startTmp, endTmp;
     clock_gettime(CLOCK_REALTIME, &startTmp);
     for (int i = attributes->start; i <  attributes->end; ++i) {
-//        vmlog(WARN,"i:%d, para:%lf, rm:%ld",i, attributes->mixPara[i], removedQuery->size);
+//        vmlog(WARN,"thread:%d, i:%d, para:%lf, rm:%ld", attributes->threadId, i, attributes->mixPara[i], removedQuery->size);
         if(attributes->mixPara[i] < insertRatio){
             QTreePut(attributes->qTree, attributes->queries + i, attributes->threadId);
             insertNum ++;
         }else if(attributes->mixPara[i] < (insertRatio + deleteRatio)){
-            QTreeDeleteQuery(attributes->qTree, attributes->insertQueries + i, attributes->threadId);
+            if (QTreeDeleteQuery(attributes->qTree, attributes->insertQueries + i, attributes->threadId) == TRUE){
+                attributes->result.size ++;
+            }
             deleteNum ++;
         } else{
             QTreeFindAndRemoveRelatedQueries(attributes->qTree,
@@ -86,9 +88,10 @@ void testMix(ThreadAttributes* attributes){
             removeNum ++;
         }
     }
+    printf("thread:%d, delete:%d\n", attributes->threadId, attributes->result.size);
     clock_gettime(CLOCK_REALTIME, &endTmp);
     attributes->result.usedTime = (endTmp.tv_sec - startTmp.tv_sec) + (endTmp.tv_nsec - startTmp.tv_nsec) * 1e-9;
-    attributes->result.size = removedQuery->size;
+    attributes->result.size += removedQuery->size;
     ArraylistDeallocate(removedQuery);
 }
 
@@ -134,6 +137,7 @@ int test() {
     int perThread = TOTAL / threadnum;
     pthread_t thread[MaxThread];
     ThreadAttributes attributes[MaxThread];
+    memset(attributes, 0, sizeof (ThreadAttributes) * MaxThread);
 //    start = clock();
 //    pthread_key_create(&threadId, key_destrutor);
     for (int i = 0; i < threadnum; ++i) {
@@ -177,6 +181,7 @@ int test() {
 //    start = clock();
 //    TOTAL = 100;
     perThread = TOTAL / threadnum;
+    memset(attributes, 0, sizeof (ThreadAttributes) * MaxThread);
     for (int i = 0; i < threadnum; ++i) {
         attributes[i].threadId = i;
         attributes[i].start = i * perThread;
@@ -215,8 +220,8 @@ int test() {
 
 
 //    mixT = (double)(finish - start)/CLOCKS_PER_SEC;
-printf("%d, %d, %d,  %d, %d, %d, %.2lf, %d,  %d,  %.3lf,%.3lf,%.3lf, %d, %d, %d, %ld, %ld, %ld,  %ld, %ld, %ld, %ld, %ld, %d, %d, %d, %d, %.2lf, %d, %d\n",
-       Border, checkQueryMeta, optimizationType, dataPointType, dataRegionTypeOld, searchKeyType, insertRatio, removePoint, TOTAL,
+printf("%d, %d, %d,  %d, %d, %d, %.2lf, %.2lf, %d,  %d,  %.3lf,%.3lf,%.3lf, %d, %d, %d, %ld, %ld, %ld,  %ld, %ld, %ld, %ld, %ld, %d, %d, %d, %d, %.2lf, %d, %d\n",
+       Border, checkQueryMeta, optimizationType, dataPointType, dataRegionTypeOld, searchKeyType, insertRatio, deleteRatio, removePoint, TOTAL,
            generateT, putT, mixT, insertNum, deleteNum, removeNum, removed, checkQuery, checkLeaf, checkInternal,
            qTree.leafSplitCount, qTree.internalSplitCount, qTree.whileCount, qTree.funcCount, RemovedQueueSize, batchMissThreshold, MaxBatchCount, setKeyCount, zipfPara, rangeWidth, threadnum);
     free(queries) ;

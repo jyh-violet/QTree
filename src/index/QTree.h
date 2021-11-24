@@ -136,7 +136,7 @@ void QTreeRmLockForFindLeaf(Node* node, int threadId);
 BOOL QTreeModifyNodeMaxMin(Node* node, BoundKey min, BoundKey max);
 Node* QTreeTravelRightLink(Node* node, KeyType * key, int threadId);
 void QTreePropagateSplit(QTree* qTree, NodesStack* nodesStack, LeafNode* nodeLeaf, Node* splitedNode, BOOL restMaxMin, BoundKey min, BoundKey max, int threadId);
-void QTreeDeleteQuery(QTree* qTree, QueryMeta * queryMeta, int threadId);
+BOOL QTreeDeleteQuery(QTree* qTree, QueryMeta * queryMeta, int threadId);
 Node* checkInternalNodeForDelete(QTree* qTree, InternalNode* nodeInternal,  KeyType* key, NodesStack *nodesStack, IntStack* slotStack, int threadId);
 LeafNode* checkLeafNodeForDelete(QTree* qTree, LeafNode* leafNode, QueryMeta * queryMeta, int threadId);
 void QTreePropagateMerge(QTree* qTree, Node* lastNode,  NodesStack *nodesStack, IntStack* slotStack, int threadId);
