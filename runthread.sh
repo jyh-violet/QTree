@@ -7,6 +7,7 @@ tracelen=2000000000
 valueSpan=24
 keytype=(0 2)
 ratios=(0.5 0.75 0.95 1.0)
+deleteRatios=(0.0 0.05 0.25 0.5)
 removePoint=(0)
 dataRegionType=(1 3)
 dataPointType=(0 2)
@@ -23,6 +24,12 @@ for checkQ in ${checkQueryMeta[*]} ; do
       for data in ${dataRegionType[*]} ; do
         for point in ${removePoint[*]} ; do
           for r in ${ratios[*]} ; do
+            for dr in ${deleteRatios[*]} ; do
+              rsum=$(echo "$r + $dr"|bc)
+              if [[  `echo "$rsum > 1"|bc` -eq 1  ]];
+              then
+                  continue
+              fi
             for type in ${keytype[*]} ; do
               for w in ${rangeWidth[*]} ; do
               for para in ${zipfPara[*]} ; do
@@ -50,6 +57,7 @@ zipfPara = $para" >> config.cfg
               let t=t+1
               done
               done
+            done
             done
           done
         done
