@@ -357,16 +357,16 @@ Node* LeafNodeSplit_NoSort(LeafNode* leafNode, LeafNode* newHigh) {
 Node*  LeafNodeSplit(LeafNode* leafNode) {
 //    vmlog(InsertLog, "LeafNodeSplit:%d", leafNode->node.id);
     LeafNode* newHigh;
-    int newAllocated = 0;
-    for (int i = 0; i < leafNode->node.allocated; ++i) {
-        if(QueryIsDeleted(leafNode->data[i].value) == FALSE){
-            leafNode->data[newAllocated ++] = leafNode->data[i];
-        }
-    }
-    leafNode->node.allocated = newAllocated;
-    if(!NodeIsFull((Node*)leafNode)){
-        return NULL;
-    }
+//    int newAllocated = 0;
+//    for (int i = 0; i < leafNode->node.allocated; ++i) {
+//        if(QueryIsDeleted(leafNode->data[i].value) == FALSE){
+//            leafNode->data[newAllocated ++] = leafNode->data[i];
+//        }
+//    }
+//    leafNode->node.allocated = newAllocated;
+//    if(!NodeIsFull((Node*)leafNode)){
+//        return NULL;
+//    }
 //    int wait = 0;
 //    while (leafNode->node.allowSplit == 0){
 //        usleep(100);

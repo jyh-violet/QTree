@@ -7,16 +7,16 @@ tracelen=2000000000
 valueSpan=24
 keytype=(0 2)
 ratios=(0.5 0.75 0.95 1.0)
-deleteRatios=(0.0 0.05 0.25 0.5)
+deleteRatios=(0.0 0.05 0.20 0.45)
 removePoint=(0)
 dataRegionType=(1 3)
 dataPointType=(0 2)
 repeteNum=5
-optimizationType=(0 1 2 3 )
+optimizationType=(0 1)
 checkQueryMeta=(1)
-threadNum=(1 2 3 4 5 6 7 8)
-rangeWidth=(100 512 1024)
-zipfPara=(0.5 0.75 0.9 0.99)
+threadNum=(1 2 3 4)
+rangeWidth=(100 1024)
+zipfPara=(0.5 0.75 0.99)
 for t in ${threadNum[*]} ; do
 for checkQ in ${checkQueryMeta[*]} ; do
   for opt in ${optimizationType[*]} ; do
@@ -40,6 +40,7 @@ dataRegionType = $data
 valueSpan = $valueSpan
 searchKeyType = $type
 insertRatio = $r
+deleteRatio = $dr
 removePoint = $point
 dataPointType = $dataPoint
 optimizationType = $opt
@@ -55,6 +56,9 @@ zipfPara = $para" >> config.cfg
                    numactl --physcpubind=0-${t} ./QTree >> $result
                 done
               let t=t+1
+              if [[ $data -eq 1 ]]; then
+                break
+              fi
               done
               done
             done

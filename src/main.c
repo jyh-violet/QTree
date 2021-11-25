@@ -88,7 +88,7 @@ void testMix(ThreadAttributes* attributes){
             removeNum ++;
         }
     }
-    printf("thread:%d, delete:%d\n", attributes->threadId, attributes->result.size);
+//    printf("thread:%ld, delete:%d\n", attributes->threadId, attributes->result.size);
     clock_gettime(CLOCK_REALTIME, &endTmp);
     attributes->result.usedTime = (endTmp.tv_sec - startTmp.tv_sec) + (endTmp.tv_nsec - startTmp.tv_nsec) * 1e-9;
     attributes->result.size += removedQuery->size;
@@ -169,7 +169,7 @@ int test() {
     if(NodeCheckMaxMin(qTree.root) == FALSE){
         printf("NodeCheckMaxMin ERROR!!!\n");
     }
-    printf("%d, %d, %d\n", num, NodeGetHeight(qTree.root), qTree.height);
+//    printf("%d, %d, %d\n", num, NodeGetHeight(qTree.root), qTree.height);
 
 //    printQTree(&qTree);
 
@@ -214,7 +214,7 @@ int test() {
     for (int i = 0; i < threadnum; ++i) {
         num += qTree.batchCount[i];
     }
-    printf("%d, %d, %d\n", num, NodeGetHeight(qTree.root), qTree.height);
+//    printf("%d, %d, %d\n", num, NodeGetHeight(qTree.root), qTree.height);
 
     QTreeDestroy(&qTree);
 
