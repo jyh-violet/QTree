@@ -126,7 +126,7 @@ int test() {
         QueryMetaConstructor(insertQueries + i);
     }
     DataRegionType  dataRegionTypeOld = dataRegionType;
-    dataRegionType = Remove;
+//    dataRegionType = Remove;
     for(int i = 0; i < TOTAL;i ++){
         QueryMetaConstructor(removeQuery + i);
     }
