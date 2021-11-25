@@ -21,6 +21,10 @@
 
 int checkQueryMeta;
 int setKeyCount;
+int markDelete;
+int WorkEnd;
+int RefactorThreadEnd;
+pthread_t RefactorThread;
 
 extern int maxValue;
 extern int removePoint;
@@ -140,6 +144,14 @@ BOOL QTreeDeleteQuery(QTree* qTree, QueryMeta * queryMeta, int threadId);
 Node* checkInternalNodeForDelete(QTree* qTree, InternalNode* nodeInternal,  KeyType* key, NodesStack *nodesStack, IntStack* slotStack, int threadId);
 LeafNode* checkLeafNodeForDelete(QTree* qTree, LeafNode* leafNode, QueryMeta * queryMeta, int threadId);
 void QTreePropagateMerge(QTree* qTree, Node* lastNode,  NodesStack *nodesStack, IntStack* slotStack, int threadId);
+
+Node* checkInternalNodeForRefactor(QTree* qTree, InternalNode* nodeInternal, NodesStack *nodesStack, IntStack* slotStack, int threadId);
+Node* getAnotherNodeForRefactor(QTree* qTree, BoundKey* removedMax, BoundKey* removedMin, NodesStack *nodesStack, IntStack* slotStack, int threadId);
+void checkLeafNodeForRefactor(QTree* qTree, LeafNode* leafNode, BoundKey* removedMax, BoundKey* removedMin, int threadId);
+void QTreeRefactor(QTree* qTree, int threadId);
+BOOL QTreeMarkDelete(QTree* qTree, QueryMeta* queryMeta);
+void QTreeRefactorThread(QTree* qTree);
+
 
 void NodeCheckTree(Node* node);
 void NodeConstructor(Node* node, QTree *tree);

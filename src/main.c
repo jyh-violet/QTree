@@ -75,9 +75,16 @@ void testMix(ThreadAttributes* attributes){
             QTreePut(attributes->qTree, attributes->queries + i, attributes->threadId);
             insertNum ++;
         }else if(attributes->mixPara[i] < (insertRatio + deleteRatio)){
-            if (QTreeDeleteQuery(attributes->qTree, attributes->insertQueries + i, attributes->threadId) == TRUE){
-                attributes->result.size ++;
+            if(markDelete){
+                if(QTreeMarkDelete(attributes->qTree, attributes->insertQueries + i) == TRUE){
+                    attributes->result.size ++;
+                }
+            } else{
+                if (QTreeDeleteQuery(attributes->qTree, attributes->insertQueries + i, attributes->threadId) == TRUE){
+                    attributes->result.size ++;
+                }
             }
+
             deleteNum ++;
         } else{
             QTreeFindAndRemoveRelatedQueries(attributes->qTree,
@@ -97,6 +104,7 @@ void testMix(ThreadAttributes* attributes){
 
 
 int test() {
+    markDelete = TRUE;
 //    threadnum = 4;
     useBFPRT = 0;
     double generateT = 0, putT = 0,  mixT = 0;
@@ -169,7 +177,7 @@ int test() {
     if(NodeCheckMaxMin(qTree.root) == FALSE){
         printf("NodeCheckMaxMin ERROR!!!\n");
     }
-//    printf("%d, %d, %d\n", num, NodeGetHeight(qTree.root), qTree.height);
+    printf("%d, %d, %d\n", num, NodeGetHeight(qTree.root), qTree.height);
 
 //    printQTree(&qTree);
 
@@ -214,10 +222,13 @@ int test() {
     for (int i = 0; i < threadnum; ++i) {
         num += qTree.batchCount[i];
     }
-//    printf("%d, %d, %d\n", num, NodeGetHeight(qTree.root), qTree.height);
+    printf("%d, %d, %d\n", num, NodeGetHeight(qTree.root), qTree.height);
 
+    WorkEnd = TRUE;
+    while (RefactorThreadEnd == FALSE){
+        WorkEnd = TRUE;
+    }
     QTreeDestroy(&qTree);
-
 
 //    mixT = (double)(finish - start)/CLOCKS_PER_SEC;
 printf("%d, %d, %d,  %d, %d, %d, %.2lf, %.2lf, %d,  %d,  %.3lf,%.3lf,%.3lf, %d, %d, %d, %ld, %ld, %ld,  %ld, %ld, %ld, %ld, %ld, %d, %d, %d, %d, %.2lf, %d, %d\n",

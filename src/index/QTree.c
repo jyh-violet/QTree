@@ -41,6 +41,27 @@ void QTreeConstructor(QTree* qTree,  int BOrder){
     config_lookup_int(&cfg, "optimizationType", (int*)&optimizationType);
     config_lookup_int(&cfg, "checkQueryMeta", &checkQueryMeta);
 
+    if(markDelete){
+        pthread_create(&RefactorThread, 0, (void *(*)(void *))QTreeRefactorThread, (void *)qTree);
+    }
+
+}
+
+void QTreeRefactorThread(QTree* qTree){
+    while (WorkEnd == FALSE){
+        int idealNum = 1;
+        for (int i = 0; i < (qTree->height - 1); i ++){
+            idealNum *= (Border / 2);
+        }
+        if(qTree->height > 1 && qTree->elements < idealNum){
+            QTreeRefactor(qTree, MaxThread);
+        } else{
+            vmlog(WARN, "no need refactor, element:%d, height:%d", qTree->elements, qTree->height);
+            usleep(5000000); // 5s
+            continue;
+        }
+    }
+    RefactorThreadEnd = TRUE;
 }
 
 void printQTreeStatistics(QTree * qTree){
@@ -693,38 +714,41 @@ inline void checkLeafNode(QTree* qTree, LeafNode* leafNode, BoundKey* removedMax
     NodeAddRemoveReadInsertWriteLock((Node*)leafNode, threadId);
     for(int i = 0; i < leafNode->node.allocated ; i ++){
         checkQuery ++;
-        //                    System.out.println("query:" + leafNode.values[i]);
-        if(QueryIsDeleted(leafNode->data[i].value)){
-//            free(leafNode->data[i].value);
-            continue;
+        BOOL delete = FALSE;
+        if(markDelete){
+            if(QueryIsDeleted(leafNode->data[i].value)){
+                delete = TRUE;
+            }
         }
-        if(CheckLeafNodeCover(leafNode,i, attribute)){
-
+        if((delete == FALSE) && CheckLeafNodeCover(leafNode,i, attribute)){
+            delete = TRUE;
+            QuerySetDeleteFlag(leafNode->data[i].value);
+            ArraylistAdd(removedQuery, leafNode->data[i].value);
+            qTree->elements --;
+        }
+        if(delete == TRUE){
             if(leafNode->data[i].key.upper >= leafNode->node.maxValue){
                 resetMax = TRUE;
             }
             if(leafNode->data[i].key.lower <= leafNode->node.minValue){
                 resetMin = TRUE;
             }
-            if(*removedMax < leafNode->data[i].key.upper){
-                *removedMax = leafNode->data[i].key.upper;
-            }
-            if(*removedMin > leafNode->data[i].key.lower){
-                *removedMin = leafNode->data[i].key.lower;
-            }
-            ArraylistAdd(removedQuery, leafNode->data[i].value);
-            qTree->elements --;
+
         }else {
             leafNode->data[j ++] = leafNode->data[i];
         }
     }
     leafNode->node.allocated = j;
     if(resetMax){
-
+        if(*removedMax < leafNode->node.maxValue){
+            *removedMax = leafNode->node.maxValue;
+        }
         LeafNodeResetMaxValue(leafNode);
     }
     if(resetMin){
-
+        if(*removedMin > leafNode->node.minValue){
+            *removedMin = leafNode->node.minValue;
+        }
         LeafNodeResetMinValue(leafNode);
     }
     NodeRmRemoveReadInsertWriteLock((Node*)leafNode, threadId);
@@ -903,6 +927,186 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
         }
     }
 //    NodeCheckTree(qTree->root);
+}
+
+inline Node* checkInternalNodeForRefactor(QTree* qTree, InternalNode* nodeInternal, NodesStack *nodesStack, IntStack* slotStack, int threadId){
+    Node* node = NULL;
+    NodeAddRemoveReadLock((Node*)nodeInternal, threadId);
+    if(nodeInternal->node.allocated >= 0){
+        node = nodeInternal->childs[0];
+        stackPush(nodesStack->stackNodes, nodesStack->stackNodesIndex, nodeInternal);
+        stackPush(slotStack->stackSlots, slotStack->stackSlotsIndex, 0);
+    }
+    NodeRmRemoveReadLock((Node*)nodeInternal, threadId);
+    return node;
+}
+
+inline Node* getAnotherNodeForRefactor(QTree* qTree, BoundKey* removedMax, BoundKey* removedMin,
+                                       NodesStack *nodesStack, IntStack* slotStack, int threadId){
+    Node* node = NULL;
+    int slot;
+
+    while (!stackEmpty(nodesStack->stackNodes, nodesStack->stackNodesIndex)){
+        node = (Node*)stackPop(nodesStack->stackNodes, nodesStack->stackNodesIndex);
+        slot = stackPop(slotStack->stackSlots, slotStack->stackSlotsIndex);
+
+        InternalNode* internalNode = (InternalNode*) node;
+        NodeAddRemoveReadLock(node, threadId);
+        NodeAddInsertReadLock(node, threadId);
+        if(slot < node->allocated){
+            node = internalNode->childs[slot + 1];
+            stackPush(nodesStack->stackNodes, nodesStack->stackNodesIndex, internalNode);
+            stackPush(slotStack->stackSlots, slotStack->stackSlotsIndex, slot + 1);
+            NodeRmRemoveReadLock((Node*)internalNode, threadId);
+            return node;
+        }
+        BOOL childMerge = FALSE;
+        for (int i = 0; i <= node->allocated ; ++i) {
+            if(NodeIsUnderFlow(internalNode->childs[i])){
+                childMerge = TRUE;
+                break;
+            }
+        }
+        NodeRmRemoveReadLock((Node*)internalNode, threadId);
+        NodeRmInsertReadLock((Node*)internalNode, threadId);
+        if(childMerge){
+            if ((NodeTryAddRemoveWriteLock((Node*)internalNode)) == FALSE){
+                // another thread is doing merge
+                childMerge = FALSE;
+            }
+        }
+        if(childMerge == FALSE){
+            node = NULL;
+            continue;
+        }
+        childMerge = FALSE;
+        for(int i = 0; i <= node->allocated; i ++ ){
+            childMerge = InternalNodeCheckUnderflowWithRight(((InternalNode*) node), i) || childMerge;
+        }
+        if(node->maxValue <= *removedMax || childMerge){
+            if(*removedMax < node->maxValue){
+                *removedMax = node->maxValue;
+            }
+            InternalNodeResetMaxValue(((InternalNode*) node));
+        }
+        if(node->minValue >= *removedMin || childMerge){
+            if(*removedMin > node->minValue){
+                *removedMin = node->minValue;
+            }
+            InternalNodeResetMinValue(((InternalNode*) node));
+        }
+        NodeRmRemoveWriteLock((Node*)internalNode);
+        node = NULL;
+    }
+
+    return node;
+}
+
+
+
+inline void checkLeafNodeForRefactor(QTree* qTree, LeafNode* leafNode, BoundKey* removedMax, BoundKey* removedMin, int threadId){
+    int j = 0;
+    BOOL resetMax = FALSE;
+    BOOL resetMin = FALSE;
+    NodeAddRemoveReadInsertWriteLock((Node*)leafNode, threadId);
+    for(int i = 0; i < leafNode->node.allocated ; i ++){
+        if(QueryIsDeleted(leafNode->data[i].value)){
+            //            free(leafNode->data[i].value);
+            if(leafNode->data[i].key.upper >= leafNode->node.maxValue){
+                resetMax = TRUE;
+            }
+            if(leafNode->data[i].key.lower <= leafNode->node.minValue){
+                resetMin = TRUE;
+            }
+            continue;
+        }else {
+            leafNode->data[j ++] = leafNode->data[i];
+        }
+    }
+    leafNode->node.allocated = j;
+    if(resetMax){
+        if(*removedMax < leafNode->node.maxValue){
+            *removedMax = leafNode->node.maxValue;
+        }
+        LeafNodeResetMaxValue(leafNode);
+    }
+    if(resetMin){
+        if(*removedMin > leafNode->node.minValue){
+            *removedMin = leafNode->node.minValue;
+        }
+        LeafNodeResetMinValue(leafNode);
+    }
+    NodeRmRemoveReadInsertWriteLock((Node*)leafNode, threadId);
+}
+
+void QTreeRefactor(QTree* qTree, int threadId){
+    vmlog(WARN, "QTreeRefactor, element:%d, height:%d", qTree->elements, qTree->height);
+    NodesStack  nodesStack;
+    IntStack slotStack;
+    nodesStack.stackNodesIndex = 0;
+    slotStack.stackSlotsIndex = 0;
+    Node* node = qTree->root;
+    BoundKey removedMax = 0, removedMin = maxValue;
+    while (TRUE) {
+        while (!NodeIsLeaf(node)){
+            InternalNode* nodeInternal = (InternalNode*) node;
+            node = checkInternalNodeForRefactor( qTree, nodeInternal, &nodesStack, &slotStack, threadId);
+            //                System.out.println("getNode:" + getNode + ", node:" + node);
+            if(node == NULL){
+                node = getAnotherNodeForRefactor(qTree, &removedMax, &removedMin,  &nodesStack, &slotStack, threadId);
+                if(node == NULL){
+                    break;
+                }
+            }
+        }
+        if(node == NULL){
+            break;
+        }
+        if(NodeIsLeaf(node)){
+            checkLeaf ++;
+            LeafNode* leafNode = (LeafNode*) node;
+            //                System.out.println("getLeafNode:" + leafNode);
+            checkLeafNodeForRefactor(qTree, leafNode,  &removedMax, &removedMin, threadId);
+            if(stackEmpty(nodesStack.stackNodes, nodesStack.stackNodesIndex)){
+                break;
+            }
+            node = getAnotherNodeForRefactor(qTree, &removedMax, &removedMin, &nodesStack, &slotStack, threadId);
+            if(node == NULL){
+                break;
+            }
+        }else {
+            break;
+        }
+    }
+    while (!NodeIsLeaf(qTree->root)){
+        InternalNode *internalNode = (InternalNode*)qTree->root;
+
+        if(internalNode->node.allocated == 0){
+            NodeAddRemoveWriteLock((Node*)internalNode);
+            if((internalNode->node.allocated == 0) && (qTree->root == (Node*)internalNode)){
+                qTree->height --;
+                qTree->root = internalNode->childs[0];
+                //                vmlog(RemoveLog, "change root, rm node:%d, pointer:%lx, new root:%d", internalNode->node.id, internalNode, qTree->root->id);
+                internalNode->node.allocated = -1;
+            }
+            NodeRmRemoveWriteLock( (Node*)internalNode);
+            //            free((void *)internalNode);
+        } else{
+            break;
+        }
+    }
+}
+
+
+BOOL QTreeMarkDelete(QTree* qTree, QueryMeta* queryMeta){
+    if(!QueryIsDeleted(queryMeta)){
+        QuerySetDeleteFlag(queryMeta);
+        qTree->elements --;
+        return TRUE;
+    } else{
+        return FALSE;
+    }
+
 }
 
 
