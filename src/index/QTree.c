@@ -1111,7 +1111,7 @@ BOOL QTreeMarkDelete(QTree* qTree, QueryMeta* queryMeta){
 
 
 inline Node* checkInternalNodeForDelete(QTree* qTree, InternalNode* nodeInternal,  KeyType* key, NodesStack *nodesStack, IntStack* slotStack, int threadId){
-    checkInternal ++;
+//    checkInternal ++;
     Node* node = NULL;
     NodeAddRemoveReadLock((Node*)nodeInternal, threadId);
     NodeAddInsertReadLock((Node*)nodeInternal, threadId);

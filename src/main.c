@@ -104,7 +104,7 @@ void testMix(ThreadAttributes* attributes){
 
 
 int test() {
-    markDelete = FALSE;
+//    markDelete = FALSE;
 //    threadnum = 4;
     useBFPRT = 0;
     double generateT = 0, putT = 0,  mixT = 0;
@@ -177,7 +177,7 @@ int test() {
     if(NodeCheckMaxMin(qTree.root) == FALSE){
         printf("NodeCheckMaxMin ERROR!!!\n");
     }
-    printf("%d, %d, %d\n", num, NodeGetHeight(qTree.root), qTree.height);
+//    printf("%d, %d, %d\n", num, NodeGetHeight(qTree.root), qTree.height);
 
 //    printQTree(&qTree);
 
@@ -222,11 +222,13 @@ int test() {
     for (int i = 0; i < threadnum; ++i) {
         num += qTree.batchCount[i];
     }
-    printf("%d, %d, %d\n", num, NodeGetHeight(qTree.root), qTree.height);
+//    printf("%d, %d, %d\n", num, NodeGetHeight(qTree.root), qTree.height);
 
-    WorkEnd = TRUE;
-    while (RefactorThreadEnd == FALSE){
+    if(markDelete){
         WorkEnd = TRUE;
+        while (RefactorThreadEnd == FALSE){
+            WorkEnd = TRUE;
+        }
     }
     QTreeDestroy(&qTree);
 

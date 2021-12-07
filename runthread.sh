@@ -17,7 +17,7 @@ checkQueryMeta=(1)
 threadNum=(1 2 3 4)
 rangeWidth=(100 1024)
 zipfPara=(0.5 0.75 0.99)
-markDelete=1
+markDelete=0
 for t in ${threadNum[*]} ; do
 for checkQ in ${checkQueryMeta[*]} ; do
   for opt in ${optimizationType[*]} ; do
@@ -50,14 +50,14 @@ threadnum = $t
 rangeWidth = $w
 zipfPara = $para
 markDelete = $markDelete" >> config.cfg
-              let t=t-1
+        #      let t=t-1
 	            echo -e "\n" >> $result
               for i in `seq 1 $repeteNum` ; do
             #     sudo /opt/intel/oneapi/vtune/2021.7.0/bin64/vtune -collect hotspots -result-dir=opt${opt}-d${data}-${r}-t${t}-hot  numactl --physcpubind=0-${t} ./QTree
             #     sudo /opt/intel/oneapi/vtune/2021.7.0/bin64/vtune -collect memory-access -result-dir=opt${opt}-d${data}-${r}-t${t}-mem  numactl --physcpubind=0-${t} ./QTree
                    numactl --physcpubind=0-${t} ./QTree >> $result
                 done
-              let t=t+1
+         #     let t=t+1
               if [[ $data -eq 1 ]]; then
                 break
               fi
