@@ -17,6 +17,7 @@ checkQueryMeta=(1)
 threadNum=(1 2 3 4)
 rangeWidth=(100 1024)
 zipfPara=(0.5 0.75 0.99)
+markDelete=1
 for t in ${threadNum[*]} ; do
 for checkQ in ${checkQueryMeta[*]} ; do
   for opt in ${optimizationType[*]} ; do
@@ -47,7 +48,8 @@ optimizationType = $opt
 checkQueryMeta = $checkQ
 threadnum = $t
 rangeWidth = $w
-zipfPara = $para" >> config.cfg
+zipfPara = $para
+markDelete = $markDelete" >> config.cfg
               let t=t-1
 	            echo -e "\n" >> $result
               for i in `seq 1 $repeteNum` ; do

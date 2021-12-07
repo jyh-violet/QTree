@@ -104,7 +104,7 @@ void testMix(ThreadAttributes* attributes){
 
 
 int test() {
-    markDelete = TRUE;
+    markDelete = FALSE;
 //    threadnum = 4;
     useBFPRT = 0;
     double generateT = 0, putT = 0,  mixT = 0;
@@ -231,10 +231,10 @@ int test() {
     QTreeDestroy(&qTree);
 
 //    mixT = (double)(finish - start)/CLOCKS_PER_SEC;
-printf("%d, %d, %d,  %d, %d, %d, %.2lf, %.2lf, %d,  %d,  %.3lf,%.3lf,%.3lf, %d, %d, %d, %ld, %ld, %ld,  %ld, %ld, %ld, %ld, %ld, %d, %d, %d, %d, %.2lf, %d, %d\n",
+printf("%d, %d, %d,  %d, %d, %d, %.2lf, %.2lf, %d,  %d,  %.3lf,%.3lf,%.3lf, %d, %d, %d, %ld, %ld, %ld,  %ld, %ld, %ld, %ld, %ld, %d, %d, %d, %d, %.2lf, %d, %d, %d\n",
        Border, checkQueryMeta, optimizationType, dataPointType, dataRegionTypeOld, searchKeyType, insertRatio, deleteRatio, removePoint, TOTAL,
            generateT, putT, mixT, insertNum, deleteNum, removeNum, removed, checkQuery, checkLeaf, checkInternal,
-           qTree.leafSplitCount, qTree.internalSplitCount, qTree.whileCount, qTree.funcCount, RemovedQueueSize, batchMissThreshold, MaxBatchCount, setKeyCount, zipfPara, rangeWidth, threadnum);
+           qTree.leafSplitCount, qTree.internalSplitCount, qTree.whileCount, qTree.funcCount, RemovedQueueSize, batchMissThreshold, MaxBatchCount, setKeyCount, zipfPara, rangeWidth, threadnum, markDelete);
     free(queries) ;
     free(removeQuery);
     free(insertQueries);
@@ -283,6 +283,7 @@ int main(){
     config_lookup_int(&cfg, "threadnum", &threadnum);
     config_lookup_float(&cfg, "zipfPara", &zipfPara);
     config_lookup_int(&cfg, "rangeWidth", &rangeWidth);
+    config_lookup_int(&cfg, "markDelete", &markDelete);
     maxValue = TOTAL;
 
     test();
