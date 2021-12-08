@@ -52,7 +52,7 @@ BOOL LeafNodeAdd(LeafNode* leafNode, int slot, KeyType * newKey, ValueType * new
     if(slot >= Border){
         printf("LeafNodeAdd ERROR!! slot:%d\n", slot);
         printLeafNode(leafNode);
-        exit(-1);
+        exit(-3);
     }
     BOOL restMaxMin = FALSE;
     if (slot < leafNode->node.allocated) {

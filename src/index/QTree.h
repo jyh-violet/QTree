@@ -247,4 +247,6 @@ void NodeAddRemoveWriteLock(Node* node);
 void NodeRmRemoveWriteLock(Node* node);
 BOOL NodeTryAddRemoveWriteLock(Node* node);
 BOOL NodeAddRemoveWriteLockNoWait(Node* node);
+BOOL NodeTryAddInsertWriteLockForRemove(Node* node);
+void NodeRmInsertWriteLockForRemove(Node* node);
 #endif //QTREE_QTREE_H
