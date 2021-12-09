@@ -50,7 +50,7 @@ BOOL NodeCanMerge( Node* node, Node* other) {
 BOOL NodeIsFull(Node* node){ // node is full
     if(node->allocated > Border + 1){
         printNode(node);
-        exit(-4);
+        vmlog(ERROR, "nodeIsFull error");
     }
     return (BOOL)(node->allocated >= Border);
 }
@@ -336,7 +336,7 @@ void NodeAddRemoveWriteLock(Node* node){
                 vmlog(WARN,"NodeAddRemoveWriteLock node:%d conflict:%x", ((Node*)node)->id, node->removeLock);
                 usleep(100);
                 if(try % (10 * WriteLockTryThreshold) == 0){
-                    exit(-5);
+                    vmlog(ERROR,"NodeAddRemoveWriteLock node:%d conflict:%x", ((Node*)node)->id, node->removeLock);
                 }
             }
         }
@@ -382,7 +382,7 @@ BOOL NodeTryAddRemoveWriteLock(Node* node){
                 vmlog(WARN,"NodeTryAddRemoveWriteLock node:%d conflict:%x", ((Node*)node)->id, node->removeLock);
                 usleep(100);
                 if(try % (10 * WriteLockTryThreshold) == 0){
-                    exit(-6);
+                    vmlog(ERROR,"NodeTryAddRemoveWriteLock node:%d conflict:%x", ((Node*)node)->id, node->removeLock);
                 }
             }
         }

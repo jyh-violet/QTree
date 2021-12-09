@@ -50,9 +50,9 @@ void * LeafNodRemove(LeafNode* leafNode, int slot) {
 
 BOOL LeafNodeAdd(LeafNode* leafNode, int slot, KeyType * newKey, ValueType * newValue){
     if(slot >= Border){
-        printf("LeafNodeAdd ERROR!! slot:%d\n", slot);
+
         printLeafNode(leafNode);
-        exit(-3);
+        vmlog(ERROR, "LeafNodeAdd ERROR!! slot:%d\n", slot);
     }
     BOOL restMaxMin = FALSE;
     if (slot < leafNode->node.allocated) {

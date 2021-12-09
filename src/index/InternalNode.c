@@ -181,8 +181,7 @@ BOOL InternalNodeCheckUnderflowWithRight(InternalNode* internalNode, int slot){
 
 void InternalNodeRemove(InternalNode* internalNode, int slot) {
     if (slot < -1) {
-        printf("faking slot=%d allocated=%d\n", slot, internalNode->node.allocated);
-        exit(-2);
+        vmlog(ERROR, "faking slot=%d allocated=%d\n", slot, internalNode->node.allocated);
     }
 //    vmlog(RemoveLog, "InternalNodeRemove, rm node:%d, pointer:%lx", internalNode->childs[slot + 1]->id, internalNode->childs[slot + 1]);
     if(slot == -1){

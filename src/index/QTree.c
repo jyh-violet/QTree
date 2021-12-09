@@ -283,8 +283,9 @@ inline LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key, NodesStack* node
                     node = (Node*)stackPop(nodesStack->stackNodes, nodesStack->stackNodesIndex);
                     vmlog(WARN, "stackNode: %d", node->id);
                 }
-                exit(-7);
+                vmlog(ERROR,"QTreeFindLeafNode retry:%d", findTime);
             }
+            usleep(1000);
         }
         int sleep = 0;
         while (!stackEmpty(nodesStack->stackNodes, nodesStack->stackNodesIndex)){
@@ -344,7 +345,6 @@ void QTreePut(QTree* qTree, QueryMeta * value, int threadId){
             setSearchKey(&value->dataRegion, threadId);
             QTreePutOne(qTree, &value->dataRegion, value, threadId);
             return;
-
     }
     // empty batch
     if( qTree->batchCount[threadId] == 0){
@@ -417,8 +417,7 @@ inline void QTreePutOne(QTree* qTree, QueryRange* key, QueryMeta* value, int thr
             restMaxMin = LeafNodeAddLast(nodeLeaf, key, value);
             break;
         default:
-            printf("QTreePutOne: unSupport type:%d\n", optimizationType);
-            exit(-9);
+            vmlog(ERROR, "QTreePutOne: unSupport type:%d\n", optimizationType);
     }
     //
 
@@ -445,8 +444,7 @@ inline void QTreePropagateSplit(QTree* qTree, NodesStack* nodesStack, LeafNode* 
         //        cout << slot << endl;
         InternalNode* node = stackPop(nodesStack->stackNodes, nodesStack->stackNodesIndex);
         if(!NodeIsValid((Node*)node)){
-            vmlog(WARN, "node invalid:%d", node->node.id);
-            exit(-10);
+            vmlog(ERROR, "node invalid:%d", node->node.id);
         }
         //        vmlog(InsertLog, "QTreePutOne, stackPop node:%d", node->node.id);
 
@@ -457,8 +455,7 @@ inline void QTreePropagateSplit(QTree* qTree, NodesStack* nodesStack, LeafNode* 
             while ((slot = InternalNodeFindSlotByChild(node, lastNode)) < 0){
 //                vmlog(InsertLog, " node :%d not contain the child:%d", node->node.id, lastNode->id);
                 if(node->node.nextNodeMin > max){
-                    vmlog(WARN, "travel link ERROR: node :%d and its right not contain the key:%d", node->node.id, max);
-                    exit(-11);
+                    vmlog(ERROR, "travel link ERROR: node :%d and its right not contain the key:%d", node->node.id, max);
                 }
                 NodeAddRemoveReadInsertWriteLock(node->node.right, threadId);
                 Node* tempNode = (Node*)node;
@@ -488,8 +485,7 @@ inline void QTreePropagateSplit(QTree* qTree, NodesStack* nodesStack, LeafNode* 
             NodeAddInsertReadLock((Node*)node, threadId);
             while ((InternalNodeFindSlotByChildWithRight(node, lastNode)) < 0){
                 if(node->node.nextNodeMin > max){
-                    vmlog(WARN, "travel link ERROR: node :%d and its right not contain the key:%d", node->node.id, max);
-                    exit(-12);
+                    vmlog(ERROR, "travel link ERROR: node :%d and its right not contain the key:%d", node->node.id, max);
                 }
                 NodeAddRemoveReadLock(node->node.right, threadId);
                 NodeAddInsertReadLock(node->node.right, threadId);
@@ -590,8 +586,7 @@ inline void QTreePutBatch(QTree* qTree, QueryData * batch, int batchCount, int t
 
     LeafNode* nodeLeaf = QTreeFindLeafNode(qTree, &batch[0].key, &nodesStack, threadId);
     if (nodeLeaf == NULL) {
-        printf("QTreeFindLeafNode error!\n");
-        exit(-13);
+        vmlog(ERROR, "QTreeFindLeafNode error!\n");
     }
 
     Node*   splitedNode ;
@@ -653,8 +648,7 @@ inline void QTreePutBatch(QTree* qTree, QueryData * batch, int batchCount, int t
             break;
         }
         default:
-            printf("QTreePutBatch: unSupport type:%d\n", optimizationType);
-            exit(-14);
+            vmlog(ERROR, "QTreePutBatch: unSupport type:%d\n", optimizationType);
     }
     QTreePropagateSplit( qTree, &nodesStack, nodeLeaf, splitedNode, restMaxMin,  min,  max,  threadId);
 
