@@ -277,7 +277,9 @@ inline LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key, NodesStack* node
     findAgain:{
         findTime ++;
         if(findTime % 1000 == 0){
-            vmlog(WARN,"QTreeFindLeafNode retry:%d", findTime);
+            if(findTime % 10000 == 0){
+                vmlog(WARN,"QTreeFindLeafNode retry:%d", findTime);
+            }
             if(findTime % 100000 == 0){
                 while (!stackEmpty(nodesStack->stackNodes, nodesStack->stackNodesIndex)){
                     node = (Node*)stackPop(nodesStack->stackNodes, nodesStack->stackNodesIndex);
@@ -287,17 +289,11 @@ inline LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key, NodesStack* node
             }
             usleep(1000);
         }
-        int sleep = 0;
         while (!stackEmpty(nodesStack->stackNodes, nodesStack->stackNodesIndex)){
             node = (Node*)stackPop(nodesStack->stackNodes, nodesStack->stackNodesIndex);
             QTreeRmLockForFindLeaf(node,threadId);
             NodeRmRemoveReadLock(node, threadId);
-            sleep = 1;
         }
-        if(sleep){
-            usleep(100);
-        }
-
         node = qTree->root;
         int slot = 0;
         NodeAddRemoveReadLock(node, threadId);
