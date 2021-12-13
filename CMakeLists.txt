@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.10)
 project(QTree)
 
 set(CMAKE_C_STANDARD 11)
@@ -10,7 +10,10 @@ SET(CMAKE_BUILD_TYPE "Debug")
 #3.head file path，头文件目录
 INCLUDE_DIRECTORIES(
         src
+        /home/jyh/libs/usr/local/include
 )
+link_directories(/home/jyh/libs/usr/local/lib)
+link_libraries("/home/jyh/libs/usr/local/lib/libpfm.so.4")
 
 file(COPY config.cfg DESTINATION ./)
 

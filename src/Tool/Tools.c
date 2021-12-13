@@ -367,8 +367,8 @@ void vmlog(LOGLevel logLevel, char* fmat, ...){
         printf("ERROR:log message too many\n");
         return;
     }
-    printf("(pid:%lu)---%s\n", pthread_self(), buffer);
-    fflush(stdout);
+//    printf("(pid:%lu)---%s\n", pthread_self(), buffer);
+//    fflush(stdout);
 
     if(logF <= 0)
     {
