@@ -933,6 +933,7 @@ inline Node* getAnotherNodeForRefactor(QTree* qTree, BoundKey* removedMax, Bound
             stackPush(nodesStack->stackNodes, nodesStack->stackNodesIndex, internalNode);
             stackPush(slotStack->stackSlots, slotStack->stackSlotsIndex, slot + 1);
             NodeRmRemoveReadLock((Node*)internalNode, threadId);
+            NodeRmInsertReadLock((Node*)internalNode, threadId);
             return node;
         }
         BOOL childMerge = FALSE;
