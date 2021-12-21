@@ -4,7 +4,7 @@
 result=$1
 n=20000000
 tracelen=2000000000
-valueSpan=24
+valueSpan=(24 25 26 27 28 29 30)
 keytype=(0 2)
 ratios=(0.5 0.75 0.95 1.0)
 deleteRatios=(0.0 0.05 0.20 0.45)
@@ -18,6 +18,7 @@ threadNum=(1 2 3 4)
 rangeWidth=(100 1024)
 zipfPara=(0.5 0.75 0.99)
 markDelete=0
+for v in ${valueSpan[*]} ; do
 for t in ${threadNum[*]} ; do
 for checkQ in ${checkQueryMeta[*]} ; do
   for opt in ${optimizationType[*]} ; do
@@ -38,7 +39,7 @@ for checkQ in ${checkQueryMeta[*]} ; do
               echo "TOTAL = $n
 RACE_LEN = $tracelen
 dataRegionType = $data
-valueSpan = $valueSpan
+valueSpan = $v
 searchKeyType = $type
 insertRatio = $r
 deleteRatio = $dr
@@ -70,5 +71,6 @@ markDelete = $markDelete" >> config.cfg
       done
     done
   done
+done
 done
 done
