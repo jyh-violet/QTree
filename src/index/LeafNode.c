@@ -35,7 +35,7 @@ void LeafNodeMerge(LeafNode* leafNode, InternalNode* nodeParent, int slot,
     nodeTO->node.right = nodeFROMx->right;
     nodeTO->node.nextNodeMin = nodeFROMx->nextNodeMin;
     if(nodeTO->node.right != NULL){
-        nodeTO->node.right->left = nodeTO;
+        nodeTO->node.right->left = (Node*)nodeTO;
     }
 
     // remove key from nodeParent

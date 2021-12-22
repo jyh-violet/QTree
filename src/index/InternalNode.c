@@ -220,7 +220,7 @@ void InternalNodeMerge(Node* internalNode, InternalNode* nodeParent, int slot, N
     nodeTO->node.right = nodeFROMx->right;
     nodeTO->node.nextNodeMin = nodeFROMx->nextNodeMin;
     if(nodeTO->node.right != NULL){
-        nodeTO->node.right->left = nodeTO;
+        nodeTO->node.right->left = (Node*)nodeTO;
     }
     // remove key from nodeParent
     InternalNodeRemove(nodeParent, slot);
