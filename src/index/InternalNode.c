@@ -110,9 +110,11 @@ Node* InternalNodeSplit(InternalNode* internalNode) {
     newHigh->node.allocated ++;
 
     newHigh->node.right = internalNode->node.right;
+    newHigh->node.left = internalNode;
     internalNode->node.right = (Node*)newHigh;
     newHigh->node.nextNodeMin = internalNode->node.nextNodeMin;
     internalNode->node.nextNodeMin = newHigh->keys[0].searchKey;
+    NodeModidyRightLeft((Node*) newHigh);
 //    vmlog(InsertLog, "InternalNodeSplit:%d success, newhigh:%d ", internalNode->node.id, newHigh->node.id);
     return (Node*)newHigh;
 }
@@ -220,6 +222,7 @@ void InternalNodeMerge(Node* internalNode, InternalNode* nodeParent, int slot, N
     }
     nodeTO->node.right = nodeFROMx->right;
     nodeTO->node.nextNodeMin = nodeFROMx->nextNodeMin;
+    NodeModidyRightLeft((Node*) nodeTO);
     // remove key from nodeParent
     InternalNodeRemove(nodeParent, slot);
 
@@ -236,8 +239,8 @@ void InternalNodeMerge(Node* internalNode, InternalNode* nodeParent, int slot, N
 
 
 void printInternalNode(InternalNode* internalNode){
-    printf("[I%d](%d:I%d)(%d)(%d,%d){", internalNode->node.id,
-           internalNode->node.nextNodeMin, internalNode->node.right== NULL? 0 :internalNode->node.right->id,
+    printf("[I%d](I%d:%d:I%d)(%d)(%d,%d){", internalNode->node.id,
+           internalNode->node.left== NULL? 0 :internalNode->node.left->id, internalNode->node.nextNodeMin, internalNode->node.right== NULL? 0 :internalNode->node.right->id,
            internalNode->node.allocated, (internalNode->node.minValue),  ((internalNode->node.maxValue)));
     for (int i = 0; i < internalNode->node.allocated; i++) {
         QueryRange * k = &internalNode->keys[i];
@@ -403,6 +406,9 @@ BOOL InternalNodeCheckLink(InternalNode * node){
     }
     for (int i = 0; i < allocated; ++i) {
         if(node->childs[i]->right!= node->childs[i + 1]){
+            return FALSE;
+        }
+        if(node->childs[i]!= node->childs[i + 1]->left){
             return FALSE;
         }
         if(node->childs[i]->nextNodeMin > node->keys[i].searchKey){

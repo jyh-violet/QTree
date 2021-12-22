@@ -34,6 +34,7 @@ void LeafNodeMerge(LeafNode* leafNode, InternalNode* nodeParent, int slot,
     }
     nodeTO->node.right = nodeFROMx->right;
     nodeTO->node.nextNodeMin = nodeFROMx->nextNodeMin;
+    NodeModidyRightLeft((Node*) nodeTO);
     // remove key from nodeParent
     InternalNodeRemove(nodeParent, slot);
     // Free nodeFROM
@@ -406,9 +407,12 @@ Node*  LeafNodeSplit(LeafNode* leafNode) {
     LeafNodeResetMinValue(leafNode);
     LeafNodeResetMinValue(newHigh);
     newHigh->node.right = leafNode->node.right;
+    newHigh->node.left = leafNode;
     leafNode->node.right = (Node*)newHigh;
     newHigh->node.nextNodeMin = leafNode->node.nextNodeMin;
     leafNode->node.nextNodeMin = newHigh->data[0].key.searchKey;
+    NodeModidyRightLeft((Node*) newHigh);
+
 //    vmlog(InsertLog, "LeafNodeSplit:%d success, newhigh:%d ", leafNode->node.id, newHigh->node.id);
     return (Node*)newHigh;
 }
@@ -449,8 +453,8 @@ void LeafNodeResetId(LeafNode* leafNode){
 
 
 void printLeafNode(LeafNode* leafNode){
-    printf("[L%d](%d: L%d)(%d)(%d,%d){", leafNode->node.id,
-           leafNode->node.nextNodeMin, leafNode->node.right== NULL? 0 :leafNode->node.right->id,
+    printf("[L%d](L%d: %d: L%d)(%d)(%d,%d){", leafNode->node.id,
+           leafNode->node.left== NULL? 0 :leafNode->node.left->id, leafNode->node.nextNodeMin, leafNode->node.right== NULL? 0 :leafNode->node.right->id,
            leafNode->node.allocated, ((leafNode->node.minValue)), ((leafNode->node.maxValue)));
     for (int i = 0; i < leafNode->node.allocated; i++) {
         QueryRange * k = &leafNode->data[i].key;

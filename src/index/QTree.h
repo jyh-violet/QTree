@@ -11,7 +11,7 @@
 #include "../holder/RangeHolder.h"
 #include "../Tool/ArrayList.h"
 #define maxDepth 32
-#define Border  65
+#define Border  5
 
 #define stackPop(stack, index)  stack[ --index]
 #define stackPush(stack, index, elem)  stack[index ++] = elem
@@ -99,6 +99,7 @@ typedef struct Node{
     BoundKey minValue;
     BoundKey nextNodeMin;
     Node *right;
+    Node *left;
     QTree* tree;
 }Node;
 
@@ -249,4 +250,6 @@ BOOL NodeTryAddRemoveWriteLock(Node* node);
 BOOL NodeAddRemoveWriteLockNoWait(Node* node);
 BOOL NodeTryAddInsertWriteLockForRemove(Node* node);
 void NodeRmInsertWriteLockForRemove(Node* node);
+
+void NodeModidyRightLeft(Node* node);
 #endif //QTREE_QTREE_H

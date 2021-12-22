@@ -889,12 +889,14 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
 
         if(internalNode->node.allocated == 0){
             NodeAddRemoveWriteLock((Node*)internalNode);
-            if((internalNode->node.allocated == 0) && (qTree->root == (Node*)internalNode)){
+            NodeAddInsertWriteLock((Node*)internalNode);
+            if((internalNode->node.allocated == 0) && (qTree->root == (Node*)internalNode) && !NodeIsLeaf(qTree->root)){
                 qTree->height --;
                 qTree->root = internalNode->childs[0];
-//                vmlog(RemoveLog, "change root, rm node:%d, pointer:%lx, new root:%d", internalNode->node.id, internalNode, qTree->root->id);
+                vmlog(WARN, "change root, rm node:%d, pointer:%lx, new root:%d", internalNode->node.id, internalNode, qTree->root->id);
                 internalNode->node.allocated = -1;
             }
+            NodeRmInsertWriteLock((Node*)internalNode);
             NodeRmRemoveWriteLock( (Node*)internalNode);
 //            free((void *)internalNode);
         } else{
@@ -1252,12 +1254,14 @@ BOOL QTreeDeleteQuery(QTree* qTree, QueryMeta * queryMeta, int threadId){
 
         if(internalNode->node.allocated == 0){
             if(NodeTryAddRemoveWriteLock((Node*)internalNode) ){
-                if((internalNode->node.allocated == 0) && (qTree->root == (Node*)internalNode)){
+                NodeAddInsertWriteLock((Node*)internalNode);
+                if((internalNode->node.allocated == 0) && (qTree->root == (Node*)internalNode) && !NodeIsLeaf(qTree->root)){
                     qTree->height --;
                     qTree->root = internalNode->childs[0];
                     //                vmlog(RemoveLog, "change root, rm node:%d, pointer:%lx, new root:%d", internalNode->node.id, internalNode, qTree->root->id);
                     internalNode->node.allocated = -1;
                 }
+                NodeRmInsertWriteLock((Node*)internalNode);
                 NodeRmRemoveWriteLock( (Node*)internalNode);
             } else{
                 break;

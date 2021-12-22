@@ -171,13 +171,13 @@ int test() {
         num += qTree.batchCount[i];
     }
 
-//    if(NodeCheckLink(qTree.root) == FALSE){
-//        printf("NodeCheckLink ERROR!!!\n");
-//    }
-//    if(NodeCheckMaxMin(qTree.root) == FALSE){
-//        printf("NodeCheckMaxMin ERROR!!!\n");
-//    }
-//    printf("%d, %d, %d\n", num, NodeGetHeight(qTree.root), qTree.height);
+    if(NodeCheckLink(qTree.root) == FALSE){
+        printf("NodeCheckLink ERROR!!!\n");
+    }
+    if(NodeCheckMaxMin(qTree.root) == FALSE){
+        printf("NodeCheckMaxMin ERROR!!!\n");
+    }
+    printf("%d, %d, %d\n", num, NodeGetHeight(qTree.root), qTree.height);
 
 //    printQTree(&qTree);
 
@@ -212,17 +212,17 @@ int test() {
 //    printQTree(&qTree);
 //    PAPI_readCache();
 //    PAPI_end();
-//    if(NodeCheckLink(qTree.root) == FALSE){
-//        printf("NodeCheckLink ERROR!!!\n");
-//    }
-//    if(NodeCheckMaxMin(qTree.root) == FALSE){
-//        printf("NodeCheckMaxMin ERROR!!!\n");
-//    }
-//    num = qTree.elements;
-//    for (int i = 0; i < threadnum; ++i) {
-//        num += qTree.batchCount[i];
-//    }
-//    printf("%d, %d, %d\n", num, NodeGetHeight(qTree.root), qTree.height);
+    if(NodeCheckLink(qTree.root) == FALSE){
+        printf("NodeCheckLink ERROR!!!\n");
+    }
+    if(NodeCheckMaxMin(qTree.root) == FALSE){
+        printf("NodeCheckMaxMin ERROR!!!\n");
+    }
+    num = qTree.elements;
+    for (int i = 0; i < threadnum; ++i) {
+        num += qTree.batchCount[i];
+    }
+    printf("%d, %d, %d\n", num, NodeGetHeight(qTree.root), qTree.height);
 
     if(markDelete){
         WorkEnd = TRUE;
@@ -260,6 +260,42 @@ void testZipf(){
     printf("\n");
 }
 
+void simpleTest(){
+    srand((unsigned)time(NULL));
+    QTree qTree;
+    QTreeConstructor(&qTree, 2);
+    TOTAL = 100;
+    dataRegionType = Random;
+    double *mixPara = (double *) malloc(sizeof (double ) * TOTAL);
+    for (int i = 0; i < TOTAL; ++i) {
+        int randNum = rand();
+        mixPara[i] =    ((double )randNum) / ((double )RAND_MAX + 1);
+    }
+
+    QueryMeta* insertQueries = (QueryMeta*)malloc(sizeof(QueryMeta) * TOTAL );
+    QueryMeta* queries = (QueryMeta*)malloc(sizeof(QueryMeta) * TOTAL );
+    QueryMeta* removeQuery = (QueryMeta*)malloc(sizeof(QueryMeta) * TOTAL);
+
+    for(int i = 0; i < TOTAL ;i ++){
+        QueryMetaConstructor(queries + i);
+        QueryMetaConstructor(insertQueries + i);
+        QueryMetaConstructor(removeQuery + i);
+    }
+    for(int i = 0; i < TOTAL ;i ++){
+        QTreePut(&qTree, insertQueries + i, 0);
+    }
+    printQTree(&qTree);
+    Arraylist* removedQuery = ArraylistCreate(TOTAL);
+    for(int i = 0; i < TOTAL / 2 ;i ++){
+        QTreeFindAndRemoveRelatedQueries(&qTree,
+                                         (insertQueries[i].dataRegion.upper + insertQueries[i].dataRegion.lower) / 2,
+                                         removedQuery,
+                                         0);
+    }
+    printQTree(&qTree);
+
+}
+
 int main(){
 //    testZipf();
     const char ConfigFile[]= "config.cfg";
@@ -290,5 +326,6 @@ int main(){
     maxValue = TOTAL;
 
     test();
+//    simpleTest();
     return 0;
 }

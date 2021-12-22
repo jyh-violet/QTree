@@ -13,7 +13,7 @@ INCLUDE_DIRECTORIES(
         /home/jyh/libs/usr/local/include
 )
 link_directories(/home/jyh/libs/usr/local/lib)
-link_libraries("/home/jyh/libs/usr/local/lib/libpfm.so.4")
+#link_libraries("/home/jyh/libs/usr/local/lib/libpfm.so.4")
 
 file(COPY config.cfg DESTINATION ./)
 
