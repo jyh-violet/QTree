@@ -450,6 +450,9 @@ inline void QTreePropagateSplit(QTree* qTree, NodesStack* nodesStack, LeafNode* 
                     vmlog(ERROR, "travel link ERROR: node :%d and its right not contain the key:%d", node->node.id, max);
                 }
                 if(leftNode == TRUE){
+                    if(node->node.left == NULL){
+                        vmlog(ERROR, "travel link ERROR: node :%d and has no left node", node->node.id);
+                    }
                     NodeRmInsertWriteLock((Node*)node);
                     NodeAddInsertWriteLock(node->node.left);
                     node = (InternalNode*) node->node.left;
