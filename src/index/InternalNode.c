@@ -29,7 +29,7 @@ BOOL InternalNodeAdd(InternalNode* internalNode, int slot, KeyType * newKey, Nod
     internalNode->keys[slot] = *newKey;
     internalNode->childs[slot + 1] = child;
     ++internalNode->node.allocated;
-//    vmlog(InsertLog,"InternalNodeAdd node: %d, allocated:", internalNode->node.id, allocated);
+    vmlog(WARN,"InternalNodeAdd node: %d, slot:%d, child:%d", internalNode->node.id, slot + 1, child->id);
     return TRUE;
 }
 
@@ -84,6 +84,7 @@ Node* InternalNodeSplit(InternalNode* internalNode) {
     InternalNode* newHigh = (InternalNode* )malloc(sizeof (InternalNode));
     InternalNodeConstructor(newHigh, internalNode->node.tree);
     InternalNodeAllocId(newHigh);
+    NodeAddInsertWriteLock((Node*)newHigh);
     // int j = ((allocated >> 1) | (allocated & 1)); // dividir por dos y sumar el resto (0 o 1)
     int j = (internalNode->node.allocated >> 1); // dividir por dos (libro)
     int newsize = internalNode->node.allocated - j;
@@ -115,7 +116,7 @@ Node* InternalNodeSplit(InternalNode* internalNode) {
     newHigh->node.nextNodeMin = internalNode->node.nextNodeMin;
     internalNode->node.nextNodeMin = newHigh->keys[0].searchKey;
     NodeModidyRightLeft((Node*) newHigh);
-//    vmlog(InsertLog, "InternalNodeSplit:%d success, newhigh:%d ", internalNode->node.id, newHigh->node.id);
+    vmlog(WARN, "InternalNodeSplit:%d success, newhigh:%d ", internalNode->node.id, newHigh->node.id);
     return (Node*)newHigh;
 }
 
@@ -238,18 +239,28 @@ void InternalNodeMerge(Node* internalNode, InternalNode* nodeParent, int slot, N
 
 
 void printInternalNode(InternalNode* internalNode){
-    printf("[I%d](I%d:%d:I%d)(%d)(%d,%d){", internalNode->node.id,
+    char buf[10000];
+    char tempbuf[10000];
+    int buf_len = 10000;
+    snprintf(buf, buf_len, "[I%d](I%d:%d:I%d)(%d)(%d,%d){", internalNode->node.id,
            internalNode->node.left== NULL? 0 :internalNode->node.left->id, internalNode->node.nextNodeMin, internalNode->node.right== NULL? 0 :internalNode->node.right->id,
            internalNode->node.allocated, (internalNode->node.minValue),  ((internalNode->node.maxValue)));
     for (int i = 0; i < internalNode->node.allocated; i++) {
         QueryRange * k = &internalNode->keys[i];
         if (i == 0) { // left
-            printf("C%d:Node%d<", i, internalNode->childs[i]->id);
+            snprintf(tempbuf, buf_len, "C%d:Node%d<", i, internalNode->childs[i]->id);
+            strcat(buf, tempbuf);
+            memset(tempbuf, 0, sizeof (tempbuf));
         }
-        printf("%d", k->searchKey);
-        printf(">C%d:Node%d<",  i + 1, internalNode->childs[i + 1]->id);
+        snprintf(tempbuf, buf_len, "%d", k->searchKey);
+        strcat(buf, tempbuf);
+        memset(tempbuf, 0, sizeof (tempbuf));
+        snprintf(tempbuf, buf_len, ">C%d:Node%d<", i + 1, internalNode->childs[i + 1]->id);
+        strcat(buf, tempbuf);
+        memset(tempbuf, 0, sizeof (tempbuf));
     }
-    printf("}\n");
+    strcat(buf, "}\n");
+    printf("%s", buf);
 }
 
 BOOL InternalNodeCheckMaxMin(InternalNode * internalNode){

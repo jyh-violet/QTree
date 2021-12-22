@@ -421,7 +421,7 @@ Node*  LeafNodeSplit(LeafNode* leafNode) {
     leafNode->node.nextNodeMin = newHigh->data[0].key.searchKey;
     NodeModidyRightLeft((Node*) newHigh);
 
-//    vmlog(InsertLog, "LeafNodeSplit:%d success, newhigh:%d ", leafNode->node.id, newHigh->node.id);
+    vmlog(WARN, "LeafNodeSplit:%d success, newhigh:%d ", leafNode->node.id, newHigh->node.id);
     return (Node*)newHigh;
 }
 
@@ -461,16 +461,24 @@ void LeafNodeResetId(LeafNode* leafNode){
 
 
 void printLeafNode(LeafNode* leafNode){
-    printf("[L%d](L%d: %d: L%d)(%d)(%d,%d){", leafNode->node.id,
+    char buf[10000];
+    char tempbuf[10000];
+    int buf_len = 10000;
+    snprintf(buf, buf_len, "[L%d](L%d: %d: L%d)(%d)(%d,%d){", leafNode->node.id,
            leafNode->node.left== NULL? 0 :leafNode->node.left->id, leafNode->node.nextNodeMin, leafNode->node.right== NULL? 0 :leafNode->node.right->id,
            leafNode->node.allocated, ((leafNode->node.minValue)), ((leafNode->node.maxValue)));
     for (int i = 0; i < leafNode->node.allocated; i++) {
         QueryRange * k = &leafNode->data[i].key;
         QueryMeta* v = leafNode->data[i].value;
-        printQueryRange(k);
-        printf("Q[%s] | ",v->queryId );
+        snprintf(tempbuf, buf_len, "%d:{%d,%d}", k->searchKey, k->lower, k->upper);
+        strcat(buf, tempbuf);
+        memset(tempbuf, 0, sizeof (tempbuf));
+        snprintf(tempbuf, buf_len, "Q[%s] | ", v->queryId );
+        strcat(buf, tempbuf);
+        memset(tempbuf, 0, sizeof (tempbuf));
     }
-    printf("}\n");
+    strcat(buf, "}\n");
+    printf("%s", buf);
 }
 
 BOOL LeafNodeCheckMaxMin(LeafNode * leafNode){

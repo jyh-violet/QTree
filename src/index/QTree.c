@@ -256,8 +256,10 @@ inline BOOL QTreeModifyNodeMaxMin(Node* node, BoundKey min, BoundKey max){
 
 inline Node* QTreeTravelRightLink(Node* node, KeyType * key, int threadId){
     while (key->searchKey > node->nextNodeMin){
-//        vmlog(InsertLog, "QTreeTravelRightLink, key:%d, node:%d, nextNodeMin:%d, right:%d",
-//              key->searchKey, node->id, node->nextNodeMin, node->right->id);
+        vmlog(WARN, "QTreeTravelRightLink, key:%d, node:%d, nextNodeMin:%d, right:%d",
+              key->searchKey, node->id, node->nextNodeMin, node->right->id);
+        printf("QTreeTravelRightLink, key:%d, node:%d, nextNodeMin:%d, right:%d\n",
+              key->searchKey, node->id, node->nextNodeMin, node->right->id);
         if(QTreeAddLockForFindLeaf(node->right, threadId) == FALSE){
             QTreeRmLockForFindLeaf(node, threadId);
             return NULL;
@@ -303,6 +305,18 @@ inline LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key, NodesStack* node
         }
         while (!NodeIsLeaf(node)) {
             InternalNode *nodeInternal = (InternalNode*) node;
+            if(nodeInternal->node.left != NULL && key->searchKey < nodeInternal->node.left->nextNodeMin){
+                printQueryRange(key);
+                printf("slot:%d\n", slot);
+                printInternalNode(nodeInternal);
+                printInternalNode(nodeInternal->node.left);
+                while (!stackEmpty(nodesStack->stackNodes, nodesStack->stackNodesIndex)){
+                    InternalNode* node = stackPop(nodesStack->stackNodes, nodesStack->stackNodesIndex);
+                    printInternalNode(node);
+                }
+                exit(-1);
+                vmlog(ERROR, "QTreeFindLeafNode: error slot:%d\n", slot);
+            }
             stackPush(nodesStack->stackNodes, nodesStack->stackNodesIndex, nodeInternal);
             slot = InternalNodeFindSlotByKey(nodeInternal, key);
             slot = ((slot < 0) ? (-slot) - 1 : slot + 1);
@@ -389,9 +403,10 @@ inline void QTreePutOne(QTree* qTree, QueryRange* key, QueryMeta* value, int thr
     LeafNode* nodeLeaf;
     int slot;
     nodeLeaf = QTreeFindLeafNode(qTree, key, &nodesStack, threadId);
-    if(nodeLeaf->node.left != NULL && key->searchKey < nodeLeaf->data[0].key.searchKey){
+    if(nodeLeaf->node.left != NULL && key->searchKey < nodeLeaf->node.left->nextNodeMin){
         printQueryRange(key);
         printLeafNode(nodeLeaf);
+        printLeafNode(nodeLeaf->node.left);
         while (!stackEmpty(nodesStack.stackNodes, nodesStack.stackNodesIndex)){
             InternalNode* node = stackPop(nodesStack.stackNodes, nodesStack.stackNodesIndex);
             printInternalNode(node);
