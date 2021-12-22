@@ -353,7 +353,12 @@ Node* LeafNodeSplit_NoSort(LeafNode* leafNode, LeafNode* newHigh) {
 
     newHigh->node.allocated = (oldSize - median);
     leafNode->node.allocated = median;
-
+    for (int i = 1; i < newHigh->node.allocated; ++i) {
+        if(newHigh->data[i].key.searchKey < newHigh->data[0].key.searchKey){
+            vmlog(ERROR, "LeafNodeSplit_NoSort: sort ERROR\n");
+            printLeafNode(leafNode);
+        }
+    }
 
     return (Node*)newHigh;
 }
@@ -462,8 +467,6 @@ void printLeafNode(LeafNode* leafNode){
     for (int i = 0; i < leafNode->node.allocated; i++) {
         QueryRange * k = &leafNode->data[i].key;
         QueryMeta* v = leafNode->data[i].value;
-//        printQueryRange(k);
-        printf("%d:", k->searchKey);
         printQueryRange(k);
         printf("Q[%s] | ",v->queryId );
     }

@@ -416,6 +416,7 @@ BOOL InternalNodeCheckLink(InternalNode * node){
     }
     for(int i = 0; i <= allocated; i ++){
         if(NodeCheckLink(node->childs[i]) == FALSE){
+            printInternalNode(node);
             return FALSE;
         }
     }

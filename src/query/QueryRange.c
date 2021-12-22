@@ -88,5 +88,5 @@ void QueryRangeConstructorWithPara(QueryRange *queryRange, BoundKey startKey, Bo
 }
 
 void printQueryRange(QueryRange* queryRange){
-    printf("{%d,%d}", queryRange->lower, queryRange->upper);
+    printf("%d:{%d,%d}", queryRange->searchKey, queryRange->lower, queryRange->upper);
 }

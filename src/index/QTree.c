@@ -198,6 +198,9 @@ inline void setSearchKey(KeyType * key, int threadId){
 }
 
 inline BOOL QTreeAddLockForFindLeaf(Node* node, int threadId){
+    if(node == NULL){
+        return FALSE;
+    }
     BOOL success;
     if(NodeIsLeaf(node)){
         success = NodeTryAddInsertWriteLock(node);
@@ -386,7 +389,15 @@ inline void QTreePutOne(QTree* qTree, QueryRange* key, QueryMeta* value, int thr
     LeafNode* nodeLeaf;
     int slot;
     nodeLeaf = QTreeFindLeafNode(qTree, key, &nodesStack, threadId);
-
+    if(nodeLeaf->node.left != NULL && key->searchKey < nodeLeaf->data[0].key.searchKey){
+        printQueryRange(key);
+        printLeafNode(nodeLeaf);
+        while (!stackEmpty(nodesStack.stackNodes, nodesStack.stackNodesIndex)){
+            InternalNode* node = stackPop(nodesStack.stackNodes, nodesStack.stackNodesIndex);
+            printInternalNode(node);
+        }
+        vmlog(ERROR, "QTreePutOne: error \n");
+    }
     BOOL restMaxMin = FALSE;
     switch (optimizationType) {
         case None:
@@ -405,6 +416,7 @@ inline void QTreePutOne(QTree* qTree, QueryRange* key, QueryMeta* value, int thr
         default:
             vmlog(ERROR, "QTreePutOne: unSupport type:%d\n", optimizationType);
     }
+
     //
 
     Node*   splitedNode = (NodeIsFull((Node*)nodeLeaf) ? LeafNodeSplit(nodeLeaf) : NULL);
@@ -457,6 +469,9 @@ inline void QTreePropagateSplit(QTree* qTree, NodesStack* nodesStack, LeafNode* 
                     NodeAddInsertWriteLock(node->node.left);
                     node = (InternalNode*) node->node.left;
                 } else{
+                    if(node->node.right == NULL){
+                        vmlog(ERROR, "travel link ERROR: node :%d and has no right node", node->node.id);
+                    }
                     NodeAddInsertWriteLock(node->node.right);
                     Node* tempNode = (Node*)node;
                     node = (InternalNode*) node->node.right;
@@ -495,6 +510,13 @@ inline void QTreePropagateSplit(QTree* qTree, NodesStack* nodesStack, LeafNode* 
                     vmlog(ERROR, "travel link ERROR: node :%d and its right not contain the key:%d", node->node.id, max);
                 }
                 if(leftNode == TRUE){
+                    if(node->node.left == NULL){
+                        vmlog(WARN, "travel link ERROR: node :%d and has no left node", node->node.id);
+                        NodeRmInsertReadLock(lastNode, threadId);
+                        NodeRmInsertReadLock((Node*)node, threadId);
+                        restMaxMin = FALSE;
+                        break;
+                    }
                     NodeRmInsertReadLock((Node*)node, threadId);
                     NodeAddInsertReadLock(node->node.left, threadId);
                     node = (InternalNode*) node->node.left;
@@ -506,10 +528,12 @@ inline void QTreePropagateSplit(QTree* qTree, NodesStack* nodesStack, LeafNode* 
                 }
 
             }
-            restMaxMin = QTreeModifyNodeMaxMin( (Node*)node, min, max);
-            NodeRmInsertReadLock(lastNode, threadId);
-            if(!restMaxMin){
-                NodeRmInsertReadLock((Node*)node, threadId);
+            if(restMaxMin){
+                restMaxMin = QTreeModifyNodeMaxMin( (Node*)node, min, max);
+                NodeRmInsertReadLock(lastNode, threadId);
+                if(!restMaxMin){
+                    NodeRmInsertReadLock((Node*)node, threadId);
+                }
             }
         }
         lastNode = (Node*) node;
