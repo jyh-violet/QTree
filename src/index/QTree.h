@@ -11,7 +11,7 @@
 #include "../holder/RangeHolder.h"
 #include "../Tool/ArrayList.h"
 #define maxDepth 32
-#define Border  5
+#define Border  65
 
 #define stackPop(stack, index)  stack[ --index]
 #define stackPush(stack, index, elem)  stack[index ++] = elem
@@ -140,7 +140,7 @@ BOOL QTreeAddLockForFindLeaf(Node* node, int threadId);
 void QTreeRmLockForFindLeaf(Node* node, int threadId);
 BOOL QTreeModifyNodeMaxMin(Node* node, BoundKey min, BoundKey max);
 Node* QTreeTravelRightLink(Node* node, KeyType * key, int threadId);
-void QTreePropagateSplit(QTree* qTree, NodesStack* nodesStack, LeafNode* nodeLeaf, Node* splitedNode, BOOL restMaxMin, BoundKey min, BoundKey max, int threadId);
+void QTreePropagateSplit(QTree* qTree, NodesStack* nodesStack, LeafNode* nodeLeaf, Node* splitedNode, BOOL restMaxMin, BoundKey key, BoundKey min, BoundKey max, int threadId);
 BOOL QTreeDeleteQuery(QTree* qTree, QueryMeta * queryMeta, int threadId);
 Node* checkInternalNodeForDelete(QTree* qTree, InternalNode* nodeInternal,  KeyType* key, NodesStack *nodesStack, IntStack* slotStack, int threadId);
 LeafNode* checkLeafNodeForDelete(QTree* qTree, LeafNode* leafNode, QueryMeta * queryMeta, int threadId);
@@ -165,7 +165,7 @@ void printNode(Node* node);
 Node* NodeSplit(Node* node);
 int NodeGetHeight(Node* node);
 void NodeResetId(Node* node);
-void NodeMerge(Node* node, InternalNode* nodeParent, int slot,
+BOOL NodeMerge(Node* node, InternalNode* nodeParent, int slot,
                Node* nodeFROM);
 KeyType NodeSplitShiftKeysLeft(Node* node);
 BOOL NodeCheckMaxMin(Node * node);

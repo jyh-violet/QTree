@@ -34,7 +34,10 @@ void LeafNodeMerge(LeafNode* leafNode, InternalNode* nodeParent, int slot,
     }
     nodeTO->node.right = nodeFROMx->right;
     nodeTO->node.nextNodeMin = nodeFROMx->nextNodeMin;
-    NodeModidyRightLeft((Node*) nodeTO);
+    if(nodeTO->node.right != NULL){
+        nodeTO->node.right->left = nodeTO;
+    }
+
     // remove key from nodeParent
     InternalNodeRemove(nodeParent, slot);
     // Free nodeFROM
@@ -407,7 +410,7 @@ Node*  LeafNodeSplit(LeafNode* leafNode) {
     LeafNodeResetMinValue(leafNode);
     LeafNodeResetMinValue(newHigh);
     newHigh->node.right = leafNode->node.right;
-    newHigh->node.left = leafNode;
+    newHigh->node.left = (Node*)leafNode;
     leafNode->node.right = (Node*)newHigh;
     newHigh->node.nextNodeMin = leafNode->node.nextNodeMin;
     leafNode->node.nextNodeMin = newHigh->data[0].key.searchKey;

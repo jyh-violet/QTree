@@ -382,6 +382,7 @@ void vmlog(LOGLevel logLevel, char* fmat, ...){
     snprintf(output, sizeof(output),"(pid:%lu)---%s\n",pthread_self(), buffer);
     write(logF, output, strlen(output));
     if(logLevel == ERROR){
+        printf("%s", output);
         exit(-1);
     }
 }

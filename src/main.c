@@ -70,7 +70,7 @@ void testMix(ThreadAttributes* attributes){
     struct timespec startTmp, endTmp;
     clock_gettime(CLOCK_REALTIME, &startTmp);
     for (int i = attributes->start; i <  attributes->end; ++i) {
-//        vmlog(WARN,"thread:%d, i:%d, para:%lf, rm:%ld", attributes->threadId, i, attributes->mixPara[i], removedQuery->size);
+        vmlog(RemoveLog,"thread:%d, i:%d, para:%lf, rm:%ld", attributes->threadId, i, attributes->mixPara[i], removedQuery->size);
         if(attributes->mixPara[i] < insertRatio){
             QTreePut(attributes->qTree, attributes->queries + i, attributes->threadId);
             insertNum ++;

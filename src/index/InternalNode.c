@@ -110,7 +110,7 @@ Node* InternalNodeSplit(InternalNode* internalNode) {
     newHigh->node.allocated ++;
 
     newHigh->node.right = internalNode->node.right;
-    newHigh->node.left = internalNode;
+    newHigh->node.left = (Node*)internalNode;
     internalNode->node.right = (Node*)newHigh;
     newHigh->node.nextNodeMin = internalNode->node.nextNodeMin;
     internalNode->node.nextNodeMin = newHigh->keys[0].searchKey;
@@ -155,25 +155,22 @@ BOOL InternalNodeCheckUnderflowWithRight(InternalNode* internalNode, int slot){
     BOOL merge = FALSE;
     while ((loop < maxloop) &&NodeIsUnderFlow(nodeLeft)) {
         Node* nodeRight = internalNode->childs[slot + 1];
-        if(NodeAddRemoveWriteLockNoWait(nodeLeft) == FALSE){
+        if(NodeTryAddInsertWriteLock(nodeLeft) == FALSE){
             return FALSE;
         }
-        if(NodeAddRemoveWriteLockNoWait(nodeRight) == FALSE){
-            NodeRmRemoveWriteLock(nodeLeft);
+        if(NodeTryAddInsertWriteLock(nodeRight) == FALSE){
+            NodeRmInsertWriteLock(nodeLeft);
             return FALSE;
         }
         if (NodeCanMerge(nodeLeft, nodeRight)) {
-            NodeMerge(nodeLeft, internalNode, slot, nodeRight);
-            internalNode->childs[slot] = nodeLeft;
-            merge = TRUE;
-        } else {
-            //cannot merge
-            NodeRmRemoveWriteLock(nodeRight);
-            NodeRmRemoveWriteLock(nodeLeft);
+            merge = NodeMerge(nodeLeft, internalNode, slot, nodeRight);
+        }
+        NodeRmInsertWriteLock(nodeRight);
+        NodeRmInsertWriteLock(nodeLeft);
+        if(merge == FALSE){
+            //do not merge
             break;
         }
-        NodeRmRemoveWriteLock(nodeRight);
-        NodeRmRemoveWriteLock(nodeLeft);
         loop ++;
 
 //        return TRUE;
@@ -222,7 +219,9 @@ void InternalNodeMerge(Node* internalNode, InternalNode* nodeParent, int slot, N
     }
     nodeTO->node.right = nodeFROMx->right;
     nodeTO->node.nextNodeMin = nodeFROMx->nextNodeMin;
-    NodeModidyRightLeft((Node*) nodeTO);
+    if(nodeTO->node.right != NULL){
+        nodeTO->node.right->left = nodeTO;
+    }
     // remove key from nodeParent
     InternalNodeRemove(nodeParent, slot);
 
