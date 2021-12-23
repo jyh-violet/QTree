@@ -70,7 +70,7 @@ void testMix(ThreadAttributes* attributes){
     struct timespec startTmp, endTmp;
     clock_gettime(CLOCK_REALTIME, &startTmp);
     for (int i = attributes->start; i <  attributes->end; ++i) {
-        vmlog(RemoveLog,"thread:%d, i:%d, para:%lf, rm:%ld", attributes->threadId, i, attributes->mixPara[i], removedQuery->size);
+//        vmlog(RemoveLog,"thread:%d, i:%d, para:%lf, rm:%ld", attributes->threadId, i, attributes->mixPara[i], removedQuery->size);
         if(attributes->mixPara[i] < insertRatio){
             QTreePut(attributes->qTree, attributes->queries + i, attributes->threadId);
             insertNum ++;
@@ -170,14 +170,14 @@ int test() {
     for (int i = 0; i < threadnum; ++i) {
         num += qTree.batchCount[i];
     }
-
-    if(NodeCheckLink(qTree.root) == FALSE){
-        printf("NodeCheckLink ERROR!!!\n");
-    }
-    if(NodeCheckMaxMin(qTree.root) == FALSE){
-        printf("NodeCheckMaxMin ERROR!!!\n");
-    }
-    printf("%d, %d, %d\n", num, NodeGetHeight(qTree.root), qTree.height);
+//
+//    if(NodeCheckLink(qTree.root) == FALSE){
+//        printf("NodeCheckLink ERROR!!!\n");
+//    }
+//    if(NodeCheckMaxMin(qTree.root) == FALSE){
+//        printf("NodeCheckMaxMin ERROR!!!\n");
+//    }
+//    printf("%d, %d, %d\n", num, NodeGetHeight(qTree.root), qTree.height);
 
 //    printQTree(&qTree);
 
@@ -212,17 +212,17 @@ int test() {
 //    printQTree(&qTree);
 //    PAPI_readCache();
 //    PAPI_end();
-    if(NodeCheckLink(qTree.root) == FALSE){
-        printf("NodeCheckLink ERROR!!!\n");
-    }
-    if(NodeCheckMaxMin(qTree.root) == FALSE){
-        printf("NodeCheckMaxMin ERROR!!!\n");
-    }
-    num = qTree.elements;
-    for (int i = 0; i < threadnum; ++i) {
-        num += qTree.batchCount[i];
-    }
-    printf("%d, %d, %d\n", num, NodeGetHeight(qTree.root), qTree.height);
+//    if(NodeCheckLink(qTree.root) == FALSE){
+//        printf("NodeCheckLink ERROR!!!\n");
+//    }
+//    if(NodeCheckMaxMin(qTree.root) == FALSE){
+//        printf("NodeCheckMaxMin ERROR!!!\n");
+//    }
+//    num = qTree.elements;
+//    for (int i = 0; i < threadnum; ++i) {
+//        num += qTree.batchCount[i];
+//    }
+//    printf("%d, %d, %d\n", num, NodeGetHeight(qTree.root), qTree.height);
 
     if(markDelete){
         WorkEnd = TRUE;

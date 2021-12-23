@@ -474,7 +474,7 @@ inline void QTreePropagateSplit(QTree* qTree, NodesStack* nodesStack, LeafNode* 
                 } else if(key >= node->node.nextNodeMin){
                     leftNode = FALSE;
                 } else if(key < node->node.nextNodeMin){
-                    vmlog(ERROR, "travel link ERROR: node :%d and its right not contain the key:%d", node->node.id, max);
+                    vmlog(WARN, "QTreePropagateSplit travel link ERROR: node :%d and its right not contain the key:%d", node->node.id, max);
                 }
                 if(leftNode == TRUE){
                     if(node->node.left == NULL){
@@ -522,7 +522,7 @@ inline void QTreePropagateSplit(QTree* qTree, NodesStack* nodesStack, LeafNode* 
                 } else if(key >= node->node.nextNodeMin){
                     leftNode = FALSE;
                 } else if(key < node->node.nextNodeMin){
-                    vmlog(ERROR, "travel link ERROR: node :%d and its right not contain the key:%d", node->node.id, max);
+                    vmlog(WARN, "travel link ERROR: node :%d and its right not contain the key:%d", node->node.id, max);
                 }
                 if(leftNode == TRUE){
                     if(node->node.left == NULL){
@@ -1210,14 +1210,14 @@ inline void QTreePropagateMerge(QTree* qTree, Node* lastNode,  NodesStack *nodes
             } else if(node->nextNodeMin <= lastNode->nextNodeMin){
                 leftNode = FALSE;
             } else if(node->nextNodeMin > lastNode->nextNodeMin){
-                vmlog(WARN, "travel link ERROR: node :%d and its right not contain the child:%d", node->id, lastNode->id);
+                vmlog(WARN, "QTreePropagateMerge travel link ERROR: node :%d and its right not contain the child:%d", node->id, lastNode->id);
                 childMerge = FALSE;
                 NodeRmInsertWriteLockForRemove(node);
                 break;
             }
             if(leftNode == TRUE){
                 if(node->left == NULL){
-                    vmlog(ERROR, "travel link ERROR: node :%d and has no left node", node->id);
+                    vmlog(WARN, "travel link ERROR: node :%d and has no left node", node->id);
                 }
                 NodeRmInsertWriteLockForRemove(node);
                 if (NodeTryAddInsertWriteLockForRemove(node->left) == FALSE){
