@@ -16,6 +16,7 @@
 #define stackPop(stack, index)  stack[ --index]
 #define stackPush(stack, index, elem)  stack[index ++] = elem
 #define stackEmpty(stack, index)  (index==0)
+#define stackClear(stack, index)  index=0
 
 #define NodeIsLeaf(node)  (((Node*)node)->id >= 0)
 
