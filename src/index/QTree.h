@@ -91,10 +91,10 @@ typedef struct QTree {
 
 typedef struct Node{
     LockType removeLock; // work as the lock for findAndRemove
-    LockType insertLock; // work as the lock for insert
+    pthread_rwlock_t insertLock; // work as the lock for insert
+    int removeFlag;
     int id ;
     _Atomic int allocated ;
-    int allowSplit;
     BoundKey maxValue ;
     BoundKey minValue;
     BoundKey nextNodeMin;

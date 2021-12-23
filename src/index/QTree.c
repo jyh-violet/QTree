@@ -446,12 +446,8 @@ inline void QTreePutOne(QTree* qTree, QueryRange* key, QueryMeta* value, int thr
 
 inline void QTreePropagateSplit(QTree* qTree, NodesStack* nodesStack, LeafNode* nodeLeaf, Node* splitedNode, BOOL restMaxMin, BoundKey key,  BoundKey min, BoundKey max, int threadId){
     Node*   lastNode = (Node*)nodeLeaf;
-    if(splitedNode == NULL){
-        if(restMaxMin){
-            NodeDegradeInsertLock(lastNode, threadId);
-        }else{
-            NodeRmInsertWriteLock(lastNode);
-        }
+    if(splitedNode == NULL && !restMaxMin){
+        NodeRmInsertWriteLock(lastNode);
     }
     int slot;
     // Iterate back over nodes checking overflow / splitting
@@ -507,10 +503,7 @@ inline void QTreePropagateSplit(QTree* qTree, NodesStack* nodesStack, LeafNode* 
             NodeRmInsertWriteLock(splitedNode);
             if(NodeIsFull((Node*)node)){
                 splitedNode = InternalNodeSplit(node);
-            }else if(restMaxMin){
-                NodeDegradeInsertLock((Node*)node, threadId);
-                splitedNode = NULL;
-            }else{
+            }else if( !restMaxMin){
                 NodeRmInsertWriteLock((Node*)node);
                 splitedNode = NULL;
             }

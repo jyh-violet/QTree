@@ -14,8 +14,8 @@ void NodeConstructor(Node* node, QTree *tree){
     node-> allocated = 0;
     node->tree = tree;
     node->nextNodeMin = RAND_MAX;
-    node->insertLock = 0;
     node->removeLock = 0;
+    pthread_rwlock_init(&node->insertLock, 0);
 
 //    node->keys = malloc(sizeof(KeyType *) * tree->Border);
 //    memset(node->keys,0, sizeof(KeyType *) * Border);
@@ -143,35 +143,18 @@ BOOL NodeCheckLink(Node* node){
 inline void NodeAddInsertWriteLock(Node* node){
 
     vmlog(RemoveLog,"NodeAddInsertWriteLock node:%d", ((Node*)node)->id);
-
-    int try = 0;
-    while (1){
-        if(__sync_bool_compare_and_swap(&node->insertLock, 0, 1)){
-            vmlog(RemoveLog,"NodeAddInsertWriteLock node:%d success", ((Node*)node)->id);
-            return;
-        } else{
-            try ++;
-            if(try%WriteLockTryThreshold == 0){
-                usleep(100);
-                vmlog(ERROR,"NodeAddInsertWriteLock node:%d conflict:%x", ((Node*)node)->id, node->insertLock);
-            }
-        }
-    }
+    pthread_rwlock_wrlock(&node->insertLock);
 
 }
 BOOL NodeTryAddInsertWriteLock(Node* node){
     vmlog(RemoveLog,"NodeTryAddWriteLock node:%d", ((Node*)node)->id);
-    int try = 0;
-    while (try < TryCount){
-        if(__sync_bool_compare_and_swap(&node->insertLock, 0, 1)){
-            vmlog(RemoveLog,"NodeTryAddWriteLock node:%d success", ((Node*)node)->id);
-            return TRUE;
-        } else{
-            try ++;
-        }
+    if(pthread_rwlock_trywrlock(&node->insertLock) == 0){
+        vmlog(RemoveLog,"NodeTryAddWriteLock node:%d success", ((Node*)node)->id);
+        return TRUE;
+    } else{
+        vmlog(RemoveLog,"NodeTryAddWriteLock node:%d failed:%x", ((Node*)node)->id, node->insertLock);
+        return FALSE;
     }
-
-    vmlog(RemoveLog,"NodeTryAddWriteLock node:%d failed:%x", ((Node*)node)->id, node->insertLock);
     return FALSE;
 }
 
@@ -179,11 +162,11 @@ BOOL NodeTryAddInsertWriteLockForRemove(Node* node){
     vmlog(RemoveLog,"NodeTryAddInsertWriteLockForRemove node:%d ", ((Node*)node)->id);
     int try = 0;
     while (TRUE){
-        LockType  flag = node->insertLock;
-        if((flag & 2)  == 2){
+        LockType  flag = node->removeFlag;
+        if((flag & 1)  == 1){
             return FALSE;
         }
-        if( __sync_bool_compare_and_swap (&node->insertLock, flag, flag | 2)){
+        if( __sync_bool_compare_and_swap (&node->removeFlag, 0, 1)){
             break;
         } else{
             try ++;
@@ -193,39 +176,26 @@ BOOL NodeTryAddInsertWriteLockForRemove(Node* node){
             }
         }
     }
-
-    try = 0;
-    while (try < WriteLockTryThreshold){
-        if(__sync_bool_compare_and_swap(&node->insertLock, 2, 3)){
-            vmlog(RemoveLog,"NodeTryAddInsertWriteLockForRemove node:%d success", ((Node*)node)->id);
-            return TRUE;
-        } else{
-            try ++;
-        }
-    }
-    vmlog(RemoveLog,"NodeTryAddInsertWriteLockForRemove node:%d failed:%x", ((Node*)node)->id, node->insertLock);
+    pthread_rwlock_wrlock(&node->insertLock);
     return FALSE;
 }
 
 void NodeRmInsertWriteLockForRemove(Node* node){
 //    vmlog(InsertLog,"NodeRmInsertWriteLockForRemove node:%d", ((Node*)node)->id);
-    __sync_bool_compare_and_swap(&node->insertLock, 3, 0);
+    __sync_bool_compare_and_swap(&node->removeFlag, 1, 0);
+    pthread_rwlock_unlock(&node->insertLock);
     vmlog(RemoveLog,"NodeRmInsertWriteLockForRemove node:%d suceess:%x", ((Node*)node)->id, node->insertLock);
 }
 
 void NodeRmInsertWriteLock(Node* node){
 //    vmlog(InsertLog,"rmWriteLock node:%d", ((Node*)node)->id);
-    __sync_and_and_fetch(&node->insertLock, ~(1));
+    pthread_rwlock_unlock(&node->insertLock);
     vmlog(RemoveLog,"rmWriteLock node:%d suceess :%x", ((Node*)node)->id, node->insertLock);
 }
 
 
 void NodeDegradeInsertLock(Node* node, int threadId){
-//    vmlog(MiXLog,"NodeDegradeInsertLock node:%d", ((Node*)node)->id);
-    LockType  flag = node->insertLock;
-    LockType target =  (1 << (threadId + RemoveReadOff)) | (flag & 2);
-    __sync_bool_compare_and_swap(&node->insertLock, flag, target);
-    vmlog(RemoveLog,"NodeDegradeInsertLock node:%d suceess: %x", ((Node*)node)->id, node->insertLock);
+
 }
 
 
@@ -233,53 +203,29 @@ void NodeAddInsertReadLock(Node* node, int threadId){
 //    vmlog(RemoveLog,"NodeAddInsertReadLock node:%d", ((Node*)node)->id);
     //    int tid = getThreadId();
     int try = 0;
-    while (1){
-        LockType  flag = node->insertLock;
-        if((flag & 3) == 0){
-            LockType target = flag | (1 << (threadId + RemoveReadOff));
-            if(__sync_bool_compare_and_swap(&node->insertLock, flag, target)){
-//                vmlog(RemoveLog,"NodeAddInsertReadLock node:%d success :%x", ((Node*)node)->id, node->insertLock);
-                return;
-            }
-        }
-        try ++;
-        if(try%WriteLockTryThreshold == 0){
-            usleep(100);
-//            vmlog(WARN,"NodeAddInsertReadLock node:%d conflict:%x", ((Node*)node)->id, node->insertLock);
-        }
-    }
+    pthread_rwlock_rdlock(&node->insertLock);
 }
 
 BOOL NodeTryAddInsertReadLock(Node* node, int threadId){
 //    vmlog(RemoveLog,"NodeTryAddInsertReadLock node:%d", ((Node*)node)->id);
     //    int tid = getThreadId();
-    int try = 0;
-    while (try < TryCount){
-        LockType  flag = node->insertLock;
-        if((flag & 3) == 0){
-            LockType target = flag | (1 << (threadId + RemoveReadOff));
-            if(__sync_bool_compare_and_swap(&node->insertLock, flag, target)){
-//                vmlog(RemoveLog,"NodeTryAddInsertReadLock node:%d success:%x", ((Node*)node)->id, node->insertLock);
-                return TRUE;
-            }
-        } else{
-            try ++;
-        }
+    if(pthread_rwlock_tryrdlock(&node->insertLock) == 0){
+        //                vmlog(RemoveLog,"NodeTryAddInsertReadLock node:%d success:%x", ((Node*)node)->id, node->insertLock);
+        return TRUE;
+    } else{
+        //    vmlog(RemoveLog,"NodeTryAddInsertReadLock node:%d failed:%x", ((Node*)node)->id, node->insertLock);
+        return FALSE;
     }
-//    vmlog(RemoveLog,"NodeTryAddInsertReadLock node:%d failed:%x", ((Node*)node)->id, node->insertLock);
-    return FALSE;
 }
 void NodeRmInsertReadLock(Node* node, int threadId){
-    //    int tid = getThreadId();
-//        vmlog(InsertLog,"NodeRmInsertReadLock node:%d", ((Node*)node)->id);
-    __sync_and_and_fetch(&node->insertLock, ~(1<<(threadId + RemoveReadOff)));
-//    vmlog(RemoveLog,"NodeRmInsertReadLock node:%d success :%x", ((Node*)node)->id, node->insertLock);
+    pthread_rwlock_unlock(&node->insertLock);
+    //    vmlog(RemoveLog,"NodeRmInsertReadLock node:%d success :%x", ((Node*)node)->id, node->insertLock);
 }
 
 void NodeRmInsertReadLockNoLog(Node* node, int threadId){
     //    int tid = getThreadId();
 //        vmlog(InsertLog,"NodeRmInsertReadLock node:%d", ((Node*)node)->id);
-    __sync_and_and_fetch(&node->insertLock, ~(1<<(threadId + RemoveReadOff)));
+    pthread_rwlock_unlock(&node->insertLock);
 //    vmlog(RemoveLog,"NodeRmInsertReadLock node:%d success", ((Node*)node)->id);
 }
 
@@ -291,7 +237,7 @@ void NodeAddRemoveReadInsertWriteLock(Node* node, int threadId){
 }
 void NodeRmRemoveReadInsertWriteLock(Node* node, int threadId){
 //    vmlog(InsertLog,"NodeRmRemoveReadInsertWriteLock node:%d", ((Node*)node)->id);
-    __sync_and_and_fetch(&node->insertLock, ~(1));
+    pthread_rwlock_unlock(&node->insertLock);
     __sync_and_and_fetch(&node->removeLock, ~(1<<(threadId + RemoveReadOff)));
     vmlog(RemoveLog,"NodeRmRemoveReadInsertWriteLock node:%d success :%x, %x", ((Node*)node)->id, node->insertLock, node->removeLock);
 
