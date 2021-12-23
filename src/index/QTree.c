@@ -19,7 +19,6 @@ void QTreeConstructor(QTree* qTree,  int BOrder){
     qTree->root = (Node*)malloc(sizeof (LeafNode));
     LeafNodeConstructor((LeafNode*)qTree->root, qTree);
     LeafNodeAllocId((LeafNode*)qTree->root);
-    qTree->root->allowSplit = 1;
     qTree->elements = 0;
     qTree->height = 1;
     pthread_spin_init(&qTree->removeLock, PTHREAD_PROCESS_SHARED);
@@ -149,7 +148,6 @@ inline void QTreeMakeNewRoot(QTree* qTree, Node* splitedNode){
     InternalNodeResetMaxValue(nodeRootNew);
     InternalNodeResetMinValue(nodeRootNew);
     qTree->root = (Node* )nodeRootNew;
-    nodeRootNew->node.allowSplit = 1;
     qTree->height ++;
 //    vmlog(RemoveLog, "QTreeMakeNewRoot :%d", nodeRootNew->node.id);
 }
@@ -281,7 +279,7 @@ inline LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key, NodesStack* node
             if(findTime % 10000 == 0){
                 vmlog(WARN,"QTreeFindLeafNode retry:%d", findTime);
             }
-            if(findTime % 1000000 == 0){
+            if(findTime % 100000 == 0){
                 while (!stackEmpty(nodesStack->stackNodes, nodesStack->stackNodesIndex)){
                     node = (Node*)stackPop(nodesStack->stackNodes, nodesStack->stackNodesIndex);
                     vmlog(WARN, "stackNode: %d", node->id);
@@ -290,10 +288,7 @@ inline LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key, NodesStack* node
             }
             usleep(1000);
         }
-        while (!stackEmpty(nodesStack->stackNodes, nodesStack->stackNodesIndex)){
-            node = (Node*)stackPop(nodesStack->stackNodes, nodesStack->stackNodesIndex);
-            QTreeRmLockForFindLeaf(node,threadId);
-        }
+        stackClear(nodesStack->stackNodes, nodesStack->stackNodesIndex);
         node = qTree->root;
         int slot = 0;
         if(QTreeAddLockForFindLeaf(node, threadId) == FALSE){
@@ -506,6 +501,8 @@ inline void QTreePropagateSplit(QTree* qTree, NodesStack* nodesStack, LeafNode* 
                 splitedNode = InternalNodeSplit(node);
             }else if( !restMaxMin){
                 NodeRmInsertWriteLock((Node*)node);
+                splitedNode = NULL;
+            } else{
                 splitedNode = NULL;
             }
         } else if(restMaxMin){
