@@ -37,12 +37,12 @@ void LeafNodeMerge(LeafNode* leafNode, InternalNode* nodeParent, int slot,
     if(nodeTO->node.right != NULL){
         nodeTO->node.right->left = (Node*)nodeTO;
     }
-
+    nodeFROM->node.allocated = -1;
     // remove key from nodeParent
     InternalNodeRemove(nodeParent, slot);
     // Free nodeFROM
-//    vmlog(MiXLog, "LeafNodeMerge, rm node:%d, pointer:%lx", nodeFROM->node.id, nodeFROM);
-    nodeFROM->node.allocated = -1;
+    //    vmlog(WARN, "LeafNodeMerge, rm node:%d, allocated:%d", nodeFROM->node.id, nodeFROM->node.allocated);
+
 //    if(nodeFROMx->insertLock == 0){
 //        free((Node*)nodeFROM);
 //    }

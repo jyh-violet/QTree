@@ -141,7 +141,6 @@ BOOL NodeCheckLink(Node* node){
 #define RemoveReadOff 2
 
 inline void NodeAddInsertWriteLock(Node* node){
-
     vmlog(RemoveLog,"NodeAddInsertWriteLock node:%d", ((Node*)node)->id);
     pthread_rwlock_wrlock(&node->insertLock);
     vmlog(RemoveLog,"NodeAddInsertWriteLock node:%d success", ((Node*)node)->id);
@@ -156,11 +155,11 @@ BOOL NodeTryAddInsertWriteLock(Node* node){
         vmlog(RemoveLog,"NodeTryAddWriteLock node:%d failed:%x", ((Node*)node)->id, node->insertLock);
         return FALSE;
     }
-    return FALSE;
+
 }
 
 BOOL NodeTryAddInsertWriteLockForRemove(Node* node){
-    vmlog(RemoveLog,"NodeTryAddInsertWriteLockForRemove node:%d ", ((Node*)node)->id);
+//    vmlog(RemoveLog,"NodeTryAddInsertWriteLockForRemove node:%d ", ((Node*)node)->id);
     int try = 0;
     while (TRUE){
         LockType  flag = node->removeFlag;
@@ -172,7 +171,7 @@ BOOL NodeTryAddInsertWriteLockForRemove(Node* node){
         } else{
             try ++;
             if(try == TryCount){
-                vmlog(RemoveLog,"NodeTryAddInsertWriteLockForRemove node:%d failed:%x", ((Node*)node)->id, node->insertLock);
+//                vmlog(RemoveLog,"NodeTryAddInsertWriteLockForRemove node:%d failed:%x", ((Node*)node)->id, node->insertLock);
                 return FALSE;
             }
         }
@@ -187,6 +186,7 @@ void NodeRmInsertWriteLockForRemove(Node* node){
     __sync_bool_compare_and_swap(&node->removeFlag, 1, 0);
     pthread_rwlock_unlock(&node->insertLock);
     vmlog(RemoveLog,"NodeRmInsertWriteLockForRemove node:%d suceess:%x", ((Node*)node)->id, node->insertLock);
+
 }
 
 void NodeRmInsertWriteLock(Node* node){
@@ -242,7 +242,7 @@ void NodeRmRemoveReadInsertWriteLock(Node* node, int threadId){
 //    vmlog(InsertLog,"NodeRmRemoveReadInsertWriteLock node:%d", ((Node*)node)->id);
     pthread_rwlock_unlock(&node->insertLock);
     __sync_and_and_fetch(&node->removeLock, ~(1<<(threadId + RemoveReadOff)));
-    vmlog(RemoveLog,"NodeRmRemoveReadInsertWriteLock node:%d success :%x, %x", ((Node*)node)->id, node->insertLock, node->removeLock);
+//    vmlog(RemoveLog,"NodeRmRemoveReadInsertWriteLock node:%d success :%x, %x", ((Node*)node)->id, node->insertLock, node->removeLock);
 
 }
 

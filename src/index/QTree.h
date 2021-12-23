@@ -18,6 +18,7 @@
 #define stackEmpty(stack, index)  (index==0)
 #define stackClear(stack, index)  index = 0
 
+
 #define NodeIsLeaf(node)  (((Node*)node)->id >= 0)
 
 int checkQueryMeta;
@@ -86,7 +87,7 @@ typedef struct QTree {
 }QTree;
 
 
-#define NodeIsValid(node)  (((Node*)node)->allocated >= 0)
+#define NodeIsValid(node)  ( __sync_fetch_and_add(&((Node*)node)->allocated, 0)>= 0)
 
 #define LockType u_int32_t
 
@@ -95,7 +96,8 @@ typedef struct Node{
     pthread_rwlock_t insertLock; // work as the lock for insert
     int removeFlag;
     int id ;
-    _Atomic int allocated ;
+    int allocated ;
+    int allowSplit;
     BoundKey maxValue ;
     BoundKey minValue;
     BoundKey nextNodeMin;

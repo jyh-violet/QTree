@@ -224,11 +224,11 @@ void InternalNodeMerge(Node* internalNode, InternalNode* nodeParent, int slot, N
     if(nodeTO->node.right != NULL){
         nodeTO->node.right->left = (Node*)nodeTO;
     }
+    nodeFROM->node.allocated = -1;
     // remove key from nodeParent
     InternalNodeRemove(nodeParent, slot);
 
     // Free nodeFROM
-    nodeFROM->node.allocated = -1;
 //    vmlog(RemoveLog, "InternalNodeMerge, rm node:%d, pointer:%lx", nodeFROMx->id, nodeFROMx);
 //    if(nodeFROMx->insertLock == 0){
 //        free(nodeFROMx);
