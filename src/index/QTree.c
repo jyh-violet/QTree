@@ -279,14 +279,14 @@ inline LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key, NodesStack* node
         findTime ++;
         if(findTime % 1000 == 0){
             if(findTime % 10000 == 0){
-                vmlog(WARN,"QTreeFindLeafNode retry:%d", findTime);
+                vmlog(WARN,"QTreeFindLeafNode retry:%d, elements:%d", findTime, qTree->elements);
             }
             if(findTime % 1000000 == 0){
                 while (!stackEmpty(nodesStack->stackNodes, nodesStack->stackNodesIndex)){
                     node = (Node*)stackPop(nodesStack->stackNodes, nodesStack->stackNodesIndex);
                     vmlog(WARN, "stackNode: %d", node->id);
                 }
-                vmlog(ERROR,"QTreeFindLeafNode retry:%d", findTime);
+                vmlog(ERROR,"QTreeFindLeafNode retry:%d, elements:%d", findTime, qTree->elements);
             }
             usleep(1000);
         }
@@ -523,6 +523,7 @@ inline void QTreePropagateSplit(QTree* qTree, NodesStack* nodesStack, LeafNode* 
                     leftNode = FALSE;
                 } else if(key < node->node.nextNodeMin){
                     vmlog(WARN, "travel link ERROR: node :%d and its right not contain the key:%d", node->node.id, max);
+                    restMaxMin = FALSE;
                 }
                 if(leftNode == TRUE){
                     if(node->node.left == NULL){
@@ -535,11 +536,17 @@ inline void QTreePropagateSplit(QTree* qTree, NodesStack* nodesStack, LeafNode* 
                     NodeRmInsertReadLock((Node*)node, threadId);
                     NodeAddInsertReadLock(node->node.left, threadId);
                     node = (InternalNode*) node->node.left;
-                } else{
-                    NodeAddInsertReadLock(node->node.right, threadId);
-                    Node* tempNode = (Node*)node;
-                    node = (InternalNode*) node->node.right;
-                    NodeRmInsertReadLock(tempNode, threadId);
+                } else if(restMaxMin){
+                    if(node->node.right == NULL){
+                        vmlog(WARN, "travel link ERROR: node :%d and has no right node", node->node.id);
+                        restMaxMin = FALSE;
+                    } else{
+                        NodeAddInsertReadLock(node->node.right, threadId);
+                        Node* tempNode = (Node*)node;
+                        node = (InternalNode*) node->node.right;
+                        NodeRmInsertReadLock(tempNode, threadId);
+                    }
+
                 }
 
             }

@@ -86,7 +86,7 @@ typedef struct QTree {
 }QTree;
 
 
-#define NodeIsValid(node)  (((Node*)node)->allocated >= 0)
+#define NodeIsValid(node)  ( __sync_fetch_and_add(&((Node*)node)->allocated, 0)>= 0)
 
 #define LockType u_int32_t
 
@@ -94,7 +94,7 @@ typedef struct Node{
     LockType removeLock; // work as the lock for findAndRemove
     LockType insertLock; // work as the lock for insert
     int id ;
-    _Atomic int allocated ;
+    int allocated ;
     int allowSplit;
     BoundKey maxValue ;
     BoundKey minValue;

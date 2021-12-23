@@ -153,7 +153,9 @@ inline void NodeAddInsertWriteLock(Node* node){
             try ++;
             if(try%WriteLockTryThreshold == 0){
                 usleep(100);
-                vmlog(ERROR,"NodeAddInsertWriteLock node:%d conflict:%x", ((Node*)node)->id, node->insertLock);
+                if(try % (10 * WriteLockTryThreshold) == 0){
+                    vmlog(ERROR,"NodeAddInsertWriteLock node:%d conflict:%x", ((Node*)node)->id, node->insertLock);
+                }
             }
         }
     }
