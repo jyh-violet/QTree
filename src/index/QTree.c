@@ -256,10 +256,10 @@ inline BOOL QTreeModifyNodeMaxMin(Node* node, BoundKey min, BoundKey max){
 
 inline Node* QTreeTravelRightLink(Node* node, KeyType * key, int threadId){
     while (key->searchKey > node->nextNodeMin){
-//        vmlog(WARN, "QTreeTravelRightLink, key:%d, node:%d, nextNodeMin:%d, right:%d",
-//              key->searchKey, node->id, node->nextNodeMin, node->right->id);
-//        printf("QTreeTravelRightLink, key:%d, node:%d, nextNodeMin:%d, right:%d\n",
-//              key->searchKey, node->id, node->nextNodeMin, node->right->id);
+        //        vmlog(WARN, "QTreeTravelRightLink, key:%d, node:%d, nextNodeMin:%d, right:%d",
+        //              key->searchKey, node->id, node->nextNodeMin, node->right->id);
+        //        printf("QTreeTravelRightLink, key:%d, node:%d, nextNodeMin:%d, right:%d\n",
+        //              key->searchKey, node->id, node->nextNodeMin, node->right->id);
         if(QTreeAddLockForFindLeaf(node->right, threadId) == FALSE){
             QTreeRmLockForFindLeaf(node, threadId);
             return NULL;
@@ -299,6 +299,7 @@ inline LeafNode* QTreeFindLeafNode(QTree* qTree, KeyType * key, NodesStack* node
         if(QTreeAddLockForFindLeaf(node, threadId) == FALSE){
             goto  findAgain;
         }
+        //no need travel left
         node = QTreeTravelRightLink(node, key, threadId);
         if(node == NULL){
             goto findAgain;
@@ -1197,23 +1198,46 @@ inline void QTreePropagateMerge(QTree* qTree, Node* lastNode,  NodesStack *nodes
 
         while ((slot = InternalNodeFindSlotByChild((InternalNode*) node, lastNode)) < 0){
             //                vmlog(InsertLog, " node :%d not contain the child:%d", node->node.id, lastNode->id);
-            if(node->nextNodeMin > lastNode->nextNodeMin){
+
+            BOOL leftNode;
+            if(!NodeIsValid((Node*)node)){
+                vmlog(WARN, "node invalid:%d", node->id);
+                leftNode = TRUE;
+            } else if(node->nextNodeMin <= lastNode->nextNodeMin){
+                leftNode = FALSE;
+            } else if(node->nextNodeMin > lastNode->nextNodeMin){
                 vmlog(WARN, "travel link ERROR: node :%d and its right not contain the child:%d", node->id, lastNode->id);
                 childMerge = FALSE;
                 NodeRmInsertWriteLockForRemove(node);
-
                 break;
             }
-            if (NodeTryAddInsertWriteLockForRemove(node->right) == FALSE){
-                // another thread is doing merge
-                childMerge = FALSE;
+            if(leftNode == TRUE){
+                if(node->left == NULL){
+                    vmlog(ERROR, "travel link ERROR: node :%d and has no left node", node->id);
+                }
                 NodeRmInsertWriteLockForRemove(node);
+                if (NodeTryAddInsertWriteLockForRemove(node->left) == FALSE){
+                    // another thread is doing merge
+                    childMerge = FALSE;
+                    break;
+                } else{
+                    node = node->left;
+                }
 
-                break;
             } else{
-                Node* tempNode = (Node*)node;
-                node = node->right;
-                NodeRmInsertWriteLockForRemove(tempNode);
+                if(node->right == NULL){
+                    vmlog(ERROR, "travel link ERROR: node :%d and has no right node", node->id);
+                }
+                if (NodeTryAddInsertWriteLockForRemove(node->right) == FALSE){
+                    // another thread is doing merge
+                    childMerge = FALSE;
+                    NodeRmInsertWriteLockForRemove(node);
+                    break;
+                } else{
+                    Node* tempNode = (Node*)node;
+                    node = node->right;
+                    NodeRmInsertWriteLockForRemove(tempNode);
+                }
             }
         }
         if(childMerge == FALSE){
