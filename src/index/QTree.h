@@ -93,7 +93,7 @@ typedef struct Node{
     LockType removeLock; // work as the lock for findAndRemove
     LockType insertLock; // work as the lock for insert
     int id ;
-    int allocated ;
+    _Atomic int allocated ;
     int allowSplit;
     BoundKey maxValue ;
     BoundKey minValue;

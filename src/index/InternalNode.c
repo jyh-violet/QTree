@@ -29,7 +29,7 @@ BOOL InternalNodeAdd(InternalNode* internalNode, int slot, KeyType * newKey, Nod
     internalNode->keys[slot] = *newKey;
     internalNode->childs[slot + 1] = child;
     ++internalNode->node.allocated;
-    vmlog(WARN,"InternalNodeAdd node: %d, slot:%d, child:%d", internalNode->node.id, slot + 1, child->id);
+//    vmlog(WARN,"InternalNodeAdd node: %d, slot:%d, child:%d, key:%d", internalNode->node.id, slot + 1, child->id, newKey->searchKey);
     return TRUE;
 }
 
@@ -116,7 +116,8 @@ Node* InternalNodeSplit(InternalNode* internalNode) {
     newHigh->node.nextNodeMin = internalNode->node.nextNodeMin;
     internalNode->node.nextNodeMin = newHigh->keys[0].searchKey;
     NodeModidyRightLeft((Node*) newHigh);
-    vmlog(WARN, "InternalNodeSplit:%d success, newhigh:%d ", internalNode->node.id, newHigh->node.id);
+//    vmlog(WARN, "InternalNodeSplit:%d success, newsize:%d, newhigh:%d, size:%d ",
+//          internalNode->node.id, internalNode->node.allocated,  newHigh->node.id, newHigh->node.allocated);
     return (Node*)newHigh;
 }
 

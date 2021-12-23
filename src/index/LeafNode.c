@@ -421,7 +421,8 @@ Node*  LeafNodeSplit(LeafNode* leafNode) {
     leafNode->node.nextNodeMin = newHigh->data[0].key.searchKey;
     NodeModidyRightLeft((Node*) newHigh);
 
-    vmlog(WARN, "LeafNodeSplit:%d success, newhigh:%d ", leafNode->node.id, newHigh->node.id);
+//    vmlog(WARN, "LeafNodeSplit:%d success, size:%d,  newhigh:%d, size:%d ",
+//          leafNode->node.id, leafNode->node.allocated, newHigh->node.id, newHigh->node.allocated);
     return (Node*)newHigh;
 }
 
