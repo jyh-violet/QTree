@@ -407,7 +407,7 @@ int InternalNodeFindSlotByChild( InternalNode* node, Node* child) {
 
 int InternalNodeFindSlotByChildWithRight( InternalNode* node, Node* child) {
     for (int i = 0; i <= NodeGetAllocated(node); ++i)
-        if((i <= node->node.allocated) && (node->childs[i] == child) ||(node->childs[i]->right == child)){
+        if((i <= node->node.allocated) && ((node->childs[i] == child) ||(node->childs[i]->right == child))){
             return i;
         }
     return -1;  // child not found.
