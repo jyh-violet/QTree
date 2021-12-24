@@ -40,11 +40,11 @@ void NodeCheckTree(Node* node){
 }
 
 BOOL NodeIsUnderFlow(Node* node) {
-    return (BOOL)(node->allocated <= (Border >> 1));
+    return (BOOL)(NodeGetAllocated(node) <= (Border >> 1));
 }
 
 BOOL NodeCanMerge( Node* node, Node* other) {
-    return (BOOL)((node->allocated + other->allocated + 1) < Border);
+    return (BOOL)((NodeGetAllocated(node) + NodeGetAllocated(other) + 1) < Border);
 }
 
 BOOL NodeIsFull(Node* node){ // node is full
@@ -52,7 +52,7 @@ BOOL NodeIsFull(Node* node){ // node is full
         printNode(node);
         vmlog(ERROR, "nodeIsFull error");
     }
-    return (BOOL)(node->allocated >= Border);
+    return (BOOL)(NodeGetAllocated(node) >= Border);
 }
 
 

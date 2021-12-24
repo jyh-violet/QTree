@@ -22,9 +22,10 @@ void InternalNodeDestroy(InternalNode* internalNode){
 
 
 BOOL InternalNodeAdd(InternalNode* internalNode, int slot, KeyType * newKey, Node* child){
-    if (slot < internalNode->node.allocated) {
-        memcpy(internalNode->keys + slot + 1, internalNode->keys + slot, (internalNode->node.allocated - slot) * sizeof(KeyType));
-        memcpy(internalNode->childs + slot + 2, internalNode->childs + slot + 1, (internalNode->node.allocated - slot) * sizeof(Node*));
+    int allocated = NodeGetAllocated(internalNode);
+    if (slot < allocated) {
+        memcpy(internalNode->keys + slot + 1, internalNode->keys + slot, (allocated - slot) * sizeof(KeyType));
+        memcpy(internalNode->childs + slot + 2, internalNode->childs + slot + 1, (allocated - slot) * sizeof(Node*));
     }
     internalNode->keys[slot] = *newKey;
     internalNode->childs[slot + 1] = child;
@@ -86,8 +87,9 @@ Node* InternalNodeSplit(InternalNode* internalNode) {
     InternalNodeAllocId(newHigh);
     NodeAddInsertWriteLock((Node*)newHigh);
     // int j = ((allocated >> 1) | (allocated & 1)); // dividir por dos y sumar el resto (0 o 1)
-    int j = (internalNode->node.allocated >> 1); // dividir por dos (libro)
-    int newsize = internalNode->node.allocated - j;
+    int allocated = NodeGetAllocated(internalNode);
+    int j = ( allocated >> 1); // dividir por dos (libro)
+    int newsize = allocated - j;
 
     // if (log.isDebugEnabled()) log.debug("split j=" + j);
     memcpy(newHigh->keys, internalNode->keys + j,  newsize * sizeof (KeyType ));
@@ -124,7 +126,7 @@ Node* InternalNodeSplit(InternalNode* internalNode) {
 
 KeyType InternalNodeSplitShiftKeysLeft(InternalNode* internalNode) {
     KeyType removed = internalNode->keys[0];
-    memcpy(internalNode->keys, internalNode->keys + 1, (internalNode->node.allocated - 1) * sizeof(KeyType ));
+    memcpy(internalNode->keys, internalNode->keys + 1, (NodeGetAllocated(internalNode) - 1) * sizeof(KeyType ));
     internalNode->node.allocated--;
 //    internalNode->node.keys[internalNode->node.allocated] = NULL;
     internalNode->childs[internalNode->node.allocated + 1] = NULL;
@@ -152,7 +154,7 @@ void InternalNodeResetId(InternalNode* internalNode){
 
 BOOL InternalNodeCheckUnderflowWithRight(InternalNode* internalNode, int slot){
     Node* nodeLeft = internalNode->childs[slot];
-    int maxloop = internalNode->node.allocated - slot;
+    int maxloop = NodeGetAllocated(internalNode) - slot;
     int loop = 0;
     BOOL merge = FALSE;
     while ((loop < maxloop) &&NodeIsUnderFlow(nodeLeft)) {
@@ -184,15 +186,16 @@ void InternalNodeRemove(InternalNode* internalNode, int slot) {
     if (slot < -1) {
         vmlog(ERROR, "faking slot=%d allocated=%d\n", slot, internalNode->node.allocated);
     }
+    int allocated = NodeGetAllocated(internalNode);
 //    vmlog(RemoveLog, "InternalNodeRemove, rm node:%d, pointer:%lx", internalNode->childs[slot + 1]->id, internalNode->childs[slot + 1]);
     if(slot == -1){
-        if(internalNode->node.allocated > 0){
-            memcpy(internalNode->keys, internalNode->keys + 1, (internalNode->node.allocated - 1) * sizeof (KeyType ));
-            memcpy(internalNode->childs, internalNode->childs + 1, (internalNode->node.allocated) * sizeof (Node*));
+        if(allocated > 0){
+            memcpy(internalNode->keys, internalNode->keys + 1, (allocated - 1) * sizeof (KeyType ));
+            memcpy(internalNode->childs, internalNode->childs + 1, (allocated) * sizeof (Node*));
         }
-    }else if (slot < internalNode->node.allocated) {
-        memcpy(internalNode->keys + slot, internalNode->keys + slot + 1, (internalNode->node.allocated - slot - 1) * sizeof (KeyType ));
-        memcpy(internalNode->childs + slot + 1, internalNode->childs + slot + 2, (internalNode->node.allocated - slot - 1) * sizeof (Node*));
+    }else if (slot < allocated) {
+        memcpy(internalNode->keys + slot, internalNode->keys + slot + 1, (allocated - slot - 1) * sizeof (KeyType ));
+        memcpy(internalNode->childs + slot + 1, internalNode->childs + slot + 2, (allocated - slot - 1) * sizeof (Node*));
     }
     --internalNode->node.allocated;
 //    internalNode->node.keys[internalNode->node.allocated] = NULL;
@@ -203,8 +206,8 @@ void InternalNodeRemove(InternalNode* internalNode, int slot) {
 void InternalNodeMerge(Node* internalNode, InternalNode* nodeParent, int slot, Node* nodeFROMx) {
     InternalNode* nodeFROM = (InternalNode*) nodeFROMx;
     InternalNode* nodeTO = (InternalNode*)internalNode;
-    int sizeTO = nodeTO->node.allocated;
-    int sizeFROM = nodeFROM->node.allocated;
+    int sizeTO = NodeGetAllocated(nodeTO);
+    int sizeFROM = NodeGetAllocated(nodeFROM);
     if(sizeFROM >= 0){
         // copy keys from nodeFROM to nodeTO
         memcpy(nodeTO->keys + sizeTO + 1, nodeFROM->keys, sizeFROM * sizeof(KeyType));
@@ -326,7 +329,7 @@ int InternalNodeFindSlotByKey( InternalNode* node, KeyType* searchKey) {
         return -1;
     }
     int low = 0;
-    int high = node->node.allocated - 1;
+    int high = NodeGetAllocated(node) - 1;
 //    vmlog(InsertLog,"InternalNodeFindSlotByKey node:%d, high:%d",node->node.id, high);
 
     while (low <= high) {
@@ -379,7 +382,7 @@ int InternalNodeFindMinSlotByKey( InternalNode* node, BoundKey key) {
         return -1;
     }
     int low = 0;
-    int high = node->node.allocated;
+    int high = NodeGetAllocated(node);
 
     while (low < high) {
         int mid = (low + high) >> 1;
@@ -395,7 +398,7 @@ int InternalNodeFindMinSlotByKey( InternalNode* node, BoundKey key) {
 }
 
 int InternalNodeFindSlotByChild( InternalNode* node, Node* child) {
-    for (int i = 0; i <= node->node.allocated; ++i)
+    for (int i = 0; i <= NodeGetAllocated(node); ++i)
         if((node->childs[i] == child)){
             return i;
     }
@@ -403,8 +406,8 @@ int InternalNodeFindSlotByChild( InternalNode* node, Node* child) {
 }
 
 int InternalNodeFindSlotByChildWithRight( InternalNode* node, Node* child) {
-    for (int i = 0; i <= node->node.allocated; ++i)
-        if((node->childs[i] == child) ||(node->childs[i]->right == child)){
+    for (int i = 0; i <= NodeGetAllocated(node); ++i)
+        if((i <= node->node.allocated) && (node->childs[i] == child) ||(node->childs[i]->right == child)){
             return i;
         }
     return -1;  // child not found.
