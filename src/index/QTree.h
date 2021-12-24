@@ -87,6 +87,8 @@ typedef struct QTree {
 
 
 #define NodeIsValid(node)  ( __sync_fetch_and_add(&((Node*)node)->allocated, 0)>= 0)
+#define NodeGetAllocated(node)  __sync_fetch_and_add(&((Node*)node)->allocated,0)
+//#define NodeGetAllocated(node)  ((Node*)node)->allocated
 
 #define LockType u_int32_t
 
