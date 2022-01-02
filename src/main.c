@@ -72,20 +72,24 @@ void testMix(ThreadAttributes* attributes){
     for (int i = attributes->start; i <  attributes->end; ++i) {
 //        vmlog(WARN,"thread:%d, i:%d, para:%lf, rm:%ld", attributes->threadId, i, attributes->mixPara[i], removedQuery->size);
         if(attributes->mixPara[i] < insertRatio){
+            if(insertRatio < 1 && attributes->qTree->elements > TOTAL){
+                //cache is full, delete first
+                if(markDelete){
+                    if(QTreeMarkDelete(attributes->qTree, attributes->insertQueries + i) == TRUE){
+                        attributes->result.size ++;
+                    }
+                } else{
+                    if (QTreeDeleteQuery(attributes->qTree, attributes->insertQueries + i, attributes->threadId) == TRUE){
+                        attributes->result.size ++;
+                    }
+                }
+                deleteNum ++;
+            }
+
             QTreePut(attributes->qTree, attributes->queries + i, attributes->threadId);
             insertNum ++;
         }else if(attributes->mixPara[i] < (insertRatio + deleteRatio)){
-            if(markDelete){
-                if(QTreeMarkDelete(attributes->qTree, attributes->insertQueries + i) == TRUE){
-                    attributes->result.size ++;
-                }
-            } else{
-                if (QTreeDeleteQuery(attributes->qTree, attributes->insertQueries + i, attributes->threadId) == TRUE){
-                    attributes->result.size ++;
-                }
-            }
 
-            deleteNum ++;
         } else{
             QTreeFindAndRemoveRelatedQueries(attributes->qTree,
                                              (attributes->removeQuery[i].dataRegion.upper + attributes->removeQuery[i].dataRegion.lower) / 2,
@@ -111,7 +115,7 @@ int test() {
 //    TOTAL = 10000000;
 //    dataRegionType = Increase;
 //    maxValue = TOTAL / 10;
-    maxValue = TOTAL * 2;
+    maxValue = 1 << valueSpan;
     TRACE_LEN = 1000;
     srand((unsigned)time(NULL));
     initZipfParameter(TOTAL, zipfPara);
@@ -233,10 +237,11 @@ int test() {
     QTreeDestroy(&qTree);
 
 //    mixT = (double)(finish - start)/CLOCKS_PER_SEC;
-printf("%d, %d, %d,  %d, %d, %d, %.2lf, %.2lf, %d,  %d,  %.3lf,%.3lf,%.3lf, %d, %d, %d, %ld, %ld, %ld,  %ld, %ld, %ld, %ld, %ld, %d, %d, %d, %d, %.2lf, %d, %d, %d\n",
+printf("%d, %d, %d,  %d, %d, %d, %.2lf, %.2lf, %d,  %d,  %.3lf,%.3lf,%.3lf, %d, %d, %d, %ld, %ld, %ld,  %ld, %ld, %ld, %ld, %ld, %d, %d, %d, %d, %.2lf, %d, %d, %d, %d\n",
        Border, checkQueryMeta, optimizationType, dataPointType, dataRegionTypeOld, searchKeyType, insertRatio, deleteRatio, removePoint, TOTAL,
            generateT, putT, mixT, insertNum, deleteNum, removeNum, removed, checkQuery, checkLeaf, checkInternal,
-           qTree.leafSplitCount, qTree.internalSplitCount, qTree.whileCount, qTree.funcCount, RemovedQueueSize, batchMissThreshold, MaxBatchCount, setKeyCount, zipfPara, rangeWidth, threadnum, markDelete);
+           qTree.leafSplitCount, qTree.internalSplitCount, qTree.whileCount, qTree.funcCount, RemovedQueueSize, batchMissThreshold, MaxBatchCount,
+           setKeyCount, zipfPara, rangeWidth, threadnum, markDelete, valueSpan);
     free(queries) ;
     free(removeQuery);
     free(insertQueries);
