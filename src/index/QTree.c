@@ -132,7 +132,9 @@ void printQTree( QTree* qTree){
 }
 
 int QTreeAllocNode(QTree* qTree, BOOL isLeaf){
-    int id = qTree->maxNodeID ++;
+    int id = __sync_fetch_and_add (&qTree->maxNodeID, 1);
+    id ++;
+//    int id = qTree->maxNodeID ++;
     return isLeaf ? id : -id;
 }
 
@@ -150,7 +152,9 @@ inline void QTreeMakeNewRoot(QTree* qTree, Node* splitedNode){
     InternalNodeResetMinValue(nodeRootNew);
     qTree->root = (Node* )nodeRootNew;
     nodeRootNew->node.allowSplit = 1;
-    qTree->height ++;
+    __sync_fetch_and_add (&qTree->height, 1);
+
+//    qTree->height ++;
 //    vmlog(RemoveLog, "QTreeMakeNewRoot :%d", nodeRootNew->node.id);
 }
 
@@ -420,7 +424,8 @@ inline void QTreePutOne(QTree* qTree, QueryRange* key, QueryMeta* value, int thr
     Node*   splitedNode = (NodeIsFull((Node*)nodeLeaf) ? LeafNodeSplit(nodeLeaf) : NULL);
 
     QTreePropagateSplit( qTree, &nodesStack, nodeLeaf, splitedNode, restMaxMin,  min,  max,  threadId);
-    qTree->elements ++;
+//    qTree->elements ++;
+    __sync_fetch_and_add (&qTree->elements, 1);
 
     //    NodeCheckTree(qTree->root);
 }
@@ -647,8 +652,8 @@ inline void QTreePutBatch(QTree* qTree, QueryData * batch, int batchCount, int t
             vmlog(ERROR, "QTreePutBatch: unSupport type:%d\n", optimizationType);
     }
     QTreePropagateSplit( qTree, &nodesStack, nodeLeaf, splitedNode, restMaxMin,  min,  max,  threadId);
-
-    qTree->elements += batchCount;
+    __sync_fetch_and_add (&qTree->elements, batchCount);
+//    qTree->elements += batchCount;
 }
 
 
@@ -714,7 +719,8 @@ inline void checkLeafNode(QTree* qTree, LeafNode* leafNode, BoundKey* removedMax
             delete = TRUE;
             QuerySetDeleteFlag(leafNode->data[i].value);
             ArraylistAdd(removedQuery, leafNode->data[i].value);
-            qTree->elements --;
+            __sync_fetch_and_add (&qTree->elements, -1);
+//            qTree->elements --;
         }
         if(delete == TRUE){
             if(leafNode->data[i].key.upper >= leafNode->node.maxValue){
@@ -890,7 +896,9 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* re
         if(internalNode->node.allocated == 0){
             NodeAddRemoveWriteLock((Node*)internalNode);
             if((internalNode->node.allocated == 0) && (qTree->root == (Node*)internalNode)){
-                qTree->height --;
+                __sync_fetch_and_add (&qTree->height, -1);
+
+//                qTree->height --;
                 qTree->root = internalNode->childs[0];
 //                vmlog(RemoveLog, "change root, rm node:%d, pointer:%lx, new root:%d", internalNode->node.id, internalNode, qTree->root->id);
                 internalNode->node.allocated = -1;
@@ -1061,7 +1069,9 @@ void QTreeRefactor(QTree* qTree, int threadId){
         if(internalNode->node.allocated == 0){
             NodeAddRemoveWriteLock((Node*)internalNode);
             if((internalNode->node.allocated == 0) && (qTree->root == (Node*)internalNode)){
-                qTree->height --;
+//                qTree->height --;
+                __sync_fetch_and_add (&qTree->height, -1);
+
                 qTree->root = internalNode->childs[0];
                 //                vmlog(RemoveLog, "change root, rm node:%d, pointer:%lx, new root:%d", internalNode->node.id, internalNode, qTree->root->id);
                 internalNode->node.allocated = -1;
@@ -1078,7 +1088,8 @@ void QTreeRefactor(QTree* qTree, int threadId){
 BOOL QTreeMarkDelete(QTree* qTree, QueryMeta* queryMeta){
     if(!QueryIsDeleted(queryMeta)){
         QuerySetDeleteFlag(queryMeta);
-        qTree->elements --;
+//        qTree->elements --;
+        __sync_fetch_and_add (&qTree->elements, -1);
         return TRUE;
     } else{
         return FALSE;
@@ -1242,7 +1253,8 @@ BOOL QTreeDeleteQuery(QTree* qTree, QueryMeta * queryMeta, int threadId){
             }
         } else{
             found = TRUE;
-            qTree->elements --;
+            __sync_fetch_and_add (&qTree->elements, -1);
+//            qTree->elements --;
             QTreePropagateMerge(qTree, (Node*)leafNode,  &nodesStack, &slotStack, threadId);
         }
     }
@@ -1253,7 +1265,8 @@ BOOL QTreeDeleteQuery(QTree* qTree, QueryMeta * queryMeta, int threadId){
         if(internalNode->node.allocated == 0){
             if(NodeTryAddRemoveWriteLock((Node*)internalNode) ){
                 if((internalNode->node.allocated == 0) && (qTree->root == (Node*)internalNode)){
-                    qTree->height --;
+                    __sync_fetch_and_add (&qTree->height, -1);
+//                    qTree->height --;
                     qTree->root = internalNode->childs[0];
                     //                vmlog(RemoveLog, "change root, rm node:%d, pointer:%lx, new root:%d", internalNode->node.id, internalNode, qTree->root->id);
                     internalNode->node.allocated = -1;

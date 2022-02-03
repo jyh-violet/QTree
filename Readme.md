@@ -25,3 +25,11 @@ dpkg-deb -x libpfm4_4.9.0-2_amd64.deb  /home/jyh/libs/usr/local/lib/
 #change .bashrc
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/jyh/libs/usr/local/lib
 ```
+#install
+
+mkdir build
+cd build
+cmake  -DCMAKE_INSTALL_PREFIX=/home/jyh/libs/usr/local ..
+cmake --configure ..
+cmake --build ..
+cmake --build .. --target install 

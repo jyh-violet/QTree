@@ -69,19 +69,19 @@ typedef struct QueryData{
 }QueryData;
 
 typedef struct QTree {
-    _Atomic int elements;
-    _Atomic int height;
-    _Atomic int maxNodeID;
+     int elements;
+     int height;
+     int maxNodeID;
     Node *root;
     pthread_spinlock_t removeLock;
-    _Atomic int     batchCount[MaxThread];
-    _Atomic int     batchMissCount[MaxThread];
+    int     batchCount[MaxThread];
+    int     batchMissCount[MaxThread];
     BoundKey batchSearchKey[MaxThread];
     QueryData batch[MaxThread][MaxBatchCount];
-    _Atomic size_t leafSplitCount;
-    _Atomic size_t internalSplitCount;
-    _Atomic size_t funcCount;
-    _Atomic size_t whileCount;
+    size_t leafSplitCount;
+    size_t internalSplitCount;
+    size_t funcCount;
+    size_t whileCount;
 }QTree;
 
 

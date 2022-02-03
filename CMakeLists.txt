@@ -47,3 +47,14 @@ ADD_EXECUTABLE(${PROJECT_NAME}  ${TEST_MATH})
 target_link_libraries(${PROJECT_NAME}  PUBLIC main  -lconfig -lm )
 
 #add_executable(QTree main.cpp src/query/QueryTemplate.cpp include/query/QueryTemplate.h src/query/QueryMeta.cpp include/query/QueryMeta.h include/common.h include/query/Tools.h include/holder/RangeHolder.h include/index/QTree.h include/index/Node.h include/index/LeafNode.h include/index/InternalNode.h src/query/QueryRange.cpp include/query/QueryRange.h)
+
+
+install(TARGETS ${PROJECT_NAME}
+        EXPORT QTreeTargets
+        LIBRARY DESTINATION lib  # 动态库安装路径
+        ARCHIVE DESTINATION lib  # 静态库安装路径
+        RUNTIME DESTINATION bin  # 可执行文件安装路径
+        PUBLIC_HEADER DESTINATION include  # 头文件安装路径
+        )
+#install(src/index/QTree.h DESTINATION include/index )
+#install(FILES src/query/QueryMeta.h src/query/QueryRange.h DESTINATION include /query )
