@@ -40,6 +40,7 @@ void QTreeConstructor(QTree* qTree,  int BOrder){
     config_lookup_int(&cfg, "searchKeyType", (int*)&searchKeyType);
     config_lookup_int(&cfg, "optimizationType", (int*)&optimizationType);
     config_lookup_int(&cfg, "checkQueryMeta", &checkQueryMeta);
+    config_lookup_int(&cfg, "markDelete", &markDelete);
 
     if(markDelete){
         pthread_create(&RefactorThread, 0, (void *(*)(void *))QTreeRefactorThread, (void *)qTree);
