@@ -72,20 +72,24 @@ void testMix(ThreadAttributes* attributes){
     for (int i = attributes->start; i <  attributes->end; ++i) {
 //        vmlog(RemoveLog,"thread:%d, i:%d, para:%lf, rm:%ld", attributes->threadId, i, attributes->mixPara[i], removedQuery->size);
         if(attributes->mixPara[i] < insertRatio){
+            if(insertRatio < 1 && attributes->qTree->elements > TOTAL){
+                //cache is full, delete first
+                if(markDelete){
+                    if(QTreeMarkDelete(attributes->qTree, attributes->insertQueries + i) == TRUE){
+                        attributes->result.size ++;
+                    }
+                } else{
+                    if (QTreeDeleteQuery(attributes->qTree, attributes->insertQueries + i, attributes->threadId) == TRUE){
+                        attributes->result.size ++;
+                    }
+                }
+                deleteNum ++;
+            }
+
             QTreePut(attributes->qTree, attributes->queries + i, attributes->threadId);
             insertNum ++;
         }else if(attributes->mixPara[i] < (insertRatio + deleteRatio)){
-            if(markDelete){
-                if(QTreeMarkDelete(attributes->qTree, attributes->insertQueries + i) == TRUE){
-                    attributes->result.size ++;
-                }
-            } else{
-                if (QTreeDeleteQuery(attributes->qTree, attributes->insertQueries + i, attributes->threadId) == TRUE){
-                    attributes->result.size ++;
-                }
-            }
 
-            deleteNum ++;
         } else{
             QTreeFindAndRemoveRelatedQueries(attributes->qTree,
                                              (attributes->removeQuery[i].dataRegion.upper + attributes->removeQuery[i].dataRegion.lower) / 2,
@@ -141,7 +145,7 @@ int test() {
     finish = clock();
     generateT = (double)(finish - start)/CLOCKS_PER_SEC;
 //    printf("generate end! use %lfs\n", (double)(finish - start)/CLOCKS_PER_SEC );
-    printLog = 1;
+//    printLog = 1;
     int perThread = TOTAL / threadnum;
     pthread_t thread[MaxThread];
     ThreadAttributes attributes[MaxThread];
