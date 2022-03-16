@@ -19,7 +19,7 @@ typedef struct QueryMeta {
 }QueryMeta;
 
 char* getQueryId(QueryMeta* queryMeta);
-BOOL QueryMetaCover(QueryMeta* queryMeta, int value);
+BOOL QueryMetaCover(QueryMeta* queryMeta, BoundKey value);
 void QueryMetaConstructor(QueryMeta* queryMeta);
 void QueryMetaConstructorWithPara(QueryMeta* queryMeta, char* id, BoundKey lower, BoundKey upper);
 BOOL QueryIdCmp(void *queryMeta1, void * queryMeta2);

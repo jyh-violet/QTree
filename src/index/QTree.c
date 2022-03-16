@@ -660,7 +660,7 @@ inline void QTreePutBatch(QTree* qTree, QueryData * batch, int batchCount, int t
 
 
 //delete queries in the batch queue
-inline void QTreeCheckBatch(QTree* qTree, int attribute, Arraylist* removedQuery){
+inline void QTreeCheckBatch(QTree* qTree, BoundKey attribute, Arraylist* removedQuery){
     int newCount = 0;
     for (int j = 0; j < qTree->batchCount[0]; ++j) {
         if(QueryRangeCover(qTree->batch[0][j].key, attribute)){
@@ -823,7 +823,7 @@ inline Node* getAnotherNode(QTree* qTree, KeyType* key, BoundKey* removedMax, Bo
     return node;
 }
 
-void QTreeFindAndRemoveRelatedQueries(QTree* qTree, int attribute, Arraylist* removedQuery, int threadId){
+void QTreeFindAndRemoveRelatedQueries(QTree* qTree, BoundKey attribute, Arraylist* removedQuery, int threadId){
     if(searchKeyType == REMOVE){
         for (int i = 0; i < RemovedQueueSize; ++i) {
             clockIndex[threadId] = (clockIndex[threadId] + 1) % RemovedQueueSize;

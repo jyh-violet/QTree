@@ -8,7 +8,7 @@ char* getQueryId(QueryMeta* queryMeta){
     return queryMeta->queryId;
 }
 
-BOOL QueryMetaCover(QueryMeta* queryMeta, int value){
+BOOL QueryMetaCover(QueryMeta* queryMeta, BoundKey value){
     return  QueryRangeCover((queryMeta->dataRegion), (value));
 }
 void QueryMetaConstructor(QueryMeta* queryMeta){
