@@ -258,8 +258,8 @@ inline BOOL QTreeModifyNodeMaxMin(Node* node, BoundKey min, BoundKey max){
 
 inline Node* QTreeTravelRightLink(Node* node, KeyType * key, int threadId){
     while (key->searchKey > node->nextNodeMin){
-//        vmlog(InsertLog, "QTreeTravelRightLink, key:%d, node:%d, nextNodeMin:%d, right:%d",
-//              key->searchKey, node->id, node->nextNodeMin, node->right->id);
+        vmlog(InsertLog, "QTreeTravelRightLink, key:%d, node:%d, nextNodeMin:%d, right:%d",
+              key->searchKey, node->id, node->nextNodeMin, node->right->id);
         NodeAddRemoveReadLock( node->right, threadId);
         if(QTreeAddLockForFindLeaf(node->right, threadId) == FALSE){
             NodeRmRemoveReadLock(node->right, threadId);

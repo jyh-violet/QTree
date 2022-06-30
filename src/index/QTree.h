@@ -87,7 +87,7 @@ typedef struct QTree {
 
 #define NodeIsValid(node)  (((Node*)node)->allocated >= 0)
 
-#define LockType u_int32_t
+#define LockType u_int64_t
 
 typedef struct Node{
     LockType removeLock; // work as the lock for findAndRemove

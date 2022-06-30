@@ -27,6 +27,7 @@ int removePoint = 0;
 double zipfPara = 0.75;
 int rangeWidth = 100;
 BOOL qtreeCheck = FALSE;
+extern __thread threadID;
 
 _Atomic int insertNum = 0, removeNum = 0, deleteNum = 0;
 int threadnum = 4;
@@ -48,6 +49,9 @@ typedef struct ThreadAttributes{
 }ThreadAttributes;
 
 void testInsert(ThreadAttributes* attributes){
+    threadID = attributes->threadId;
+//    printf("thread:%d\n", threadID);
+
 //    pthread_setspecific(threadId, (void *)attributes->threadId);
 struct timespec startTmp, endTmp;
 clock_gettime(CLOCK_REALTIME, &startTmp);
@@ -65,6 +69,8 @@ clock_gettime(CLOCK_REALTIME, &startTmp);
 }
 
 void testMix(ThreadAttributes* attributes){
+    threadID = attributes->threadId;
+//    printf("thread:%d\n", threadID);
 //    pthread_setspecific(threadId, (void *)attributes->threadId);
     Arraylist* removedQuery = ArraylistCreate(attributes->end - attributes->start);
     struct timespec startTmp, endTmp;

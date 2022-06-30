@@ -349,6 +349,7 @@ void PAPI_end(){
 
 }
 int logF = -1;
+__thread threadID;
 void vmlog(LOGLevel logLevel, char* fmat, ...){
 //    if(logLevel == InsertLog){
 //        return;
@@ -379,7 +380,7 @@ void vmlog(LOGLevel logLevel, char* fmat, ...){
         lseek(logF, 0, SEEK_SET);
     }
     char output[MAX_LOG_SIZE + 100];
-    snprintf(output, sizeof(output),"(pid:%lu)---%s\n",pthread_self(), buffer);
+    snprintf(output, sizeof(output),"(pid:%lu)---%s\n",threadID, buffer);
     write(logF, output, strlen(output));
     if(logLevel == ERROR){
         exit(-1);
