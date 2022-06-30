@@ -90,7 +90,7 @@ typedef struct QTree {
 #define NodeGetAllocated(node)  __sync_fetch_and_add(&((Node*)node)->allocated,0)
 //#define NodeGetAllocated(node)  ((Node*)node)->allocated
 
-#define LockType u_int32_t
+#define LockType u_int64_t
 
 typedef struct Node{
     LockType removeLock; // work as the lock for findAndRemove
