@@ -25,8 +25,9 @@
 
 #define RAND_RANGE(N) ((double)rand() / ((double)RAND_MAX + 1) * (N))
 
-#define BoundKey u_int64_t
-
+#define BoundKey int
+//#define MAXKey   0xFFFFFFFFFFFFFFFF
+#define MAXKey   RAND_MAX
 typedef struct QueryRange{
     BoundKey lower; // lower bound of the region
     BoundKey upper;  // upper bound of the region

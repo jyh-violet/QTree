@@ -13,7 +13,7 @@ void NodeConstructor(Node* node, QTree *tree){
     node-> id = 0;
     node-> allocated = 0;
     node->tree = tree;
-    node->nextNodeMin = RAND_MAX;
+    node->nextNodeMin = MAXKey;
     node->insertLock = 0;
     node->removeLock = 0;
 
