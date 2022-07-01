@@ -354,7 +354,7 @@ void vmlog(LOGLevel logLevel, char* fmat, ...){
 //    if(logLevel == InsertLog){
 //        return;
 //    }
-if(!printLog || logLevel < InsertLog){
+if(!printLog || logLevel < WARN){
         return;
     }
     //get the string passed by the caller through the format string
