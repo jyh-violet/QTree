@@ -349,11 +349,12 @@ void PAPI_end(){
 
 }
 int logF = -1;
+__thread int threadId;
 void vmlog(LOGLevel logLevel, char* fmat, ...){
 //    if(logLevel == InsertLog){
 //        return;
 //    }
-    if(!printLog || logLevel < WARN){
+if(!printLog || logLevel < InsertLog){
         return;
     }
     //get the string passed by the caller through the format string
@@ -379,7 +380,7 @@ void vmlog(LOGLevel logLevel, char* fmat, ...){
         lseek(logF, 0, SEEK_SET);
     }
     char output[MAX_LOG_SIZE + 100];
-    snprintf(output, sizeof(output),"(pid:%lu)---%s\n",pthread_self(), buffer);
+    snprintf(output, sizeof(output),"(pid:%lu)---%s\n",threadId, buffer);
     write(logF, output, strlen(output));
     if(logLevel == ERROR){
         printf("%s", output);

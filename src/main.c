@@ -46,8 +46,9 @@ typedef struct ThreadAttributes{
     int end;
     TaskRes  result;
 }ThreadAttributes;
-
+extern __thread int threadId;
 void testInsert(ThreadAttributes* attributes){
+    threadId = attributes->threadId;
 //    pthread_setspecific(threadId, (void *)attributes->threadId);
 struct timespec startTmp, endTmp;
 clock_gettime(CLOCK_REALTIME, &startTmp);
@@ -65,6 +66,7 @@ clock_gettime(CLOCK_REALTIME, &startTmp);
 }
 
 void testMix(ThreadAttributes* attributes){
+    threadId = attributes->threadId;
 //    pthread_setspecific(threadId, (void *)attributes->threadId);
     Arraylist* removedQuery = ArraylistCreate(attributes->end - attributes->start);
     struct timespec startTmp, endTmp;
@@ -145,7 +147,7 @@ int test() {
     finish = clock();
     generateT = (double)(finish - start)/CLOCKS_PER_SEC;
 //    printf("generate end! use %lfs\n", (double)(finish - start)/CLOCKS_PER_SEC );
-//    printLog = 1;
+    printLog = 1;
     int perThread = TOTAL / threadnum;
     pthread_t thread[MaxThread];
     ThreadAttributes attributes[MaxThread];
