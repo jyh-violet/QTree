@@ -712,6 +712,7 @@ inline Node* checkInternalNode(QTree* qTree, InternalNode* nodeInternal,  KeyTyp
     return node;
 }
 
+
 inline BOOL CheckLeafNodeCover(LeafNode * leafNode, int i,  BoundKey attribute){
     if(checkQueryMeta){
         return QueryMetaCover(((LeafNode*)leafNode)->data[i].value, attribute);
@@ -764,6 +765,27 @@ inline void checkLeafNode(QTree* qTree, LeafNode* leafNode, BoundKey* removedMax
             *removedMin = leafNode->node.minValue;
         }
         LeafNodeResetMinValue(leafNode);
+    }
+    NodeRmRemoveReadInsertWriteLock((Node*)leafNode, threadId);
+}
+
+
+inline void checkLeafNodeWithoutRemove(QTree* qTree, LeafNode* leafNode, BoundKey* removedMax, BoundKey* removedMin, BoundKey attribute, Arraylist* removedQuery, int threadId){
+    int j = 0;
+    BOOL resetMax = FALSE;
+    BOOL resetMin = FALSE;
+    NodeAddRemoveReadInsertWriteLock((Node*)leafNode, threadId);
+    for(int i = 0; i < leafNode->node.allocated ; i ++){
+        checkQuery ++;
+        BOOL delete = FALSE;
+        if(markDelete){
+            if(QueryIsDeleted(leafNode->data[i].value)){
+                delete = TRUE;
+            }
+        }
+        if((delete == FALSE) && CheckLeafNodeCover(leafNode,i, attribute)){
+            ArraylistAdd(removedQuery, leafNode->data[i].value);
+        }
     }
     NodeRmRemoveReadInsertWriteLock((Node*)leafNode, threadId);
 }
@@ -833,6 +855,39 @@ inline Node* getAnotherNode(QTree* qTree, KeyType* key, BoundKey* removedMax, Bo
             InternalNodeResetMinValue(((InternalNode*) node));
         }
         NodeRmInsertWriteLockForRemove((Node*)internalNode);
+        NodeRmRemoveReadLock((Node*)internalNode, threadId);
+        node = NULL;
+    }
+
+    return node;
+}
+
+inline Node* getAnotherNodeWithoutRemove(QTree* qTree, KeyType* key, BoundKey* removedMax, BoundKey* removedMin, Arraylist* removedQuery,
+                            NodesStack *nodesStack, IntStack* slotStack, int threadId){
+    Node* node = NULL;
+    int slot;
+
+    while (!stackEmpty(nodesStack->stackNodes, nodesStack->stackNodesIndex)){
+        node = (Node*)stackPop(nodesStack->stackNodes, nodesStack->stackNodesIndex);
+        slot = stackPop(slotStack->stackSlots, slotStack->stackSlotsIndex);
+
+        InternalNode* internalNode = (InternalNode*) node;
+        //the node has been added r-readLock
+        //   NodeAddRemoveReadLock((Node*)internalNode, threadId);
+        NodeAddInsertReadLock((Node*)internalNode, threadId);
+        for (; slot < node->allocated; slot ++) {
+//            NodeAddRWLock(internalNode->childs[slot]);
+            if(((internalNode->childs[slot + 1]->maxValue) >= key->lower) && ((internalNode->childs[slot + 1]->minValue) <= key->upper)){
+                node = internalNode->childs[slot + 1];
+                stackPush(nodesStack->stackNodes, nodesStack->stackNodesIndex, internalNode);
+                stackPush(slotStack->stackSlots, slotStack->stackSlotsIndex, slot + 1);
+//                NodeRmRWLock(internalNode->childs[slot]);
+//                NodeRmRemoveReadLock((Node*)internalNode, threadId);
+                NodeRmInsertReadLock((Node*)internalNode, threadId);
+                return node;
+            }
+//            NodeRmRWLock(internalNode->childs[slot]);
+        }
         NodeRmRemoveReadLock((Node*)internalNode, threadId);
         node = NULL;
     }
@@ -928,6 +983,54 @@ void QTreeFindAndRemoveRelatedQueries(QTree* qTree, BoundKey attribute, Arraylis
         }
     }
 //    NodeCheckTree(qTree->root);
+}
+
+void QTreeFindRelatedQueries(QTree* qTree, BoundKey attribute, Arraylist* removedQuery, int threadId){
+    NodesStack  nodesStack;
+    IntStack slotStack;
+    nodesStack.stackNodesIndex = 0;
+    slotStack.stackSlotsIndex = 0;
+    int oldCheckInternal = checkInternal, oldRemove = removedQuery->size;
+    checkInternal = 0;
+//    if(optimizationType == BatchAndNoSort || optimizationType == Batch){
+//        QTreeCheckBatch(qTree, attribute, removedQuery);
+//    }
+    Node* node = qTree->root;
+    KeyType  queryRange;
+    KeyType* key = &queryRange;
+    QueryRangeConstructorWithPara(key, attribute, attribute, TRUE, TRUE);
+    BoundKey removedMax = 0, removedMin = maxValue << 1;
+    while (TRUE) {
+        while (!NodeIsLeaf(node)){
+            InternalNode* nodeInternal = (InternalNode*) node;
+            node = checkInternalNode( qTree, nodeInternal,   key, &nodesStack, &slotStack, threadId);
+            //                System.out.println("getNode:" + getNode + ", node:" + node);
+            if(node == NULL){
+                node = getAnotherNodeWithoutRemove(qTree, key, &removedMax, &removedMin, removedQuery, &nodesStack, &slotStack, threadId);
+                if(node == NULL){
+                    break;
+                }
+            }
+        }
+        if(node == NULL){
+            break;
+        }
+        if(NodeIsLeaf(node)){
+            checkLeaf ++;
+            LeafNode* leafNode = (LeafNode*) node;
+            //                System.out.println("getLeafNode:" + leafNode);
+            checkLeafNodeWithoutRemove(qTree, leafNode,  &removedMax, &removedMin, attribute, removedQuery, threadId);
+            if(stackEmpty(nodesStack.stackNodes, nodesStack.stackNodesIndex)){
+                break;
+            }
+            node = getAnotherNodeWithoutRemove(qTree, key, &removedMax, &removedMin, removedQuery, &nodesStack, &slotStack, threadId);
+            if(node == NULL){
+                break;
+            }
+        }else {
+            break;
+        }
+    }
 }
 
 inline Node* checkInternalNodeForRefactor(QTree* qTree, InternalNode* nodeInternal, NodesStack *nodesStack, IntStack* slotStack, int threadId){
