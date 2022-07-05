@@ -13,6 +13,23 @@ extern u_int64_t checkQuery;
 extern u_int64_t checkInternal;
 extern SearchKeyType searchKeyType;
 
+int checkQueryMeta;
+int setKeyCount;
+int markDelete;
+int WorkEnd;
+int RefactorThreadEnd;
+pthread_t RefactorThread;
+
+BoundKey RemovedKey[MaxThread][RemovedQueueSize];
+u_int32_t clockFlag[MaxThread];
+int clockIndex[MaxThread];
+
+int printQTreelog;
+int useBFPRT;
+
+
+OptimizationType optimizationType;
+
 void QTreeConstructor(QTree* qTree,  int BOrder){
     memset(qTree, 0, sizeof (QTree));
     qTree->maxNodeID = 0;

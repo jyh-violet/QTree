@@ -348,6 +348,7 @@ void PAPI_end(){
         handle_error(1);
 
 }
+int printLog;
 int logF = -1;
 __thread threadID;
 void vmlog(LOGLevel logLevel, char* fmat, ...){

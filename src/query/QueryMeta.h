@@ -10,7 +10,7 @@
 #ifndef QTREE_QUERYMETA_H
 #define QTREE_QUERYMETA_H
 
-int queryCount;
+extern int queryCount;
 #define queryIdLen 20
 typedef struct QueryMeta {
     char    queryId[queryIdLen];

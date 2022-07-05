@@ -19,12 +19,12 @@
 
 #define NodeIsLeaf(node)  (((Node*)node)->id >= 0)
 
-int checkQueryMeta;
-int setKeyCount;
-int markDelete;
-int WorkEnd;
-int RefactorThreadEnd;
-pthread_t RefactorThread;
+extern int checkQueryMeta;
+extern int setKeyCount;
+extern int markDelete;
+extern int WorkEnd;
+extern int RefactorThreadEnd;
+extern pthread_t RefactorThread;
 
 extern int maxValue;
 extern int removePoint;
@@ -36,15 +36,15 @@ typedef struct Node Node;
 
 #define MaxThread 100
 #define RemovedQueueSize 8
-BoundKey RemovedKey[MaxThread][RemovedQueueSize];
-u_int32_t clockFlag[MaxThread];
-int clockIndex[MaxThread];
+extern BoundKey RemovedKey[MaxThread][RemovedQueueSize];
+extern u_int32_t clockFlag[MaxThread];
+extern int clockIndex[MaxThread];
 
-int printQTreelog;
-int useBFPRT;
+extern int printQTreelog;
+extern int useBFPRT;
 
 
-OptimizationType optimizationType;
+extern OptimizationType optimizationType;
 
 #define KeyType QueryRange
 #define ValueType   QueryMeta

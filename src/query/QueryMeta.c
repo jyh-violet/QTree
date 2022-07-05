@@ -3,7 +3,7 @@
 //
 
 #include "QueryMeta.h"
-
+int queryCount;
 char* getQueryId(QueryMeta* queryMeta){
     return queryMeta->queryId;
 }

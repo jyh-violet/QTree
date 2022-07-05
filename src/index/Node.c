@@ -238,7 +238,7 @@ void NodeAddInsertReadLock(Node* node, int threadId){
         try ++;
         if(try%WriteLockTryThreshold == 0){
             usleep(100);
-            vmlog(WARN,"NodeAddInsertReadLock node:%d conflict:%x", ((Node*)node)->id, node->insertLock);
+            vmlog(ERROR,"NodeAddInsertReadLock node:%d conflict:%x", ((Node*)node)->id, node->insertLock);
         }
     }
 }
