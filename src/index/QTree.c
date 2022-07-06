@@ -876,18 +876,19 @@ inline Node* getAnotherNodeWithoutRemove(QTree* qTree, KeyType* key, BoundKey* r
         //   NodeAddRemoveReadLock((Node*)internalNode, threadId);
         NodeAddInsertReadLock((Node*)internalNode, threadId);
         for (; slot < node->allocated; slot ++) {
-//            NodeAddRWLock(internalNode->childs[slot]);
+            //            NodeAddRWLock(internalNode->childs[slot]);
             if(((internalNode->childs[slot + 1]->maxValue) >= key->lower) && ((internalNode->childs[slot + 1]->minValue) <= key->upper)){
                 node = internalNode->childs[slot + 1];
                 stackPush(nodesStack->stackNodes, nodesStack->stackNodesIndex, internalNode);
                 stackPush(slotStack->stackSlots, slotStack->stackSlotsIndex, slot + 1);
-//                NodeRmRWLock(internalNode->childs[slot]);
-//                NodeRmRemoveReadLock((Node*)internalNode, threadId);
+                //                NodeRmRWLock(internalNode->childs[slot]);
+                //                NodeRmRemoveReadLock((Node*)internalNode, threadId);
                 NodeRmInsertReadLock((Node*)internalNode, threadId);
                 return node;
             }
-//            NodeRmRWLock(internalNode->childs[slot]);
+            //            NodeRmRWLock(internalNode->childs[slot]);
         }
+        NodeRmInsertReadLock((Node*)internalNode, threadId);
         NodeRmRemoveReadLock((Node*)internalNode, threadId);
         node = NULL;
     }

@@ -152,6 +152,10 @@ void QTreeRefactor(QTree* qTree, int threadId);
 BOOL QTreeMarkDelete(QTree* qTree, QueryMeta* queryMeta);
 void QTreeRefactorThread(QTree* qTree);
 
+void checkLeafNodeWithoutRemove(QTree* qTree, LeafNode* leafNode, BoundKey* removedMax, BoundKey* removedMin, BoundKey attribute, Arraylist* removedQuery, int threadId);
+Node* getAnotherNodeWithoutRemove(QTree* qTree, KeyType* key, BoundKey* removedMax, BoundKey* removedMin, Arraylist* removedQuery,
+                                  NodesStack *nodesStack, IntStack* slotStack, int threadId);
+void QTreeFindRelatedQueries(QTree* qTree, BoundKey attribute, Arraylist* removedQuery, int threadId);
 
 void NodeCheckTree(Node* node);
 void NodeConstructor(Node* node, QTree *tree);
