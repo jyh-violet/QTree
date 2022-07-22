@@ -1,2 +1,2 @@
 # QTree
-main code is in branch "blink" and "doublelink"
+main codes are in branch "blink" and "doublelink"
